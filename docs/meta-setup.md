@@ -50,7 +50,7 @@ The application ignores echoes, non-text events, malformed events, and repeated 
 - `META_ACCESS_TOKEN`: Instagram user/system-user access token selected in the n8n Meta bearer credential.
 - `META_INSTAGRAM_ACCOUNT_ID`: professional account ID used by the Send API.
 - `META_PAGE_ID`: unused for Instagram Login; retained as an optional placeholder only if the owner deliberately selects the Facebook Login path later.
-- `META_GRAPH_API_VERSION`: currently supported version selected for the app, stored as an n8n variable.
+- `META_GRAPH_API_VERSION`: currently supported version selected for the app, entered in the workflow's **Runtime Configuration** node.
 
 The outbound endpoint used by the workflow is:
 

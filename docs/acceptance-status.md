@@ -22,8 +22,8 @@ Reviewed against the original client contract on 2026-08-31 after fixture-backed
 The repository is fixture-backed complete but cannot truthfully claim a live end-to-end Instagram demo until the owner supplies/configures these directly in the relevant platforms:
 
 1. Supabase project, migration/seed execution, and owner Auth account.
-2. n8n Cloud workspace with imported workflow, variables, and selected credentials.
-3. OpenAI API credential and current model/cost variables.
+2. n8n Cloud workspace with imported workflow, runtime configuration, and selected credentials.
+3. OpenAI API credential and selected model; optional cost variables may remain unset.
 4. Meta app/account authorization, required scopes, access token, app secret, verify token, account ID, webhook subscription, and development tester role.
 5. Vercel project/domain with server-side environment variables.
 

@@ -49,16 +49,17 @@ Public/anonymous users have no table-read policy. Lead creation goes through the
 Import `n8n/promotr-instagram-host.workflow.json`, then select or create these credentials:
 
 - `Promotr n8n shared secret`: header name `X-Promotr-Secret`, value matching `N8N_SHARED_SECRET` in Vercel.
-- `Promotr Supabase service role`: headers `apikey` and `Authorization: Bearer ...` using the Supabase service-role key. If one generic-header credential cannot hold both headers in the selected n8n plan, add the `apikey` as a fixed header on both Supabase nodes.
-- `Promotr OpenAI bearer token`: `Authorization: Bearer OPENAI_API_KEY`.
+- `Promotr Supabase service role`: use n8n's **Supabase API** credential. Set Host to the project URL (without `/rest/v1`) and Secret Key to the Supabase service-role key.
+- `Promotr OpenAI bearer token`: use n8n's **OpenAI API** credential and enter the API key directly in n8n.
 - `Promotr Meta bearer token`: `Authorization: Bearer META_ACCESS_TOKEN`.
 
-Create n8n Variables:
+Open **Runtime Configuration** and replace the placeholders for:
 
-- `SUPABASE_URL`
-- `OPENAI_MODEL` (for example, `gpt-4.1-mini`)
-- `OPENAI_INPUT_COST_PER_M` and `OPENAI_OUTPUT_COST_PER_M` using the current per-million-token prices for the selected model; these support observability and must be refreshed when model pricing changes
-- `META_GRAPH_API_VERSION` using the currently supported version selected for the Meta app
+- `supabaseUrl`
+- `openaiModel`
+- `metaGraphApiVersion` using the currently supported version selected for the Meta app
+
+Optional n8n Variables `OPENAI_INPUT_COST_PER_M` and `OPENAI_OUTPUT_COST_PER_M` support cost observability and default to zero when omitted.
 
 Activate the workflow and copy its production webhook URL into `N8N_INSTAGRAM_WEBHOOK_URL`. Do not commit an exported workflow after credentials have been embedded.
 
@@ -71,13 +72,13 @@ Follow [docs/meta-setup.md](docs/meta-setup.md). It records the selected Instagr
 | Variable                         | Local            | Vercel | n8n                   |
 | -------------------------------- | ---------------- | ------ | --------------------- |
 | `NEXT_PUBLIC_APP_URL`            | yes              | yes    | no                    |
-| Supabase URL + anon key          | yes              | yes    | URL variable only     |
+| Supabase URL + anon key          | yes              | yes    | runtime config        |
 | Supabase service-role key        | server only      | yes    | credential            |
 | `ADMIN_EMAIL`, rate-limit secret | yes              | yes    | no                    |
 | Meta app secret + verify token   | yes              | yes    | no                    |
 | Meta access token                | optional         | no     | credential            |
 | n8n URL + shared secret          | yes              | yes    | webhook credential    |
-| OpenAI key + model               | tests only/model | no     | credential + variable |
+| OpenAI key + model               | tests only/model | no     | credential + runtime  |
 
 Never prefix secrets with `NEXT_PUBLIC_` or expose them to browser code.
 

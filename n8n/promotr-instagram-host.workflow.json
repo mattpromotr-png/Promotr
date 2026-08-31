@@ -23,10 +23,28 @@
     },
     {
       "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "event", "name": "event", "value": "={{ $json.body }}", "type": "object" },
+            { "id": "supabaseUrl", "name": "supabaseUrl", "value": "https://YOUR_PROJECT.supabase.co", "type": "string" },
+            { "id": "openaiModel", "name": "openaiModel", "value": "gpt-4.1-mini", "type": "string" },
+            { "id": "metaGraphApiVersion", "name": "metaGraphApiVersion", "value": "REPLACE_WITH_CURRENT_VERSION", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "runtime-config",
+      "name": "Runtime Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-700, 80]
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "={{ $vars.SUPABASE_URL + '/rest/v1/rpc/prepare_instagram_message' }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "url": "={{ $('Runtime Configuration').first().json.supabaseUrl + '/rest/v1/rpc/prepare_instagram_message' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -35,16 +53,16 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { p_sender_id: $json.body.senderId, p_provider_message_id: $json.body.providerMessageId, p_content: $json.body.text } }}",
+        "jsonBody": "={{ { p_sender_id: $('Runtime Configuration').first().json.event.senderId, p_provider_message_id: $('Runtime Configuration').first().json.event.providerMessageId, p_content: $('Runtime Configuration').first().json.event.text } }}",
         "options": { "timeout": 10000 }
       },
       "id": "prepare",
       "name": "Load Context and Store Inbound",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-660, 80],
+      "position": [-460, 80],
       "credentials": {
-        "httpHeaderAuth": {
+        "supabaseApi": {
           "id": "SELECT_SUPABASE_SERVICE_ROLE_CREDENTIAL",
           "name": "Promotr Supabase service role"
         }
@@ -89,8 +107,8 @@
       "parameters": {
         "method": "POST",
         "url": "https://api.openai.com/v1/responses",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -99,7 +117,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { model: $vars.OPENAI_MODEL || 'gpt-4.1-mini', input: [{ role: 'system', content: $('Deterministic Rules and Prompt').first().json.system }, { role: 'user', content: $('Deterministic Rules and Prompt').first().json.prompt }], max_output_tokens: 220, text: { format: { type: 'json_schema', name: 'promotr_host_reply', strict: true, schema: { type: 'object', additionalProperties: false, properties: { reply: { type: 'string' }, intent: { type: 'string', enum: ['faq','guest_list','table','birthday','complaint','booking','other'] }, bookingIntent: { type: 'boolean' }, missingQualificationFields: { type: 'array', items: { type: 'string', enum: ['date','party_size','occasion','booking_type','bottle_preference'] } }, shareBookingForm: { type: 'boolean' }, handoffRequired: { type: 'boolean' }, handoffReason: { type: ['string','null'] } }, required: ['reply','intent','bookingIntent','missingQualificationFields','shareBookingForm','handoffRequired','handoffReason'] } } } } }}",
+        "jsonBody": "={{ { model: $('Runtime Configuration').first().json.openaiModel, input: [{ role: 'system', content: $('Deterministic Rules and Prompt').first().json.system }, { role: 'user', content: $('Deterministic Rules and Prompt').first().json.prompt }], max_output_tokens: 220, text: { format: { type: 'json_schema', name: 'promotr_host_reply', strict: true, schema: { type: 'object', additionalProperties: false, properties: { reply: { type: 'string' }, intent: { type: 'string', enum: ['faq','guest_list','table','birthday','complaint','booking','other'] }, bookingIntent: { type: 'boolean' }, missingQualificationFields: { type: 'array', items: { type: 'string', enum: ['date','party_size','occasion','booking_type','bottle_preference'] } }, shareBookingForm: { type: 'boolean' }, handoffRequired: { type: 'boolean' }, handoffReason: { type: ['string','null'] } }, required: ['reply','intent','bookingIntent','missingQualificationFields','shareBookingForm','handoffRequired','handoffReason'] } } } } }}",
         "options": { "timeout": 20000 }
       },
       "id": "openai",
@@ -111,7 +129,7 @@
       "maxTries": 3,
       "waitBetweenTries": 1000,
       "credentials": {
-        "httpHeaderAuth": {
+        "openAiApi": {
           "id": "SELECT_OPENAI_BEARER_CREDENTIAL",
           "name": "Promotr OpenAI bearer token"
         }
@@ -130,7 +148,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ 'https://graph.instagram.com/' + $vars.META_GRAPH_API_VERSION + '/' + $('Deterministic Rules and Prompt').first().json.source.recipientId + '/messages' }}",
+        "url": "={{ 'https://graph.instagram.com/' + $('Runtime Configuration').first().json.metaGraphApiVersion + '/' + $('Deterministic Rules and Prompt').first().json.source.recipientId + '/messages' }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -162,9 +180,9 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $vars.SUPABASE_URL + '/rest/v1/rpc/complete_instagram_reply' }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "url": "={{ $('Runtime Configuration').first().json.supabaseUrl + '/rest/v1/rpc/complete_instagram_reply' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -182,7 +200,7 @@
       "typeVersion": 4.2,
       "position": [800, 80],
       "credentials": {
-        "httpHeaderAuth": {
+        "supabaseApi": {
           "id": "SELECT_SUPABASE_SERVICE_ROLE_CREDENTIAL",
           "name": "Promotr Supabase service role"
         }
@@ -190,7 +208,7 @@
     },
     {
       "parameters": {
-        "content": "## Credentials after import\nSelect credentials for the Webhook shared secret, Supabase service-role headers, OpenAI bearer token, and Meta bearer token. Create n8n Variables: `SUPABASE_URL`, `OPENAI_MODEL`, `OPENAI_INPUT_COST_PER_M`, `OPENAI_OUTPUT_COST_PER_M`, and `META_GRAPH_API_VERSION`. No secrets are stored in this export.",
+        "content": "## Setup after import\n1. Edit **Runtime Configuration**: Supabase project URL, OpenAI model, and current Meta Graph API version.\n2. Select credentials: Webhook Header Auth, Supabase API, OpenAI API, and Meta Header Auth.\n3. Optional cost Variables default to `0`. No secrets are stored in this export. Do not activate until staged tests pass.",
         "height": 220,
         "width": 420
       },
@@ -203,6 +221,17 @@
   ],
   "connections": {
     "Receive Normalized Event": {
+      "main": [
+        [
+          {
+            "node": "Runtime Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Runtime Configuration": {
       "main": [
         [
           {
