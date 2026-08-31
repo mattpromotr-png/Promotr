@@ -39,11 +39,17 @@ export const aiHostResponseSchema = z
 
 export type AiHostResponse = z.infer<typeof aiHostResponseSchema>;
 
+const falseConfirmationPattern =
+  /\b(you(?:'re| are) booked|(?:booking|reservation|table)(?: is|'s)? confirmed|got you booked|secured your (?:table|booking|reservation))\b/i;
+
 export function finalizeAiReply(
   response: AiHostResponse,
   bookingFormUrl: string,
 ) {
   const safeReply = response.reply.replace(/https?:\/\/\S+/gi, "").trim();
+  if (falseConfirmationPattern.test(safeReply)) {
+    return "I can help you send a booking inquiry, but the venue still needs to confirm availability. Want to continue?";
+  }
   return response.shareBookingForm
     ? `${safeReply}\n\nSend your inquiry here: ${bookingFormUrl}`
     : safeReply;

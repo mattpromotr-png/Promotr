@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { aiHostResponseSchema, finalizeAiReply, type AiHostResponse } from "./contract";
+import {
+  aiHostResponseSchema,
+  finalizeAiReply,
+  type AiHostResponse,
+} from "./contract";
 
 const output = {
   reply: "Absolutely 🎉 What night are you thinking?",
@@ -25,4 +29,11 @@ describe("AI response contract", () => {
         "https://promotr.test/book",
       ),
     ).toContain("https://promotr.test/book"));
+  it("blocks false booking confirmations", () =>
+    expect(
+      finalizeAiReply(
+        { ...output, reply: "Great, your table is confirmed!" },
+        "https://promotr.test/book",
+      ),
+    ).toContain("still needs to confirm"));
 });

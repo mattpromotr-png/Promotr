@@ -11,11 +11,17 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile-chromium", use: { ...devices["Pixel 7"] } },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"], channel: "chromium" },
+    },
+    {
+      name: "mobile-chromium",
+      use: { ...devices["Pixel 7"], channel: "chromium" },
+    },
   ],
   webServer: {
-    command: "npm run dev",
+    command: "npm.cmd run dev",
     url: "http://127.0.0.1:3000/api/health",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

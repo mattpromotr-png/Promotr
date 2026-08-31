@@ -95,3 +95,40 @@ end; $$;
 
 revoke all on function public.submit_booking_inquiry(uuid, text, jsonb) from public, anon, authenticated;
 grant execute on function public.submit_booking_inquiry(uuid, text, jsonb) to service_role;
+
+create or replace function public.prepare_instagram_message(
+  p_sender_id text, p_provider_message_id text, p_content text
+) returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_venue public.venues%rowtype; v_contact_id uuid; v_conversation public.conversations%rowtype; v_messages jsonb;
+begin
+  select * into v_venue from public.venues where slug = 'promotr-nightclub';
+  if v_venue.id is null then raise exception 'venue_not_configured'; end if;
+  insert into public.contacts (venue_id, instagram_scoped_id) values (v_venue.id, p_sender_id)
+  on conflict (venue_id, instagram_scoped_id) do update set last_seen_at = now() returning id into v_contact_id;
+  insert into public.conversations (venue_id, contact_id) values (v_venue.id, v_contact_id)
+  on conflict (venue_id, contact_id, channel) do update set last_message_at = now(), updated_at = now() returning * into v_conversation;
+  insert into public.messages (conversation_id, provider_message_id, direction, sender_type, content)
+  values (v_conversation.id, p_provider_message_id, 'inbound', 'guest', p_content) on conflict (provider_message_id) do nothing;
+  select coalesce(jsonb_agg(item order by created_at), '[]'::jsonb) into v_messages from (
+    select direction, content, created_at from public.messages where conversation_id = v_conversation.id order by created_at desc limit 10
+  ) item;
+  return jsonb_build_object('venueId', v_venue.id, 'conversationId', v_conversation.id, 'bookingFormUrl', v_venue.booking_form_url,
+    'venueFacts', v_venue.venue_facts, 'aiConfiguration', v_venue.ai_configuration, 'rollingSummary', v_conversation.rolling_summary, 'recentMessages', v_messages);
+end; $$;
+
+create or replace function public.complete_instagram_reply(
+  p_conversation_id uuid, p_provider_message_id text, p_content text, p_intent text,
+  p_handoff_required boolean, p_handoff_reason text, p_metadata jsonb
+) returns void language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.messages (conversation_id, provider_message_id, direction, sender_type, content, intent, delivery_status, metadata)
+  values (p_conversation_id, p_provider_message_id, 'outbound', 'ai', p_content, p_intent, 'sent', coalesce(p_metadata, '{}'::jsonb));
+  update public.conversations set status = case when p_handoff_required then 'handoff_required'::public.conversation_status else status end,
+    handoff_reason = case when p_handoff_required then p_handoff_reason else handoff_reason end, last_message_at = now(), updated_at = now()
+  where id = p_conversation_id;
+end; $$;
+
+revoke all on function public.prepare_instagram_message(text, text, text) from public, anon, authenticated;
+revoke all on function public.complete_instagram_reply(uuid, text, text, text, boolean, text, jsonb) from public, anon, authenticated;
+grant execute on function public.prepare_instagram_message(text, text, text) to service_role;
+grant execute on function public.complete_instagram_reply(uuid, text, text, text, boolean, text, jsonb) to service_role;

@@ -42,12 +42,10 @@ export async function POST(request: NextRequest) {
   const supabase = createAdminClient();
 
   for (const event of events) {
-    const { error } = await supabase
-      .from("webhook_events")
-      .insert({
-        provider_message_id: event.providerMessageId,
-        normalized_event: event,
-      });
+    const { error } = await supabase.from("webhook_events").insert({
+      provider_message_id: event.providerMessageId,
+      normalized_event: event,
+    });
     if (error?.code === "23505") {
       const { data: existing } = await supabase
         .from("webhook_events")
