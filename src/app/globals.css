@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --canvas: #f4f4f8;
+  --surface: #ffffff;
+  --elevated: #f8f8fc;
+  --border: rgba(24, 24, 35, 0.12);
+  --foreground: #181821;
+  --muted: #686876;
+  --violet: #7c3aed;
+  --purple: #6d28d9;
+  --magenta: #c026d3;
+}
+
+.dark {
+  --canvas: #07080d;
+  --surface: #0d1017;
+  --elevated: #12151e;
+  --border: rgba(255, 255, 255, 0.09);
+  --foreground: #f7f7fb;
+  --muted: #a6a8b3;
+  --violet: #a978ff;
+  --purple: #7c3aed;
+  --magenta: #d946ef;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-violet: var(--violet);
+  --color-purple: var(--purple);
+  --color-magenta: var(--magenta);
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  background: var(--canvas);
+}
+
+body {
+  min-height: 100svh;
+  background: var(--canvas);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.surface-card {
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.eyebrow {
+  background: linear-gradient(90deg, var(--violet), var(--magenta));
+  background-clip: text;
+  color: transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.bg-brand-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--magenta),
+    var(--purple) 58%,
+    var(--violet)
+  );
+}
+
+.shadow-violet {
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--purple) 35%, transparent);
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 3px;
+}
+
+.ambient-glow {
+  position: absolute;
+  top: -24rem;
+  left: 50%;
+  width: 62rem;
+  height: 62rem;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--purple) 18%, transparent),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
