@@ -1,4 +1,5 @@
-import { CalendarDays, MapPin, ShieldCheck } from "lucide-react";
+import { CalendarDays, LockKeyhole, MapPin, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 import { Brand } from "@/components/brand";
 import { BookingForm } from "@/components/booking/booking-form";
@@ -17,7 +18,17 @@ export default function BookingPage() {
       <div className="relative mx-auto max-w-6xl">
         <header className="flex items-center justify-between py-2">
           <Brand />
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/login"
+              className="focus-ring border-border bg-surface text-muted hover:text-foreground inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition-colors"
+            >
+              <LockKeyhole size={15} aria-hidden="true" />
+              <span className="hidden sm:inline">Admin login</span>
+              <span className="sm:hidden">Admin</span>
+            </Link>
+            <ThemeToggle />
+          </div>
         </header>
 
         <section className="grid gap-7 py-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start lg:gap-12 lg:py-16">

@@ -9,6 +9,9 @@ test("guest can complete a booking inquiry", async ({ page }) => {
     });
   });
   await page.goto("/book");
+  await expect(
+    page.getByRole("link", { name: /admin(?: login)?/i }),
+  ).toHaveAttribute("href", "/admin/login");
   await page.getByLabel("Guest name").fill("Sarah Johnson");
   await page.getByLabel("Email").fill("sarah@example.com");
   await page.getByLabel("Desired date").fill("2099-05-17");

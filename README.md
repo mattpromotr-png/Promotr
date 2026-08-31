@@ -69,16 +69,16 @@ Follow [docs/meta-setup.md](docs/meta-setup.md). It records the selected Instagr
 
 ## Environment ownership
 
-| Variable                         | Local            | Vercel | n8n                   |
-| -------------------------------- | ---------------- | ------ | --------------------- |
-| `NEXT_PUBLIC_APP_URL`            | yes              | yes    | no                    |
-| Supabase URL + anon key          | yes              | yes    | runtime config        |
-| Supabase service-role key        | server only      | yes    | credential            |
-| `ADMIN_EMAIL`, rate-limit secret | yes              | yes    | no                    |
-| Meta app secret + verify token   | yes              | yes    | no                    |
-| Meta access token                | optional         | no     | credential            |
-| n8n URL + shared secret          | yes              | yes    | webhook credential    |
-| OpenAI key + model               | tests only/model | no     | credential + runtime  |
+| Variable                         | Local            | Vercel | n8n                  |
+| -------------------------------- | ---------------- | ------ | -------------------- |
+| `NEXT_PUBLIC_APP_URL`            | yes              | yes    | no                   |
+| Supabase URL + anon key          | yes              | yes    | runtime config       |
+| Supabase service-role key        | server only      | yes    | credential           |
+| `ADMIN_EMAIL`, rate-limit secret | yes              | yes    | no                   |
+| Meta app secret + verify token   | yes              | yes    | no                   |
+| Meta access token                | optional         | no     | credential           |
+| n8n URL + shared secret          | yes              | yes    | webhook credential   |
+| OpenAI key + model               | tests only/model | no     | credential + runtime |
 
 Never prefix secrets with `NEXT_PUBLIC_` or expose them to browser code.
 

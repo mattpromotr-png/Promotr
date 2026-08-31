@@ -25,10 +25,30 @@
       "parameters": {
         "assignments": {
           "assignments": [
-            { "id": "event", "name": "event", "value": "={{ $json.body }}", "type": "object" },
-            { "id": "supabaseUrl", "name": "supabaseUrl", "value": "https://YOUR_PROJECT.supabase.co", "type": "string" },
-            { "id": "openaiModel", "name": "openaiModel", "value": "gpt-4.1-mini", "type": "string" },
-            { "id": "metaGraphApiVersion", "name": "metaGraphApiVersion", "value": "REPLACE_WITH_CURRENT_VERSION", "type": "string" }
+            {
+              "id": "event",
+              "name": "event",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "supabaseUrl",
+              "name": "supabaseUrl",
+              "value": "https://YOUR_PROJECT.supabase.co",
+              "type": "string"
+            },
+            {
+              "id": "openaiModel",
+              "name": "openaiModel",
+              "value": "gpt-4.1-mini",
+              "type": "string"
+            },
+            {
+              "id": "metaGraphApiVersion",
+              "name": "metaGraphApiVersion",
+              "value": "REPLACE_WITH_CURRENT_VERSION",
+              "type": "string"
+            }
           ]
         },
         "options": {}
