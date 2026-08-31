@@ -33,6 +33,15 @@ type Lead = {
   created_at: string;
   conversations: { status: string; handoff_reason: string | null } | null;
 };
+type HandoffConversation = {
+  id: string;
+  handoff_reason: string | null;
+  last_message_at: string;
+  contacts: {
+    display_name: string | null;
+    instagram_scoped_id: string;
+  } | null;
+};
 
 export const metadata = { title: "Leads" };
 export const dynamic = "force-dynamic";
@@ -47,16 +56,29 @@ export default async function AdminLeadsPage({
   const filter: Filter = filters.includes(rawFilter as Filter)
     ? (rawFilter as Filter)
     : "all";
-  let query = createAdminClient()
+  const admin = createAdminClient();
+  let query = admin
     .from("leads")
     .select(
       "id,name,email,phone,instagram_handle,requested_date,preferred_arrival_time,party_size,occasion,booking_type,bottle_preference,notes,status,created_at,conversations(status,handoff_reason)",
     )
     .order("created_at", { ascending: false });
   if (filter !== "all") query = query.eq("status", filter);
-  const { data, error } = await query;
-  if (error) throw new Error("Unable to load leads.");
-  const leads = (data ?? []) as unknown as Lead[];
+  const [leadResult, handoffResult] = await Promise.all([
+    query,
+    admin
+      .from("conversations")
+      .select(
+        "id,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id)",
+      )
+      .eq("status", "handoff_required")
+      .order("last_message_at", { ascending: false }),
+  ]);
+  if (leadResult.error || handoffResult.error)
+    throw new Error("Unable to load the admin view.");
+  const leads = (leadResult.data ?? []) as unknown as Lead[];
+  const handoffs = (handoffResult.data ??
+    []) as unknown as HandoffConversation[];
 
   return (
     <main className="min-h-svh px-4 py-5 sm:px-6 lg:px-8">
@@ -85,6 +107,64 @@ export default async function AdminLeadsPage({
             Newest inquiries appear first. A status update does not confirm a
             reservation.
           </p>
+          <section className="mt-7" aria-labelledby="handoff-heading">
+            <div className="flex items-center gap-2">
+              <AlertTriangle
+                className="text-amber-300"
+                size={18}
+                aria-hidden="true"
+              />
+              <h2
+                id="handoff-heading"
+                className="text-foreground text-lg font-semibold"
+              >
+                Human follow-up
+              </h2>
+              <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-300">
+                {handoffs.length}
+              </span>
+            </div>
+            {handoffs.length === 0 ? (
+              <p className="text-muted border-border bg-surface mt-3 rounded-xl border p-4 text-sm">
+                No conversations currently require human follow-up.
+              </p>
+            ) : (
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                {handoffs.map((handoff) => (
+                  <article
+                    key={handoff.id}
+                    className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-foreground font-medium">
+                          {handoff.contacts?.display_name || "Instagram guest"}
+                        </h3>
+                        <p className="text-muted mt-1 text-xs">
+                          Contact …
+                          {handoff.contacts?.instagram_scoped_id.slice(-4) ||
+                            "unknown"}
+                        </p>
+                      </div>
+                      <time
+                        className="text-muted text-xs"
+                        dateTime={handoff.last_message_at}
+                      >
+                        {new Intl.DateTimeFormat("en-CA", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(handoff.last_message_at))}
+                      </time>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-amber-100/90">
+                      {handoff.handoff_reason ||
+                        "The AI requested human follow-up."}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
           <nav
             className="mt-6 flex gap-2 overflow-x-auto pb-2"
             aria-label="Filter leads by status"

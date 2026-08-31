@@ -1,0 +1,106 @@
+[
+  {
+    "name": "music faq",
+    "output": {
+      "reply": "We play hip-hop, R&B, Afrobeats, Top 40, and party anthems all night 🔥",
+      "intent": "faq",
+      "bookingIntent": false,
+      "missingQualificationFields": [],
+      "shareBookingForm": false,
+      "handoffRequired": false,
+      "handoffReason": null
+    },
+    "contains": ["hip-hop", "R&B", "Afrobeats", "Top 40"]
+  },
+  {
+    "name": "hours faq",
+    "output": {
+      "reply": "We’re open Friday and Saturday from 10 PM to 3 AM 🎉",
+      "intent": "faq",
+      "bookingIntent": false,
+      "missingQualificationFields": [],
+      "shareBookingForm": false,
+      "handoffRequired": false,
+      "handoffReason": null
+    },
+    "contains": ["Friday", "Saturday", "10 PM", "3 AM"]
+  },
+  {
+    "name": "cover faq",
+    "output": {
+      "reply": "Cover is usually $20 before 11 PM and $30 after 11 PM. It can vary for special events 🎟️",
+      "intent": "faq",
+      "bookingIntent": false,
+      "missingQualificationFields": [],
+      "shareBookingForm": false,
+      "handoffRequired": false,
+      "handoffReason": null
+    },
+    "contains": ["$20", "before 11 PM", "$30", "special events"]
+  },
+  {
+    "name": "dress code faq",
+    "output": {
+      "reply": "Think upscale, clean, and ready for a night out 😎 Clean sneakers may be allowed depending on the night, but security has final discretion.",
+      "intent": "faq",
+      "bookingIntent": false,
+      "missingQualificationFields": [],
+      "shareBookingForm": false,
+      "handoffRequired": false,
+      "handoffReason": null
+    },
+    "contains": ["upscale", "Clean sneakers", "security"]
+  },
+  {
+    "name": "guest list still needs date and party size",
+    "output": {
+      "reply": "Absolutely 🎉 What night are you thinking, and how many people are coming?",
+      "intent": "guest_list",
+      "bookingIntent": true,
+      "missingQualificationFields": ["date", "party_size"],
+      "shareBookingForm": false,
+      "handoffRequired": false,
+      "handoffReason": null
+    },
+    "contains": ["What night", "how many"]
+  },
+  {
+    "name": "birthday table still needs bottle preference",
+    "output": {
+      "reply": "Yesss, birthday at Promotr 🎂🔥 Do you have a preferred bottle, or are you not sure yet?",
+      "intent": "birthday",
+      "bookingIntent": true,
+      "missingQualificationFields": ["bottle_preference"],
+      "shareBookingForm": false,
+      "handoffRequired": false,
+      "handoffReason": null
+    },
+    "contains": ["birthday", "preferred bottle"]
+  },
+  {
+    "name": "qualified inquiry shares form",
+    "output": {
+      "reply": "Perfect! Send the details to the team and they’ll confirm what’s available.",
+      "intent": "booking",
+      "bookingIntent": true,
+      "missingQualificationFields": [],
+      "shareBookingForm": true,
+      "handoffRequired": false,
+      "handoffReason": null
+    },
+    "contains": ["confirm what’s available"]
+  },
+  {
+    "name": "unknown event requires handoff",
+    "output": {
+      "reply": "I don’t have the confirmed event details for that night, so I’m passing this to the team to check.",
+      "intent": "other",
+      "bookingIntent": false,
+      "missingQualificationFields": [],
+      "shareBookingForm": false,
+      "handoffRequired": true,
+      "handoffReason": "Current event schedule is not supplied"
+    },
+    "contains": ["don’t have", "team"]
+  }
+]

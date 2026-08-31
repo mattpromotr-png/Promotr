@@ -57,9 +57,14 @@ Create n8n Variables:
 
 - `SUPABASE_URL`
 - `OPENAI_MODEL` (for example, `gpt-4.1-mini`)
+- `OPENAI_INPUT_COST_PER_M` and `OPENAI_OUTPUT_COST_PER_M` using the current per-million-token prices for the selected model; these support observability and must be refreshed when model pricing changes
 - `META_GRAPH_API_VERSION` using the currently supported version selected for the Meta app
 
 Activate the workflow and copy its production webhook URL into `N8N_INSTAGRAM_WEBHOOK_URL`. Do not commit an exported workflow after credentials have been embedded.
+
+## Meta Instagram configuration
+
+Follow [docs/meta-setup.md](docs/meta-setup.md). It records the selected Instagram Login path, required scopes, webhook field, endpoint/ID mapping, development-mode roles, and exact live-test sequence. Keep Meta passwords out of the setup process; use Meta authorization and access tokens only.
 
 ## Environment ownership
 

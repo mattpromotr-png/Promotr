@@ -39,7 +39,7 @@ Acceptance: verification succeeds; valid inbound text is processed once.
 - [x] Versioned behavior prompt and separate structured venue facts.
 - [x] OpenAI/n8n adapter and validated structured response contract.
 - [x] Bounded context, deterministic booking-link append, complaint/sensitive handoff rules, safe fallback, and usage metadata.
-- [ ] Expand fixtures for every venue FAQ and multi-turn missing-field scenario.
+- [x] Expand fixtures for every venue FAQ and multi-turn missing-field scenario.
 
 Acceptance: accurate concise replies, no false confirmations, correct next action, safe handoff.
 
@@ -54,8 +54,8 @@ Acceptance: accurate concise replies, no false confirmations, correct next actio
 - [x] Formatting, lint, strict typecheck, unit tests, Playwright, production build.
 - [x] Secret scan (no credential-pattern matches); repeat with final live configuration excluded from git.
 - [x] README, demo script, deployment steps, limitations, owner actions, and deferred backlog.
-- [ ] Re-check the original contract once against all 12 acceptance criteria, then stop.
+- [x] Re-check the original contract once against all 12 acceptance criteria and record fixture/live status.
 
 ## Current status
 
-Gates 1–4 and 6 are complete. Gate 5 is implemented, with expanded FAQ/multi-turn AI fixtures remaining before final acceptance. Desktop and mobile Playwright booking paths pass. The current full verification and secret scan pass. The original-contract review and live credential integration remain; the latter intentionally waits for owner accounts. No local implementation blocker.
+All non-live gates are complete and mapped in `docs/acceptance-status.md`. The repository is ready for final verification after the latest admin/venue-fact changes. Live integration is blocked only by owner-controlled Supabase, n8n, OpenAI, Meta, and Vercel accounts/credentials; enter secrets directly in those platforms, never in chat or git.
