@@ -63,6 +63,10 @@ Optional n8n Variables `OPENAI_INPUT_COST_PER_M` and `OPENAI_OUTPUT_COST_PER_M` 
 
 Activate the workflow and copy its production webhook URL into `N8N_INSTAGRAM_WEBHOOK_URL`. Do not commit an exported workflow after credentials have been embedded.
 
+### Testing without Meta
+
+Import `n8n/promotr-instagram-host.mock-test.workflow.json` as a separate, inactive test workflow. It replaces only Meta delivery with a generated `mock-<providerMessageId>` value, then executes the real outbound-storage RPC. Configure its Webhook Header Auth, Supabase API, OpenAI API, and Runtime Configuration exactly as in the production workflow. Use its test webhook URL with unique provider message IDs, verify inbound/outbound rows and admin handoffs, and never use or activate this mock workflow for production traffic.
+
 ## Meta Instagram configuration
 
 Follow [docs/meta-setup.md](docs/meta-setup.md). It records the selected Instagram Login path, required scopes, webhook field, endpoint/ID mapping, development-mode roles, and exact live-test sequence. Keep Meta passwords out of the setup process; use Meta authorization and access tokens only.

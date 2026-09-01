@@ -48,6 +48,7 @@ Acceptance: accurate concise replies, no false confirmations, correct next actio
 - [x] Importable secret-free workflow implementing load/classify/respond/send/store/retry steps.
 - [x] Credential/environment mapping and current official Meta configuration instructions.
 - [x] Fixture mode remains usable if external credentials are unavailable.
+- [x] Separate mock-Meta workflow verifies outbound persistence and admin handoff before Meta access; it is explicitly excluded from production.
 
 ## Gate 7 — verification and handoff
 
