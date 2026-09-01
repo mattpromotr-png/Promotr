@@ -156,7 +156,7 @@ export default async function AdminLeadsPage({
                         }).format(new Date(handoff.last_message_at))}
                       </time>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-amber-100/90">
+                    <p className="mt-3 text-sm leading-6 text-amber-900 dark:text-amber-100/90">
                       {handoff.handoff_reason ||
                         "The AI requested human follow-up."}
                     </p>
