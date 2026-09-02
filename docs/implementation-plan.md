@@ -60,3 +60,11 @@ Acceptance: accurate concise replies, no false confirmations, correct next actio
 ## Current status
 
 All non-live gates are complete and mapped in `docs/acceptance-status.md`. The repository is ready for final verification after the latest admin/venue-fact changes. Live integration is blocked only by owner-controlled Supabase, n8n, OpenAI, Meta, and Vercel accounts/credentials; enter secrets directly in those platforms, never in chat or git.
+
+## Post-MVP admin usability
+
+- [x] Add a responsive admin navigation shell and real-data overview dashboard.
+- [x] Replace unbounded inquiry cards with search, status counts, 20-row pagination, and responsive table/cards.
+- [x] Add a detailed inquiry dialog with contact, booking, preferences, notes, handoff reason, and status action.
+- [x] Move AI-requested human follow-ups to a dedicated paginated page with a resolve action.
+- [x] Add database indexes for admin status, requested-date, and follow-up queries.

@@ -115,6 +115,49 @@ textarea {
   pointer-events: none;
 }
 
+.admin-orb {
+  position: fixed;
+  z-index: 0;
+  border-radius: 9999px;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.admin-orb-one {
+  top: -18rem;
+  right: -12rem;
+  width: 38rem;
+  height: 38rem;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--violet) 13%, transparent),
+    transparent 70%
+  );
+}
+
+.admin-orb-two {
+  bottom: -22rem;
+  left: 18%;
+  width: 34rem;
+  height: 34rem;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--magenta) 8%, transparent),
+    transparent 72%
+  );
+}
+
+.metric-card {
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--surface) 96%, transparent),
+    color-mix(in srgb, var(--elevated) 88%, transparent)
+  );
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

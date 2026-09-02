@@ -9,7 +9,7 @@ export async function signIn(formData: FormData) {
   const supabase = await createUserClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) redirect("/admin/login?error=invalid");
-  redirect("/admin/leads");
+  redirect("/admin");
 }
 
 export async function signOut() {

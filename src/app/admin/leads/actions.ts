@@ -16,5 +16,6 @@ export async function updateLeadStatus(formData: FormData) {
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", leadId);
   if (error) throw new Error("Unable to update lead status.");
+  revalidatePath("/admin");
   revalidatePath("/admin/leads");
 }
