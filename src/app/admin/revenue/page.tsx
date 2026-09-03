@@ -1,6 +1,7 @@
 import { CalendarDays, CircleDollarSign, TrendingUp, Wine } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
+import { RevenueForm } from "@/components/admin/revenue-form";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -12,6 +13,7 @@ type RevenueLead = {
   bottle_preference: string | null;
   confirmed_revenue_cad: number | null;
   booked_at: string | null;
+  requested_date: string;
 };
 const money = new Intl.NumberFormat("en-CA", {
   style: "currency",
@@ -22,10 +24,11 @@ export default async function RevenuePage() {
   await requireAdmin();
   const { data, error } = await createAdminClient()
     .from("leads")
-    .select("id,name,bottle_preference,confirmed_revenue_cad,booked_at")
+    .select(
+      "id,name,bottle_preference,confirmed_revenue_cad,booked_at,requested_date",
+    )
     .eq("status", "booked")
     .eq("booking_type", "table")
-    .not("confirmed_revenue_cad", "is", null)
     .order("booked_at", { ascending: false });
   if (error) throw new Error("Unable to load revenue.");
   const bookings = (data ?? []) as RevenueLead[];
@@ -48,12 +51,14 @@ export default async function RevenuePage() {
     { label: "All confirmed", value: sumSince(), icon: Wine },
   ];
   const breakdown = Object.entries(
-    bookings.reduce<Record<string, number>>((totals, item) => {
-      const key = item.bottle_preference || "Not specified";
-      totals[key] =
-        (totals[key] || 0) + Number(item.confirmed_revenue_cad || 0);
-      return totals;
-    }, {}),
+    bookings
+      .filter((item) => item.confirmed_revenue_cad !== null)
+      .reduce<Record<string, number>>((totals, item) => {
+        const key = item.bottle_preference || "Not specified";
+        totals[key] =
+          (totals[key] || 0) + Number(item.confirmed_revenue_cad || 0);
+        return totals;
+      }, {}),
   ).sort((a, b) => b[1] - a[1]);
 
   return (
@@ -83,32 +88,40 @@ export default async function RevenuePage() {
         <section className="surface-card overflow-hidden">
           <div className="border-border border-b px-5 py-4">
             <h2 className="text-foreground font-semibold">
-              Confirmed bookings
+              Add or update revenue
             </h2>
+            <p className="text-muted mt-1 text-xs">
+              Booked table and bottle-service inquiries
+            </p>
           </div>
           {bookings.length === 0 ? (
             <p className="text-muted p-8 text-center text-sm">
-              No confirmed bottle-service revenue yet.
+              No booked table inquiries are available yet. Mark a table inquiry
+              as Booked first.
             </p>
           ) : (
             <div className="divide-border divide-y">
               {bookings.slice(0, 20).map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-4 px-5 py-4"
-                >
-                  <div>
-                    <p className="text-foreground text-sm font-medium">
-                      {item.name}
-                    </p>
-                    <p className="text-muted mt-1 text-xs">
-                      {item.bottle_preference ||
-                        "Bottle preference not specified"}
+                <div key={item.id} className="space-y-3 px-5 py-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-foreground text-sm font-medium">
+                        {item.name}
+                      </p>
+                      <p className="text-muted mt-1 text-xs">
+                        {item.bottle_preference ||
+                          "Bottle preference not specified"}
+                      </p>
+                    </div>
+                    <p className="text-muted shrink-0 text-xs">
+                      {item.requested_date}
                     </p>
                   </div>
-                  <p className="text-foreground font-semibold">
-                    {money.format(Number(item.confirmed_revenue_cad || 0))}
-                  </p>
+                  <RevenueForm
+                    leadId={item.id}
+                    amount={item.confirmed_revenue_cad}
+                    enabled
+                  />
                 </div>
               ))}
             </div>

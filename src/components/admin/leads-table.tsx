@@ -237,13 +237,16 @@ function DetailsDialog({
             </p>
           </section>
 
-          {lead.conversations && (
-            <BookingConversation conversation={lead.conversations} />
-          )}
-
-          {lead.status === "booked" && lead.booking_type === "table" && (
-            <RevenueForm leadId={lead.id} amount={lead.confirmed_revenue_cad} />
-          )}
+          <RevenueForm
+            leadId={lead.id}
+            amount={lead.confirmed_revenue_cad}
+            enabled={lead.status === "booked" && lead.booking_type === "table"}
+            disabledReason={
+              lead.booking_type !== "table"
+                ? "Revenue is available for table and bottle-service bookings."
+                : "Mark this inquiry as Booked before recording confirmed revenue."
+            }
+          />
 
           <div className="border-border grid gap-4 border-t pt-6 sm:grid-cols-[1fr_auto] sm:items-end">
             <LeadStatusForm leadId={lead.id} status={lead.status} />
@@ -251,6 +254,8 @@ function DetailsDialog({
               Use Booked only after the venue has confirmed the reservation.
             </p>
           </div>
+
+          <BookingConversation conversation={lead.conversations} />
         </div>
       </section>
     </div>
@@ -269,6 +274,15 @@ export function LeadsTable({
   const [selected, setSelected] = useState<AdminLead | null>(
     leads.find((lead) => lead.id === initialLeadId) ?? initialLead ?? null,
   );
+  useEffect(() => {
+    setSelected((current) => {
+      if (!current) return current;
+      return (
+        leads.find((lead) => lead.id === current.id) ??
+        (initialLead?.id === current.id ? initialLead : current)
+      );
+    });
+  }, [leads, initialLead]);
   if (leads.length === 0) return null;
 
   return (

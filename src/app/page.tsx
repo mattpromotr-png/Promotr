@@ -15,6 +15,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Brand } from "@/components/brand";
+import { AmbientVideo } from "@/components/landing/ambient-video";
+import { LandingMotion } from "@/components/landing/landing-motion";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const nights = [
@@ -23,14 +25,14 @@ const nights = [
     title: "Friday After Dark",
     music: "Hip-hop · R&B · Afrobeats",
     time: "10 PM — 3 AM",
-    color: "from-fuchsia-600 via-purple-700 to-indigo-950",
+    image: "/media/promotr-friday-night.webp.jpeg",
   },
   {
     day: "Saturday",
     title: "Saturday Energy",
     music: "Top 40 · Party anthems · Afrobeats",
     time: "10 PM — 3 AM",
-    color: "from-violet-500 via-blue-700 to-slate-950",
+    image: "/media/promotr-saturday-night.webp.jpeg",
   },
 ];
 
@@ -39,30 +41,32 @@ const experiences = [
     icon: Users,
     title: "Guest list",
     text: "Make your arrival easier on selected nights. Early arrival is recommended.",
+    image: "/media/promotr-arrival.webp.jpeg",
   },
   {
     icon: Crown,
     title: "VIP tables",
     text: "Your own space, dedicated service, mixers, and priority entry for the group.",
+    image: "/media/promotr-vip-experience.webp.jpeg",
   },
   {
     icon: Martini,
     title: "Bottle service",
     text: "Choose your bottle preference and let our team shape the right experience.",
+    image: "/media/promotr-venue-interior.webp.jpeg",
   },
 ];
 
 export default function LandingPage() {
   return (
     <main className="bg-[#05050a] text-white">
+      <LandingMotion />
       <section className="relative min-h-svh overflow-hidden">
-        <Image
-          src="/images/promotr-nightclub-hero-v2.png"
-          alt="A vibrant night at Promotr with a packed dance floor and violet lights"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
+        <AmbientVideo
+          src="/media/promotr-hero-nightclub.mp4"
+          poster="/images/promotr-nightclub-hero-v2.png"
+          eager
+          className="absolute inset-0 size-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,3,9,.97)_0%,rgba(3,3,9,.82)_35%,rgba(3,3,9,.25)_72%,rgba(3,3,9,.45)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#05050a] to-transparent" />
@@ -93,7 +97,10 @@ export default function LandingPage() {
             </div>
           </header>
 
-          <div className="flex min-h-[calc(100svh-5rem)] max-w-3xl flex-col justify-center py-20">
+          <div
+            className="flex min-h-[calc(100svh-5rem)] max-w-3xl flex-col justify-center py-20"
+            data-reveal
+          >
             <div className="mb-5 flex items-center gap-3 text-xs font-semibold tracking-[.22em] text-fuchsia-300 uppercase">
               <span className="h-px w-10 bg-fuchsia-400" /> Downtown Toronto
             </div>
@@ -157,8 +164,17 @@ export default function LandingPage() {
           {nights.map((night, index) => (
             <article
               key={night.day}
-              className={`group relative min-h-80 overflow-hidden rounded-[2rem] bg-gradient-to-br ${night.color} p-7 sm:p-9`}
+              data-reveal
+              className="night-card group relative min-h-[28rem] overflow-hidden rounded-[2rem] p-7 sm:p-9"
             >
+              <Image
+                src={night.image}
+                alt={`${night.day} nightlife at Promotr`}
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover transition duration-1000 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-black/10" />
               <div className="absolute -right-16 -bottom-20 size-72 rounded-full border-[40px] border-white/8 transition duration-700 group-hover:scale-110" />
               <div className="relative flex h-full flex-col justify-between">
                 <div className="flex items-center justify-between">
@@ -184,11 +200,45 @@ export default function LandingPage() {
       </section>
 
       <section
+        className="relative isolate min-h-[70svh] overflow-hidden border-y border-white/10"
+        data-reveal
+      >
+        <AmbientVideo
+          src="/media/promotr-vip-table.mp4"
+          poster="/media/promotr-vip-experience.webp.jpeg"
+          className="absolute inset-0 size-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,10,.94),rgba(5,5,10,.58)_55%,rgba(5,5,10,.2))]" />
+        <div className="relative mx-auto flex min-h-[70svh] max-w-7xl items-center px-4 py-24 sm:px-6 lg:px-8">
+          <div className="max-w-xl">
+            <p className="text-xs font-bold tracking-[.2em] text-fuchsia-300 uppercase">
+              Elevate the celebration
+            </p>
+            <h2 className="mt-4 text-4xl font-bold tracking-[-.045em] sm:text-6xl">
+              Your table.
+              <br />
+              Your moment.
+            </h2>
+            <p className="mt-6 max-w-lg leading-7 text-white/68">
+              Celebrate together with dedicated service, bottle selections,
+              premium seating, and a view of the energy around you.
+            </p>
+            <Link
+              href="/book"
+              className="focus-ring mt-8 inline-flex min-h-13 items-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-black"
+            >
+              Explore VIP tables <ArrowRight size={17} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section
         id="experience"
         className="border-y border-white/10 bg-gradient-to-b from-violet-950/30 to-[#080810]"
       >
         <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-          <div className="text-center">
+          <div className="text-center" data-reveal>
             <Sparkles className="mx-auto text-fuchsia-400" />
             <p className="mt-4 text-xs font-bold tracking-[.2em] text-fuchsia-400 uppercase">
               Choose your experience
@@ -198,16 +248,29 @@ export default function LandingPage() {
             </h2>
           </div>
           <div className="mt-12 grid gap-4 md:grid-cols-3">
-            {experiences.map(({ icon: Icon, title, text }) => (
+            {experiences.map(({ icon: Icon, title, text, image }) => (
               <article
                 key={title}
-                className="rounded-[1.75rem] border border-white/10 bg-white/[.045] p-7 backdrop-blur-sm transition hover:-translate-y-1 hover:border-violet-400/40 hover:bg-white/[.07]"
+                data-reveal
+                className="experience-card group overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[.045] backdrop-blur-sm"
               >
-                <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-fuchsia-500 to-violet-700">
-                  <Icon size={21} />
-                </span>
-                <h3 className="mt-6 text-xl font-bold">{title}</h3>
-                <p className="mt-3 text-sm leading-6 text-white/58">{text}</p>
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <Image
+                    src={image}
+                    alt={`${title} at Promotr`}
+                    fill
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    className="object-cover transition duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                </div>
+                <div className="p-6">
+                  <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-fuchsia-500 to-violet-700">
+                    <Icon size={20} />
+                  </span>
+                  <h3 className="mt-5 text-xl font-bold">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-white/58">{text}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -226,10 +289,40 @@ export default function LandingPage() {
       </section>
 
       <section
+        className="relative mx-auto max-w-7xl overflow-hidden px-4 py-24 sm:px-6 lg:px-8"
+        data-reveal
+      >
+        <div className="relative min-h-[72svh] overflow-hidden rounded-[2.25rem] border border-white/10">
+          <AmbientVideo
+            src="/media/promotr-dance-floor.mp4"
+            poster="/media/promotr-venue-interior.webp.jpeg"
+            className="absolute inset-0 size-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/15 to-black/20" />
+          <div className="relative flex min-h-[72svh] flex-col items-center justify-end p-7 pb-12 text-center sm:p-14">
+            <p className="text-xs font-bold tracking-[.22em] text-fuchsia-300 uppercase">
+              Feel the room
+            </p>
+            <h2 className="mt-3 max-w-3xl text-4xl font-black tracking-[-.05em] sm:text-7xl">
+              Don’t just go out.
+              <br />
+              Go all in.
+            </h2>
+            <Link
+              href="/book"
+              className="focus-ring mt-7 inline-flex min-h-13 items-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-600 px-7 text-sm font-bold"
+            >
+              Plan your night <ArrowRight size={17} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section
         id="visit"
         className="mx-auto grid max-w-7xl gap-10 px-4 py-24 sm:px-6 lg:grid-cols-[1fr_.8fr] lg:px-8"
       >
-        <div>
+        <div data-reveal>
           <p className="text-xs font-bold tracking-[.2em] text-fuchsia-400 uppercase">
             Before you arrive
           </p>
@@ -241,27 +334,47 @@ export default function LandingPage() {
             have final discretion at the door, and entry is never guaranteed.
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-          {[
-            { icon: MapPin, label: "Location", value: "Downtown Toronto" },
-            { icon: CalendarDays, label: "Open", value: "Friday & Saturday" },
-            { icon: Clock3, label: "Hours", value: "10 PM — 3 AM" },
-          ].map(({ icon: Icon, label, value }) => (
-            <div
-              key={label}
-              className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[.035] p-4"
-            >
-              <span className="grid size-10 place-items-center rounded-xl bg-violet-500/15 text-violet-300">
-                <Icon size={18} />
-              </span>
-              <div>
-                <p className="text-xs text-white/42">{label}</p>
-                <p className="mt-1 text-sm font-semibold">{value}</p>
+        <div
+          className="relative min-h-96 overflow-hidden rounded-[2rem]"
+          data-reveal
+        >
+          <Image
+            src="/media/promotr-arrival.webp.jpeg"
+            alt="Guests arriving for a night at Promotr"
+            fill
+            sizes="(min-width: 1024px) 45vw, 100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 grid gap-2 p-5 sm:grid-cols-3 lg:grid-cols-1">
+            {[
+              { icon: MapPin, label: "Location", value: "Downtown Toronto" },
+              { icon: CalendarDays, label: "Open", value: "Friday & Saturday" },
+              { icon: Clock3, label: "Hours", value: "10 PM — 3 AM" },
+            ].map(({ icon: Icon, label, value }) => (
+              <div
+                key={label}
+                className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/55 p-3 backdrop-blur-md"
+              >
+                <span className="grid size-10 place-items-center rounded-xl bg-violet-500/15 text-violet-300">
+                  <Icon size={18} />
+                </span>
+                <div>
+                  <p className="text-xs text-white/42">{label}</p>
+                  <p className="mt-1 text-sm font-semibold">{value}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
+
+      <Link
+        href="/book"
+        className="focus-ring fixed right-4 bottom-4 z-40 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-black shadow-2xl md:hidden"
+      >
+        Plan your night <ArrowRight size={16} />
+      </Link>
 
       <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
