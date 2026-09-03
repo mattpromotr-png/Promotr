@@ -25,7 +25,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
             compact && "sr-only",
           )}
         >
-          AI CONCIERGE FOR NIGHTLIFE
+          NIGHTLIFE · TORONTO
         </span>
       </span>
     </div>

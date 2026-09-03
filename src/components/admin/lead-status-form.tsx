@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { updateLeadStatus } from "@/app/admin/leads/actions";
 import type { LeadStatus } from "@/lib/admin/types";
 
-const statuses: LeadStatus[] = ["new", "contacted", "qualified", "closed"];
+const statuses: LeadStatus[] = ["new", "contacted", "pending", "booked"];
 
 function SaveButton({ compact = false }: { compact?: boolean }) {
   const { pending } = useFormStatus();

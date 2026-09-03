@@ -68,3 +68,14 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Add a detailed inquiry dialog with contact, booking, preferences, notes, handoff reason, and status action.
 - [x] Move AI-requested human follow-ups to a dedicated paginated page with a resolve action.
 - [x] Add database indexes for admin status, requested-date, and follow-up queries.
+
+## Client dashboard expansion (2026-09-03)
+
+- [x] Public Promotr landing page with booking and admin entry points.
+- [x] Rename inquiry stages to New, Contacted, Pending, and Booked.
+- [x] Add web-preview conversation persistence, staff takeover, dashboard inbox, and inquiry-level chat.
+- [x] Add staff-entered confirmed bottle-service revenue with daily, weekly, monthly, and total views.
+- [ ] Apply and verify `202609030001_client_dashboard_expansion.sql` in the target Supabase project.
+- [ ] Connect Instagram delivery after Meta messaging access is approved.
+- [ ] Later phase: choose and integrate a deposit provider such as Stripe after payment rules are approved.
+- [ ] Later phase: design the club table map after receiving the floor plan, table inventory, capacities, and booking rules.

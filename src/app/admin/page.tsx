@@ -30,9 +30,9 @@ type RecentLead = {
 const statusStyles: Record<string, string> = {
   new: "bg-violet/10 text-violet border-violet/20",
   contacted: "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20",
-  qualified:
+  pending:
     "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
-  closed: "bg-elevated text-muted border-border",
+  booked: "bg-elevated text-muted border-border",
 };
 
 export default async function AdminOverviewPage() {
@@ -48,13 +48,14 @@ export default async function AdminOverviewPage() {
   const [
     totalResult,
     newResult,
-    qualifiedResult,
+    pendingResult,
     handoffResult,
     recentResult,
     monthResult,
     tableResult,
     guestListResult,
     trendResult,
+    conversationResult,
   ] = await Promise.all([
     admin.from("leads").select("id", { count: "exact", head: true }),
     admin
@@ -64,7 +65,7 @@ export default async function AdminOverviewPage() {
     admin
       .from("leads")
       .select("id", { count: "exact", head: true })
-      .eq("status", "qualified"),
+      .eq("status", "pending"),
     admin
       .from("conversations")
       .select("id", { count: "exact", head: true })
@@ -93,18 +94,24 @@ export default async function AdminOverviewPage() {
       .select("created_at")
       .gte("created_at", sevenDaysAgo.toISOString())
       .order("created_at", { ascending: true }),
+    admin
+      .from("conversations")
+      .select("id,channel,status,last_message_at,contacts(display_name)")
+      .order("last_message_at", { ascending: false })
+      .limit(3),
   ]);
 
   const results = [
     totalResult,
     newResult,
-    qualifiedResult,
+    pendingResult,
     handoffResult,
     recentResult,
     monthResult,
     tableResult,
     guestListResult,
     trendResult,
+    conversationResult,
   ];
   if (results.some((result) => result.error))
     throw new Error("Unable to load the admin overview.");
@@ -142,9 +149,9 @@ export default async function AdminOverviewPage() {
       color: "text-fuchsia-600 dark:text-fuchsia-300 bg-fuchsia-500/10",
     },
     {
-      label: "Qualified",
-      value: qualifiedResult.count ?? 0,
-      detail: "Ready for venue action",
+      label: "Pending",
+      value: pendingResult.count ?? 0,
+      detail: "Awaiting a final decision",
       icon: CheckCircle2,
       color: "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10",
     },
@@ -304,6 +311,65 @@ export default async function AdminOverviewPage() {
           </div>
         </section>
       </div>
+
+      <section
+        className="surface-card mt-6 overflow-hidden"
+        aria-labelledby="conversation-heading"
+      >
+        <div className="border-border flex items-center justify-between border-b px-5 py-4 sm:px-6">
+          <div>
+            <h2
+              id="conversation-heading"
+              className="text-foreground font-semibold"
+            >
+              Recent conversations
+            </h2>
+            <p className="text-muted mt-1 text-xs">
+              Open a guest chat and join from the dashboard
+            </p>
+          </div>
+          <Link
+            href="/admin/conversations"
+            className="text-violet text-sm font-medium"
+          >
+            View all
+          </Link>
+        </div>
+        {(conversationResult.data ?? []).length === 0 ? (
+          <p className="text-muted p-8 text-center text-sm">
+            No conversations yet.
+          </p>
+        ) : (
+          <div className="divide-border divide-y">
+            {(conversationResult.data ?? []).map((conversation) => {
+              const contact = Array.isArray(conversation.contacts)
+                ? conversation.contacts[0]
+                : conversation.contacts;
+              return (
+                <Link
+                  key={conversation.id}
+                  href={`/admin/conversations?conversation=${conversation.id}`}
+                  className="hover:bg-elevated flex items-center justify-between gap-4 px-5 py-4 sm:px-6"
+                >
+                  <div>
+                    <p className="text-foreground text-sm font-medium">
+                      {contact?.display_name ||
+                        (conversation.channel === "web_preview"
+                          ? "Website guest"
+                          : "Instagram guest")}
+                    </p>
+                    <p className="text-muted mt-1 text-xs capitalize">
+                      {conversation.channel.replace("_", " ")} ·{" "}
+                      {conversation.status.replace("_", " ")}
+                    </p>
+                  </div>
+                  <ArrowRight size={16} className="text-violet" />
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </AdminShell>
   );
 }

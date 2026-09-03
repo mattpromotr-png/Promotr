@@ -1,9 +1,11 @@
 import {
   AlertTriangle,
   BarChart3,
+  CircleDollarSign,
   ClipboardList,
   ExternalLink,
   LogOut,
+  MessagesSquare,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,6 +27,18 @@ const navigation = [
     label: "Follow-ups",
     href: "/admin/follow-ups",
     icon: AlertTriangle,
+  },
+  {
+    key: "conversations",
+    label: "Conversations",
+    href: "/admin/conversations",
+    icon: MessagesSquare,
+  },
+  {
+    key: "revenue",
+    label: "Revenue",
+    href: "/admin/revenue",
+    icon: CircleDollarSign,
   },
 ] as const;
 

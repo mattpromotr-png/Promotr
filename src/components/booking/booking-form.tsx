@@ -20,7 +20,7 @@ const inputClass =
   "focus-ring mt-2 min-h-11 w-full rounded-xl border border-border bg-elevated px-3.5 py-2.5 text-sm text-foreground outline-none placeholder:text-muted/60";
 const labelClass = "text-sm font-medium text-foreground";
 
-export function BookingForm() {
+export function BookingForm({ conversationId }: { conversationId?: string }) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string>();
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
@@ -39,6 +39,7 @@ export function BookingForm() {
     resolver: zodResolver(bookingInquirySchema),
     defaultValues: {
       idempotencyKey,
+      conversationId,
       name: "",
       email: "",
       phone: "",
@@ -82,6 +83,7 @@ export function BookingForm() {
   return (
     <form className="space-y-5" onSubmit={handleSubmit(submit)} noValidate>
       <input type="hidden" {...register("idempotencyKey")} />
+      <input type="hidden" {...register("conversationId")} />
       <div
         className="pointer-events-none absolute -left-[9999px]"
         aria-hidden="true"

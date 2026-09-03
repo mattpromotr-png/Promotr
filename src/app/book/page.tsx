@@ -11,7 +11,15 @@ const expectations = [
   { icon: ShieldCheck, label: "19+ · Valid government ID required" },
 ];
 
-export default function BookingPage() {
+export default async function BookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ conversation?: string }>;
+}) {
+  const params = await searchParams;
+  const conversationId = /^[0-9a-f-]{36}$/i.test(params.conversation ?? "")
+    ? params.conversation
+    : undefined;
   return (
     <main className="relative min-h-svh overflow-hidden px-4 py-5 sm:px-6 lg:px-8">
       <div className="ambient-glow" aria-hidden="true" />
@@ -73,7 +81,7 @@ export default function BookingPage() {
                 pricing are not guaranteed until the venue confirms them.
               </p>
             </div>
-            <BookingForm />
+            <BookingForm conversationId={conversationId} />
           </div>
         </section>
       </div>

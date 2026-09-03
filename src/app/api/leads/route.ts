@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
           booking_type: result.data.bookingType,
           bottle_preference: result.data.bottlePreference ?? null,
           notes: result.data.notes ?? null,
+          conversation_id: result.data.conversationId ?? null,
         },
       },
     );

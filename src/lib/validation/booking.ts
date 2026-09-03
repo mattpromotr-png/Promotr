@@ -13,6 +13,7 @@ const optionalText = (max: number) =>
 export const bookingInquirySchema = z
   .object({
     idempotencyKey: z.string().uuid(),
+    conversationId: z.string().uuid().optional(),
     name: z.string().trim().min(2, "Enter your full name.").max(100),
     email: z
       .union([

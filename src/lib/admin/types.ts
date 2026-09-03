@@ -1,4 +1,4 @@
-export type LeadStatus = "new" | "contacted" | "qualified" | "closed";
+export type LeadStatus = "new" | "contacted" | "pending" | "booked";
 export type BookingType = "guest_list" | "table" | "unsure";
 
 export type AdminLead = {
@@ -16,5 +16,19 @@ export type AdminLead = {
   notes: string | null;
   status: LeadStatus;
   created_at: string;
-  conversations: { status: string; handoff_reason: string | null } | null;
+  confirmed_revenue_cad: number | null;
+  booked_at: string | null;
+  conversations: {
+    id: string;
+    status: string;
+    handoff_reason: string | null;
+    channel: string;
+    human_takeover: boolean;
+    messages: {
+      id: string;
+      sender_type: "guest" | "ai" | "human";
+      content: string;
+      created_at: string;
+    }[];
+  } | null;
 };

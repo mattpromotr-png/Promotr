@@ -14,14 +14,16 @@ import {
 import { useEffect, useState } from "react";
 
 import { LeadStatusForm } from "@/components/admin/lead-status-form";
+import { BookingConversation } from "@/components/admin/booking-conversation";
+import { RevenueForm } from "@/components/admin/revenue-form";
 import type { AdminLead } from "@/lib/admin/types";
 
 const statusStyles: Record<AdminLead["status"], string> = {
   new: "border-violet/25 bg-violet/10 text-violet",
   contacted: "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  qualified:
+  pending:
     "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  closed: "border-border bg-elevated text-muted",
+  booked: "border-border bg-elevated text-muted",
 };
 
 function StatusBadge({ status }: { status: AdminLead["status"] }) {
@@ -235,11 +237,18 @@ function DetailsDialog({
             </p>
           </section>
 
+          {lead.conversations && (
+            <BookingConversation conversation={lead.conversations} />
+          )}
+
+          {lead.status === "booked" && lead.booking_type === "table" && (
+            <RevenueForm leadId={lead.id} amount={lead.confirmed_revenue_cad} />
+          )}
+
           <div className="border-border grid gap-4 border-t pt-6 sm:grid-cols-[1fr_auto] sm:items-end">
             <LeadStatusForm leadId={lead.id} status={lead.status} />
             <p className="text-muted max-w-xs text-xs leading-5 sm:text-right">
-              Updating status manages the inquiry workflow. It does not confirm
-              a reservation.
+              Use Booked only after the venue has confirmed the reservation.
             </p>
           </div>
         </div>
