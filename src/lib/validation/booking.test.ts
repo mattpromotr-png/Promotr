@@ -21,6 +21,14 @@ const valid = {
 describe("bookingInquirySchema", () => {
   it("accepts a valid inquiry with one contact method", () =>
     expect(bookingInquirySchema.safeParse(valid).success).toBe(true));
+  it("accepts empty optional conversation and table identifiers", () =>
+    expect(
+      bookingInquirySchema.safeParse({
+        ...valid,
+        conversationId: "",
+        tableId: "",
+      }).success,
+    ).toBe(true));
   it("requires email or phone", () =>
     expect(
       bookingInquirySchema.safeParse({ ...valid, email: "", phone: "" })

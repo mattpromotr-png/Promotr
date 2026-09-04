@@ -6,6 +6,7 @@ import {
   ExternalLink,
   LogOut,
   MessagesSquare,
+  Map,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -40,6 +41,7 @@ const navigation = [
     href: "/admin/revenue",
     icon: CircleDollarSign,
   },
+  { key: "tables", label: "Table map", href: "/admin/tables", icon: Map },
 ] as const;
 
 export function AdminShell({

@@ -30,6 +30,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-hook-form": "latest",
+    "stripe": "^22.6.1",
     "tailwind-merge": "latest",
     "zod": "latest"
   },

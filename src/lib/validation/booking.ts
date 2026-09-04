@@ -10,10 +10,16 @@ const optionalText = (max: number) =>
     .optional()
     .transform((value) => value || undefined);
 
+const optionalUuid = z
+  .union([z.string().uuid(), z.literal("")])
+  .optional()
+  .transform((value) => value || undefined);
+
 export const bookingInquirySchema = z
   .object({
     idempotencyKey: z.string().uuid(),
-    conversationId: z.string().uuid().optional(),
+    conversationId: optionalUuid,
+    tableId: optionalUuid,
     name: z.string().trim().min(2, "Enter your full name.").max(100),
     email: z
       .union([
@@ -59,6 +65,13 @@ export const bookingInquirySchema = z
         code: "custom",
         path: ["bottlePreference"],
         message: "Tell us your bottle preference, or enter “Not sure”.",
+      });
+    }
+    if (data.bookingType === "table" && !data.tableId) {
+      context.addIssue({
+        code: "custom",
+        path: ["tableId"],
+        message: "Select an available table.",
       });
     }
   });

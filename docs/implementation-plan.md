@@ -79,3 +79,14 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [ ] Connect Instagram delivery after Meta messaging access is approved.
 - [ ] Later phase: choose and integrate a deposit provider such as Stripe after payment rules are approved.
 - [ ] Later phase: design the club table map after receiving the floor plan, table inventory, capacities, and booking rules.
+
+## Table deposits and floor map (2026-09-04)
+
+- [x] Define configurable demo table inventory, capacity, minimum-spend, deposit, refund, and 30-minute hold rules.
+- [x] Add atomic database-backed table holds and active-booking conflict prevention.
+- [x] Add two-step booking flow with visual table selection and deposit review.
+- [x] Add Stripe-hosted Checkout creation and signed webhook payment confirmation.
+- [x] Add payment success/cancellation pages, admin table map, and verified-deposit revenue totals.
+- [ ] Apply and verify `202609040001_table_deposits.sql` in Supabase.
+- [ ] Configure Stripe test keys and webhook, then complete a test-mode payment round trip.
+- [ ] Replace demo table positions and prices when the client provides the real floor plan and commercial rules.

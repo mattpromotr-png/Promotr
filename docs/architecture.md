@@ -21,6 +21,14 @@ Instagram reply containing booking-form URL
   -> validated server endpoint (honeypot + rate limit + idempotency)
   -> Supabase lead
   -> protected admin list (/admin/leads)
+
+Table inquiry
+  -> visual date/table selection
+  -> Supabase atomic 30-minute table hold
+  -> server-created Stripe Checkout Session using database price
+  -> Stripe-hosted card collection
+  -> signed Stripe webhook confirms payment
+  -> table booking becomes confirmed and deposit revenue updates
 ```
 
 ## Trust boundaries

@@ -22,15 +22,22 @@ const money = new Intl.NumberFormat("en-CA", {
 
 export default async function RevenuePage() {
   await requireAdmin();
-  const { data, error } = await createAdminClient()
-    .from("leads")
-    .select(
-      "id,name,bottle_preference,confirmed_revenue_cad,booked_at,requested_date",
-    )
-    .eq("status", "booked")
-    .eq("booking_type", "table")
-    .order("booked_at", { ascending: false });
-  if (error) throw new Error("Unable to load revenue.");
+  const admin = createAdminClient();
+  const [{ data, error }, depositResult] = await Promise.all([
+    admin
+      .from("leads")
+      .select(
+        "id,name,bottle_preference,confirmed_revenue_cad,booked_at,requested_date",
+      )
+      .eq("status", "booked")
+      .eq("booking_type", "table")
+      .order("booked_at", { ascending: false }),
+    admin
+      .from("table_bookings")
+      .select("deposit_cad,paid_at")
+      .eq("status", "confirmed"),
+  ]);
+  if (error || depositResult.error) throw new Error("Unable to load revenue.");
   const bookings = (data ?? []) as RevenueLead[];
   const now = new Date();
   const startToday = new Date(now);
@@ -50,6 +57,13 @@ export default async function RevenuePage() {
     { label: "This month", value: sumSince(startMonth), icon: CalendarDays },
     { label: "All confirmed", value: sumSince(), icon: Wine },
   ];
+  const deposits = depositResult.data ?? [];
+  const depositSum = (date?: Date) =>
+    deposits
+      .filter(
+        (item) => !date || (item.paid_at && new Date(item.paid_at) >= date),
+      )
+      .reduce((sum, item) => sum + Number(item.deposit_cad || 0), 0);
   const breakdown = Object.entries(
     bookings
       .filter((item) => item.confirmed_revenue_cad !== null)
@@ -83,6 +97,39 @@ export default async function RevenuePage() {
             </p>
           </article>
         ))}
+      </section>
+      <section className="surface-card mt-6 p-5 sm:p-6">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <p className="eyebrow">STRIPE DEPOSITS</p>
+            <h2 className="text-foreground mt-2 text-xl font-semibold">
+              Deposits received
+            </h2>
+            <p className="text-muted mt-1 text-xs">
+              Updated only by verified successful payment events.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-5 text-right sm:grid-cols-3">
+            <div>
+              <p className="text-muted text-xs">Today</p>
+              <p className="text-foreground mt-1 font-semibold">
+                {money.format(depositSum(startToday))}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted text-xs">This month</p>
+              <p className="text-foreground mt-1 font-semibold">
+                {money.format(depositSum(startMonth))}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted text-xs">All time</p>
+              <p className="text-foreground mt-1 font-semibold">
+                {money.format(depositSum())}
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <section className="surface-card overflow-hidden">

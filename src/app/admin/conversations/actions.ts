@@ -26,15 +26,13 @@ export async function sendConversationReply(formData: FormData) {
     throw new Error(
       "Instagram replies must be sent through Meta Business Suite until Meta messaging is connected.",
     );
-  const { error } = await admin
-    .from("messages")
-    .insert({
-      conversation_id: conversationId,
-      direction: "outbound",
-      sender_type: "human",
-      content,
-      delivery_status: "sent",
-    });
+  const { error } = await admin.from("messages").insert({
+    conversation_id: conversationId,
+    direction: "outbound",
+    sender_type: "human",
+    content,
+    delivery_status: "sent",
+  });
   if (error) throw new Error("Unable to send the message.");
   await admin
     .from("conversations")
