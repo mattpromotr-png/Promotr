@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { ClubFloorMap } from "@/components/tables/club-floor-map";
 import { tablePackages } from "@/config/table-packages";
 import {
   bookingInquirySchema,
@@ -283,23 +284,43 @@ export function BookingForm({ conversationId }: { conversationId?: string }) {
           </div>
           <fieldset>
             <legend className={labelClass}>What are you interested in?</legend>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
               {[
-                ["guest_list", "Guest list"],
-                ["table", "Table / bottles"],
-                ["unsure", "Not sure"],
-              ].map(([value, label]) => (
+                {
+                  value: "guest_list",
+                  label: "Guest list",
+                  description:
+                    "Request entry without a private table. Standard admission charges may still apply.",
+                },
+                {
+                  value: "table",
+                  label: "Table / bottles",
+                  description:
+                    "Reserve a private table with bottle service and pay a deposit to secure it.",
+                },
+                {
+                  value: "unsure",
+                  label: "Not sure",
+                  description:
+                    "Send your plans and our team will help you choose the best option.",
+                },
+              ].map(({ value, label, description }) => (
                 <label
                   key={value}
-                  className="has-[:checked]:border-violet has-[:checked]:bg-violet/10 border-border bg-elevated text-foreground flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm"
+                  className="has-[:checked]:border-violet has-[:checked]:bg-violet/10 border-border bg-elevated text-foreground hover:border-violet/50 flex min-h-28 cursor-pointer items-start gap-3 rounded-2xl border p-4 text-sm transition"
                 >
                   <input
                     type="radio"
                     value={value}
-                    className="accent-violet"
+                    className="accent-violet mt-1"
                     {...register("bookingType")}
                   />
-                  {label}
+                  <span>
+                    <span className="block font-semibold">{label}</span>
+                    <span className="text-muted mt-1.5 block text-xs leading-relaxed">
+                      {description}
+                    </span>
+                  </span>
                 </label>
               ))}
             </div>
@@ -325,45 +346,21 @@ export function BookingForm({ conversationId }: { conversationId?: string }) {
                   </div>
                   <span className="text-muted text-xs">DJ booth at top</span>
                 </div>
-                <div className="border-border relative mt-3 aspect-[16/10] overflow-hidden rounded-2xl border bg-[#080a12]">
-                  <div className="bg-violet/25 absolute top-3 left-1/2 -translate-x-1/2 rounded-lg px-5 py-2 text-[10px] font-bold tracking-widest text-violet-200">
-                    DJ
-                  </div>
-                  <div className="border-violet/20 bg-violet/5 absolute inset-x-[28%] top-[22%] bottom-[12%] rounded-[2rem] border">
-                    <span className="text-muted grid h-full place-items-center text-[10px] tracking-widest">
-                      DANCE FLOOR
-                    </span>
-                  </div>
-                  {tablePackages.map((table) => {
-                    const blocked =
-                      unavailable.includes(table.id) ||
-                      Number(partySize || 0) > table.capacity;
-                    const selected = table.id === tableId;
-                    return (
-                      <button
-                        key={table.id}
-                        type="button"
-                        disabled={blocked}
-                        onClick={() =>
-                          setValue("tableId", table.id, {
-                            shouldValidate: true,
-                          })
-                        }
-                        style={{ left: `${table.x}%`, top: `${table.y}%` }}
-                        className={`focus-ring absolute grid size-12 place-items-center rounded-full border text-xs font-bold transition sm:size-14 ${selected ? "border-violet bg-violet shadow-violet text-white" : blocked ? "border-red-500/25 bg-red-500/10 text-red-300 opacity-55" : "hover:border-violet border-white/20 bg-white/10 text-white hover:scale-110"}`}
-                        aria-label={`${table.name}, ${blocked ? "unavailable" : "available"}`}
-                      >
-                        {table.code}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-3 text-[11px]">
-                  <span className="text-emerald-400">● Available</span>
-                  <span className="text-violet">● Selected</span>
-                  <span className="text-red-400">
-                    ● Unavailable / too small
-                  </span>
+                <div className="mt-3">
+                  <ClubFloorMap
+                    tables={tablePackages}
+                    selectedId={tableId}
+                    disabledIds={tablePackages
+                      .filter(
+                        (table) =>
+                          unavailable.includes(table.id) ||
+                          Number(partySize || 0) > table.capacity,
+                      )
+                      .map((table) => table.id)}
+                    onSelect={(table) =>
+                      setValue("tableId", table.id, { shouldValidate: true })
+                    }
+                  />
                 </div>
                 {selectedTable && (
                   <div className="border-violet/25 bg-violet/10 mt-3 grid gap-2 rounded-xl border p-4 text-sm sm:grid-cols-3">

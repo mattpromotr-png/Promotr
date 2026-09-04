@@ -87,6 +87,11 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Add two-step booking flow with visual table selection and deposit review.
 - [x] Add Stripe-hosted Checkout creation and signed webhook payment confirmation.
 - [x] Add payment success/cancellation pages, admin table map, and verified-deposit revenue totals.
-- [ ] Apply and verify `202609040001_table_deposits.sql` in Supabase.
-- [ ] Configure Stripe test keys and webhook, then complete a test-mode payment round trip.
-- [ ] Replace demo table positions and prices when the client provides the real floor plan and commercial rules.
+- [x] Apply and verify `202609040001_table_deposits.sql` in Supabase.
+- [x] Configure Stripe test keys and webhook, then complete a test-mode payment round trip.
+- [x] Expand the provisional floor plan to 30 interactive tables with guest and admin views.
+- [ ] Apply and verify `202609040002_expand_table_map.sql` in Supabase.
+- [x] Add a private post-payment booking-management link for guest detail updates and cancellation.
+- [x] Add a provisional 48-hour refund policy with automatic Stripe refund and table release.
+- [ ] Apply and verify `202609040003_booking_self_service.sql` in Supabase.
+- [ ] Replace provisional table positions and prices when the client provides the real floor plan and commercial rules.

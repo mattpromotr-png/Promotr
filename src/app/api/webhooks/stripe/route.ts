@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { reconcilePaidCheckout } from "@/lib/stripe/reconcile-checkout";
 import { createStripeClient, getStripeEnvironment } from "@/lib/stripe/server";
 
 export async function POST(request: NextRequest) {
@@ -23,19 +24,14 @@ export async function POST(request: NextRequest) {
     event.type === "checkout.session.completed" &&
     session.payment_status === "paid"
   ) {
-    const paymentIntent =
-      typeof session.payment_intent === "string"
-        ? session.payment_intent
-        : session.payment_intent?.id || "";
-    const { error } = await admin.rpc("confirm_deposit_payment", {
-      p_session_id: session.id,
-      p_payment_intent_id: paymentIntent,
-    });
-    if (error)
+    try {
+      await reconcilePaidCheckout(session);
+    } catch {
       return NextResponse.json(
         { error: "Unable to record payment." },
         { status: 500 },
       );
+    }
   }
   if (event.type === "checkout.session.expired")
     await admin

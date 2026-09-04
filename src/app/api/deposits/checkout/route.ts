@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
+import { createBookingManageToken } from "@/lib/bookings/manage-token";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createStripeClient, getStripeEnvironment } from "@/lib/stripe/server";
 
@@ -37,10 +38,11 @@ export async function POST(request: NextRequest) {
   }
   try {
     const environment = getStripeEnvironment();
+    const manageToken = createBookingManageToken(hold.bookingId);
     const session = await createStripeClient().checkout.sessions.create(
       {
         mode: "payment",
-        success_url: `${environment.NEXT_PUBLIC_APP_URL}/book/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${environment.NEXT_PUBLIC_APP_URL}/book/payment/success?session_id={CHECKOUT_SESSION_ID}&booking=${hold.bookingId}&token=${manageToken}`,
         cancel_url: `${environment.NEXT_PUBLIC_APP_URL}/book/payment/cancelled`,
         expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
         customer_creation: "always",
