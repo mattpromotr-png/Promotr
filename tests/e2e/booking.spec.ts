@@ -18,7 +18,9 @@ test("guest can complete a booking inquiry", async ({ page }) => {
   await page.getByLabel("Party size").fill("6");
   await page.getByLabel("Guest list").check();
   await page.getByLabel(/I agree that Promotr/).check();
-  await page.getByRole("button", { name: "Send booking inquiry" }).click();
+  await page.getByRole("button", { name: "Review and continue" }).click();
+  await expect(page.getByText("BOOKING SUMMARY")).toBeVisible();
+  await page.getByRole("button", { name: "Submit inquiry" }).click();
   await expect(page).toHaveURL(/\/book\/success$/);
   await expect(
     page.getByRole("heading", { name: "We've got your request." }),

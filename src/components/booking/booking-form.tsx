@@ -7,8 +7,8 @@ import {
   Check,
   LoaderCircle,
   LockKeyhole,
-  Users,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { ClubFloorMap } from "@/components/tables/club-floor-map";
@@ -28,10 +28,14 @@ function FieldError({ message }: { message?: string }) {
 }
 
 export function BookingForm({ conversationId }: { conversationId?: string }) {
+  const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [serverError, setServerError] = useState<string>();
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [unavailable, setUnavailable] = useState<string[]>([]);
+  const [availability, setAvailability] = useState<{
+    date: string;
+    ids: string[];
+  }>({ date: "", ids: [] });
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
   const tomorrow = useMemo(() => {
     const date = new Date();
@@ -72,20 +76,22 @@ export function BookingForm({ conversationId }: { conversationId?: string }) {
   const requestedDate = useWatch({ control, name: "requestedDate" });
   const partySize = useWatch({ control, name: "partySize" });
   const tableId = useWatch({ control, name: "tableId" });
+  const unavailable =
+    availability.date === requestedDate ? availability.ids : [];
   const selectedTable = tablePackages.find((table) => table.id === tableId);
   const validationError = Object.keys(errors).length > 0;
 
   useEffect(() => {
-    if (!requestedDate) {
-      setUnavailable([]);
-      return;
-    }
+    if (!requestedDate) return;
+    const date = requestedDate;
     fetch(`/api/tables?date=${requestedDate}`, { cache: "no-store" })
       .then((response) =>
         response.ok ? response.json() : { unavailableTableIds: [] },
       )
-      .then((payload) => setUnavailable(payload.unavailableTableIds ?? []))
-      .catch(() => setUnavailable([]));
+      .then((payload) =>
+        setAvailability({ date, ids: payload.unavailableTableIds ?? [] }),
+      )
+      .catch(() => setAvailability({ date, ids: [] }));
   }, [requestedDate]);
 
   function review(values: BookingInquiryInput) {
@@ -128,7 +134,7 @@ export function BookingForm({ conversationId }: { conversationId?: string }) {
       return;
     }
     if (values.bookingType !== "table" || !values.tableId) {
-      window.location.assign("/book/success");
+      router.push("/book/success");
       return;
     }
     const checkout = await fetch("/api/deposits/checkout", {
@@ -147,7 +153,7 @@ export function BookingForm({ conversationId }: { conversationId?: string }) {
       setProcessingPayment(false);
       return;
     }
-    window.location.assign(checkoutPayload.url);
+    window.location.href = checkoutPayload.url;
   }
 
   return (

@@ -271,18 +271,13 @@ export function LeadsTable({
   initialLeadId?: string;
   initialLead?: AdminLead | null;
 }) {
-  const [selected, setSelected] = useState<AdminLead | null>(
-    leads.find((lead) => lead.id === initialLeadId) ?? initialLead ?? null,
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialLeadId ?? initialLead?.id ?? null,
   );
-  useEffect(() => {
-    setSelected((current) => {
-      if (!current) return current;
-      return (
-        leads.find((lead) => lead.id === current.id) ??
-        (initialLead?.id === current.id ? initialLead : current)
-      );
-    });
-  }, [leads, initialLead]);
+  const selected = selectedId
+    ? (leads.find((lead) => lead.id === selectedId) ??
+      (initialLead?.id === selectedId ? initialLead : null))
+    : null;
   if (leads.length === 0) return null;
 
   return (
@@ -313,7 +308,7 @@ export function LeadsTable({
                       <button
                         type="button"
                         className="focus-ring w-full rounded-lg text-left"
-                        onClick={() => setSelected(lead)}
+                        onClick={() => setSelectedId(lead.id)}
                       >
                         <span className="text-foreground flex items-center gap-2 font-medium">
                           {lead.name}
@@ -372,7 +367,7 @@ export function LeadsTable({
             <article key={lead.id} className="p-4">
               <button
                 type="button"
-                onClick={() => setSelected(lead)}
+                onClick={() => setSelectedId(lead.id)}
                 className="focus-ring hover:bg-elevated/60 block w-full rounded-xl text-left"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -403,7 +398,7 @@ export function LeadsTable({
         </div>
       </div>
       {selected && (
-        <DetailsDialog lead={selected} close={() => setSelected(null)} />
+        <DetailsDialog lead={selected} close={() => setSelectedId(null)} />
       )}
     </>
   );

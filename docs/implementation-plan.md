@@ -95,3 +95,13 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Add a provisional 48-hour refund policy with automatic Stripe refund and table release.
 - [ ] Apply and verify `202609040003_booking_self_service.sql` in Supabase.
 - [ ] Replace provisional table positions and prices when the client provides the real floor plan and commercial rules.
+
+## Reliability and multilingual replies (2026-09-05)
+
+- [x] Update the browser acceptance test for the two-step booking flow on desktop and mobile.
+- [x] Remove React effect and navigation lint violations from the inquiry and booking interfaces.
+- [x] Require same-language guest replies while preserving venue facts, structured JSON, and all safety/handoff rules.
+- [x] Apply the language behavior consistently to the web preview, production n8n workflow export, and mock workflow export.
+- [x] Add multilingual contract fixtures for French, Spanish, German, and Portuguese replies.
+- [ ] Re-import or manually update the active n8n workflow so the deployed workflow receives the new multilingual prompt.
+- [ ] Run live model conversations in the target languages and review naturalness, fact accuracy, and handoff behavior.

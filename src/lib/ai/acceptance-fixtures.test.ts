@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { promotrVenueFacts } from "@/config/venue-facts.v1";
+import { instagramHostBehavior } from "@/prompts/instagram-host.v1";
 import fixtureData from "../../../tests/fixtures/ai-host-cases.json";
 import { aiHostResponseSchema, finalizeAiReply } from "./contract";
 
@@ -53,5 +54,33 @@ describe("AI host acceptance fixtures", () => {
     });
     expect(promotrVenueFacts.dressCode.notAllowed).toContain("athletic wear");
     expect(promotrVenueFacts.unavailableFacts).toContain("live availability");
+  });
+
+  it("requires guest-language replies without weakening safety", () => {
+    expect(instagramHostBehavior).toContain(
+      "language of the guest's latest message",
+    );
+    expect(instagramHostBehavior).toContain(
+      "Apply every accuracy, safety, privacy, qualification, and handoff rule equally",
+    );
+  });
+
+  it.each([
+    ["French", "Nous sommes ouverts le vendredi et le samedi, de 22 h à 3 h."],
+    ["Spanish", "Abrimos los viernes y sábados de 10 p. m. a 3 a. m."],
+    ["German", "Wir haben freitags und samstags von 22 bis 3 Uhr geöffnet."],
+    ["Portuguese", "Abrimos às sextas e aos sábados, das 22h às 3h."],
+  ])("accepts a safe %s guest-facing reply", (_language, reply) => {
+    expect(
+      aiHostResponseSchema.parse({
+        reply,
+        intent: "faq",
+        bookingIntent: false,
+        missingQualificationFields: [],
+        shareBookingForm: false,
+        handoffRequired: false,
+        handoffReason: null,
+      }).reply,
+    ).toBe(reply);
   });
 });
