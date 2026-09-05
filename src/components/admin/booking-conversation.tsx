@@ -6,12 +6,19 @@ import { useState } from "react";
 import { sendConversationReply } from "@/app/admin/conversations/actions";
 import type { AdminLead } from "@/lib/admin/types";
 
+type Conversation = NonNullable<AdminLead["conversations"]>;
+
 export function BookingConversation({
   conversation,
 }: {
   conversation: AdminLead["conversations"];
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [messages, setMessages] = useState(conversation?.messages ?? []);
+  const [loaded, setLoaded] = useState(Boolean(conversation?.messages));
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+
   if (!conversation) {
     return (
       <section className="border-border rounded-2xl border p-4">
@@ -31,14 +38,40 @@ export function BookingConversation({
       </section>
     );
   }
-  const messages = [...(conversation.messages ?? [])]
+  const activeConversation = conversation;
+
+  const sortedMessages = [...messages]
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
     .slice(-100);
+
+  async function toggleConversation() {
+    const nextExpanded = !expanded;
+    setExpanded(nextExpanded);
+    if (!nextExpanded || loaded || loading) return;
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const response = await fetch(
+        `/api/admin/conversations/${activeConversation.id}`,
+      );
+      if (!response.ok) throw new Error("Unable to load messages");
+      const body = (await response.json()) as {
+        messages: Conversation["messages"];
+      };
+      setMessages(body.messages ?? []);
+      setLoaded(true);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <section className="border-border overflow-hidden rounded-2xl border">
       <button
         type="button"
-        onClick={() => setExpanded((current) => !current)}
+        onClick={toggleConversation}
         aria-expanded={expanded}
         className="focus-ring hover:bg-elevated/70 flex min-h-16 w-full items-center justify-between gap-4 px-4 text-left transition-colors"
       >
@@ -51,8 +84,10 @@ export function BookingConversation({
               {expanded ? "Hide conversation" : "View conversation"}
             </span>
             <span className="text-muted mt-1 block text-xs">
-              {messages.length} stored message{messages.length === 1 ? "" : "s"}{" "}
-              · {conversation.channel.replace("_", " ")}
+              {loaded
+                ? `${sortedMessages.length} stored message${sortedMessages.length === 1 ? "" : "s"}`
+                : "Load stored messages"}{" "}
+              · {activeConversation.channel.replace("_", " ")}
             </span>
           </span>
         </span>
@@ -64,8 +99,16 @@ export function BookingConversation({
       {expanded && (
         <div className="border-border border-t p-4">
           <div className="border-border bg-elevated max-h-96 space-y-3 overflow-y-auto rounded-2xl border p-4">
-            {messages.length ? (
-              messages.map((message) => (
+            {loading ? (
+              <p className="text-muted py-4 text-center text-sm">
+                Loading conversation…
+              </p>
+            ) : loadError ? (
+              <p className="py-4 text-center text-sm text-red-300">
+                The conversation could not be loaded. Close and try again.
+              </p>
+            ) : sortedMessages.length ? (
+              sortedMessages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex gap-2 ${message.sender_type === "guest" ? "justify-start" : "justify-end"}`}
@@ -100,12 +143,12 @@ export function BookingConversation({
               </p>
             )}
           </div>
-          {conversation.channel === "web_preview" ? (
+          {activeConversation.channel === "web_preview" ? (
             <form action={sendConversationReply} className="mt-3 flex gap-2">
               <input
                 type="hidden"
                 name="conversationId"
-                value={conversation.id}
+                value={activeConversation.id}
               />
               <input
                 name="content"
@@ -128,21 +171,19 @@ export function BookingConversation({
               target="_blank"
               rel="noreferrer"
             >
-              <MessageCircle size={17} />
-              Open Instagram inbox
+              <MessageCircle size={17} /> Open Instagram inbox
             </a>
           )}
-          {conversation.channel === "web_preview" && (
+          {activeConversation.channel === "web_preview" && (
             <p className="text-muted mt-2 text-xs">
               Sending here pauses AI replies so staff can take over safely.
             </p>
           )}
           <Link
-            href={`/admin/conversations?conversation=${conversation.id}`}
+            href={`/admin/conversations?conversation=${activeConversation.id}`}
             className="focus-ring border-border bg-elevated text-foreground mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border px-4 text-sm"
           >
-            <MessageCircle size={16} />
-            Open full conversation
+            <MessageCircle size={16} /> Open full conversation
           </Link>
         </div>
       )}

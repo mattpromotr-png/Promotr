@@ -15,6 +15,16 @@ type RevenueLead = {
   booked_at: string | null;
   requested_date: string;
 };
+type DepositRecord = {
+  id: string;
+  deposit_cad: number;
+  paid_at: string | null;
+  status: string;
+  stripe_payment_intent_id: string | null;
+  booking_date: string;
+  club_tables: { code: string; name: string; zone: string } | null;
+  leads: { name: string; email: string | null } | null;
+};
 const money = new Intl.NumberFormat("en-CA", {
   style: "currency",
   currency: "CAD",
@@ -34,8 +44,12 @@ export default async function RevenuePage() {
       .order("booked_at", { ascending: false }),
     admin
       .from("table_bookings")
-      .select("deposit_cad,paid_at")
-      .eq("status", "confirmed"),
+      .select(
+        "id,deposit_cad,paid_at,status,stripe_payment_intent_id,booking_date,club_tables(code,name,zone),leads(name,email)",
+      )
+      .not("paid_at", "is", null)
+      .order("paid_at", { ascending: false })
+      .limit(100),
   ]);
   if (error || depositResult.error) throw new Error("Unable to load revenue.");
   const bookings = (data ?? []) as RevenueLead[];
@@ -57,9 +71,12 @@ export default async function RevenuePage() {
     { label: "This month", value: sumSince(startMonth), icon: CalendarDays },
     { label: "All confirmed", value: sumSince(), icon: Wine },
   ];
-  const deposits = depositResult.data ?? [];
+  const deposits = (depositResult.data ?? []) as unknown as DepositRecord[];
+  const confirmedDeposits = deposits.filter(
+    (item) => item.status === "confirmed",
+  );
   const depositSum = (date?: Date) =>
-    deposits
+    confirmedDeposits
       .filter(
         (item) => !date || (item.paid_at && new Date(item.paid_at) >= date),
       )
@@ -130,6 +147,88 @@ export default async function RevenuePage() {
             </div>
           </div>
         </div>
+      </section>
+      <section className="surface-card mt-6 overflow-hidden">
+        <div className="border-border border-b px-5 py-4 sm:px-6">
+          <h2 className="text-foreground font-semibold">
+            Deposit transactions
+          </h2>
+          <p className="text-muted mt-1 text-xs">
+            Latest 100 verified Stripe payments, including later refunds.
+          </p>
+        </div>
+        {deposits.length === 0 ? (
+          <p className="text-muted p-8 text-center text-sm">
+            No deposit payments yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="text-muted bg-elevated/60 text-xs tracking-wide uppercase">
+                <tr>
+                  <th className="px-5 py-3 font-medium">Guest</th>
+                  <th className="px-5 py-3 font-medium">Table</th>
+                  <th className="px-5 py-3 font-medium">Booking date</th>
+                  <th className="px-5 py-3 font-medium">Paid</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 text-right font-medium">Deposit</th>
+                </tr>
+              </thead>
+              <tbody className="divide-border divide-y">
+                {deposits.map((deposit) => (
+                  <tr key={deposit.id} className="hover:bg-elevated/35">
+                    <td className="px-5 py-4">
+                      <p className="text-foreground font-medium">
+                        {deposit.leads?.name ?? "Guest"}
+                      </p>
+                      <p className="text-muted mt-1 text-xs">
+                        {deposit.leads?.email ?? "No email"}
+                      </p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <p className="text-foreground">
+                        {deposit.club_tables?.name ?? "Table"}
+                      </p>
+                      <p className="text-muted mt-1 text-xs">
+                        {deposit.club_tables?.zone ?? "Venue"}
+                      </p>
+                    </td>
+                    <td className="text-muted px-5 py-4">
+                      {deposit.booking_date}
+                    </td>
+                    <td className="text-muted px-5 py-4">
+                      {deposit.paid_at
+                        ? new Intl.DateTimeFormat("en-CA", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          }).format(new Date(deposit.paid_at))
+                        : "—"}
+                      {deposit.stripe_payment_intent_id && (
+                        <p className="mt-1 font-mono text-[10px]">
+                          …{deposit.stripe_payment_intent_id.slice(-8)}
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 capitalize">
+                      <span
+                        className={
+                          deposit.status === "confirmed"
+                            ? "text-emerald-300"
+                            : "text-amber-300"
+                        }
+                      >
+                        {deposit.status}
+                      </span>
+                    </td>
+                    <td className="text-foreground px-5 py-4 text-right font-semibold">
+                      {money.format(Number(deposit.deposit_cad || 0))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <section className="surface-card overflow-hidden">

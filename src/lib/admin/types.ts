@@ -24,7 +24,7 @@ export type AdminLead = {
     handoff_reason: string | null;
     channel: string;
     human_takeover: boolean;
-    messages: {
+    messages?: {
       id: string;
       sender_type: "guest" | "ai" | "human";
       content: string;

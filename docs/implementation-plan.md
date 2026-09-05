@@ -111,3 +111,9 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Translate English staff replies into the web guest's detected language while preserving the staff original.
 - [x] Add the conversation identifier to booking links produced by the production n8n workflow export.
 - [ ] Extend the live Instagram workflow metadata and staff-send path after Meta credentials are available.
+- [x] Show guest booking actions only when relevant, return successful edits to the public site, and provide a clear cancellation completion state.
+- [x] Hide unchanged inquiry-status and revenue save actions until their values are edited.
+- [x] Add a detailed Stripe deposit ledger while keeping refunded payments out of received-deposit totals.
+- [x] Load inquiry messages on demand instead of loading every message with the inquiry list.
+- [x] Share the booking form immediately for explicit English or Sinhala link requests and improve conversational Sinhala guidance.
+- [ ] Configure `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the preview app locally and on Vercel so preview chats persist and can link to inquiries.

@@ -13,7 +13,7 @@ const filters = ["all", "new", "contacted", "pending", "booked"] as const;
 type Filter = (typeof filters)[number];
 const PAGE_SIZE = 20;
 const leadSelection =
-  "id,name,email,phone,instagram_handle,requested_date,preferred_arrival_time,party_size,occasion,booking_type,bottle_preference,notes,status,created_at,confirmed_revenue_cad,booked_at,conversations(id,status,handoff_reason,channel,human_takeover,messages(id,sender_type,content,metadata,created_at))";
+  "id,name,email,phone,instagram_handle,requested_date,preferred_arrival_time,party_size,occasion,booking_type,bottle_preference,notes,status,created_at,confirmed_revenue_cad,booked_at,conversations(id,status,handoff_reason,channel,human_takeover)";
 
 export const metadata = { title: "Booking inquiries" };
 export const dynamic = "force-dynamic";

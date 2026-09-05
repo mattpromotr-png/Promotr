@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { updateConfirmedRevenue } from "@/app/admin/leads/actions";
 
 export function RevenueForm({
@@ -13,6 +14,9 @@ export function RevenueForm({
   enabled: boolean;
   disabledReason?: string;
 }) {
+  const initialAmount = amount === null ? "" : String(amount);
+  const [currentAmount, setCurrentAmount] = useState(initialAmount);
+  const changed = currentAmount !== initialAmount;
   return (
     <form
       action={updateConfirmedRevenue}
@@ -34,19 +38,22 @@ export function RevenueForm({
             min="0"
             max="1000000"
             step="0.01"
-            defaultValue={amount ?? ""}
+            value={currentAmount}
+            onChange={(event) => setCurrentAmount(event.target.value)}
             required
             placeholder="0.00"
             disabled={!enabled}
             className="focus-ring border-border bg-surface text-foreground min-h-10 min-w-0 flex-1 rounded-xl border px-3 text-sm"
           />
-          <button
-            type="submit"
-            disabled={!enabled}
-            className="focus-ring bg-brand-gradient min-h-10 rounded-xl px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            Save amount
-          </button>
+          {changed && (
+            <button
+              type="submit"
+              disabled={!enabled}
+              className="focus-ring bg-brand-gradient min-h-10 rounded-xl px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Save amount
+            </button>
+          )}
         </div>
       </label>
       <p className="text-muted mt-2 text-xs">

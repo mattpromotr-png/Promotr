@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { updateLeadStatus } from "@/app/admin/leads/actions";
@@ -29,6 +30,7 @@ export function LeadStatusForm({
   status: LeadStatus;
   compact?: boolean;
 }) {
+  const [selectedStatus, setSelectedStatus] = useState(status);
   return (
     <form action={updateLeadStatus} className="flex items-end gap-2">
       <input type="hidden" name="leadId" value={leadId} />
@@ -36,7 +38,10 @@ export function LeadStatusForm({
         <span className={compact ? "sr-only" : undefined}>Status</span>
         <select
           name="status"
-          defaultValue={status}
+          value={selectedStatus}
+          onChange={(event) =>
+            setSelectedStatus(event.target.value as LeadStatus)
+          }
           aria-label={compact ? "Inquiry status" : undefined}
           className={`focus-ring border-border bg-elevated text-foreground w-full rounded-xl border capitalize ${compact ? "min-h-9 px-2 text-xs" : "mt-2 min-h-10 px-3 text-sm"}`}
         >
@@ -47,7 +52,7 @@ export function LeadStatusForm({
           ))}
         </select>
       </label>
-      <SaveButton compact={compact} />
+      {selectedStatus !== status && <SaveButton compact={compact} />}
     </form>
   );
 }
