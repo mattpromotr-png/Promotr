@@ -29,6 +29,11 @@ type Message = {
   conversation_id: string;
   sender_type: "guest" | "ai" | "human";
   content: string;
+  metadata: {
+    englishTranslation?: string;
+    detectedLanguage?: string;
+    adminOriginalEnglish?: string;
+  } | null;
   created_at: string;
 };
 
@@ -56,10 +61,10 @@ export default async function ConversationsPage({
   const messageResult = selectedId
     ? await admin
         .from("messages")
-        .select("id,conversation_id,sender_type,content,created_at")
+        .select("id,conversation_id,sender_type,content,metadata,created_at")
         .eq("conversation_id", selectedId)
         .order("created_at", { ascending: true })
-        .limit(80)
+        .limit(200)
     : { data: [], error: null };
   if (messageResult.error)
     throw new Error("Unable to load conversation messages.");
@@ -190,6 +195,20 @@ export default async function ConversationsPage({
                         {message.sender_type}
                       </p>
                       {message.content}
+                      {message.metadata?.englishTranslation &&
+                        message.metadata.englishTranslation !==
+                          message.content && (
+                          <p className="mt-2 border-t border-current/10 pt-2 text-xs opacity-75">
+                            <span className="font-semibold">English:</span>{" "}
+                            {message.metadata.englishTranslation}
+                          </p>
+                        )}
+                      {message.metadata?.adminOriginalEnglish && (
+                        <p className="mt-2 border-t border-current/10 pt-2 text-xs opacity-75">
+                          <span className="font-semibold">Staff wrote:</span>{" "}
+                          {message.metadata.adminOriginalEnglish}
+                        </p>
+                      )}
                     </div>
                   </article>
                 ))}

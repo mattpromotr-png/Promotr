@@ -1,6 +1,7 @@
 "use client";
 
 import { Bot, ChevronDown, MessageCircle, Send, UserRound } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { sendConversationReply } from "@/app/admin/conversations/actions";
 import type { AdminLead } from "@/lib/admin/types";
@@ -32,7 +33,7 @@ export function BookingConversation({
   }
   const messages = [...(conversation.messages ?? [])]
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
-    .slice(-20);
+    .slice(-100);
   return (
     <section className="border-border overflow-hidden rounded-2xl border">
       <button
@@ -62,7 +63,7 @@ export function BookingConversation({
       </button>
       {expanded && (
         <div className="border-border border-t p-4">
-          <div className="border-border bg-elevated mt-3 max-h-72 space-y-3 overflow-y-auto rounded-2xl border p-4">
+          <div className="border-border bg-elevated max-h-96 space-y-3 overflow-y-auto rounded-2xl border p-4">
             {messages.length ? (
               messages.map((message) => (
                 <div
@@ -76,6 +77,14 @@ export function BookingConversation({
                     className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-6 ${message.sender_type === "guest" ? "bg-surface text-foreground border-border border" : "bg-violet/12 text-foreground"}`}
                   >
                     {message.content}
+                    {message.metadata?.englishTranslation &&
+                      message.metadata.englishTranslation !==
+                        message.content && (
+                        <p className="mt-2 border-t border-current/10 pt-2 text-xs opacity-70">
+                          <span className="font-semibold">English:</span>{" "}
+                          {message.metadata.englishTranslation}
+                        </p>
+                      )}
                     <p className="text-muted mt-1 text-[10px] capitalize">
                       {message.sender_type}
                     </p>
@@ -128,6 +137,13 @@ export function BookingConversation({
               Sending here pauses AI replies so staff can take over safely.
             </p>
           )}
+          <Link
+            href={`/admin/conversations?conversation=${conversation.id}`}
+            className="focus-ring border-border bg-elevated text-foreground mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border px-4 text-sm"
+          >
+            <MessageCircle size={16} />
+            Open full conversation
+          </Link>
         </div>
       )}
     </section>

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin";
+import { translateStaffReply } from "@/lib/ai/translate-staff-reply";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function sendConversationReply(formData: FormData) {
@@ -26,12 +27,32 @@ export async function sendConversationReply(formData: FormData) {
     throw new Error(
       "Instagram replies must be sent through Meta Business Suite until Meta messaging is connected.",
     );
+  const { data: latestGuest } = await admin
+    .from("messages")
+    .select("metadata")
+    .eq("conversation_id", conversationId)
+    .eq("sender_type", "guest")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const metadata = latestGuest?.metadata as {
+    detectedLanguage?: string;
+  } | null;
+  const targetLanguage = metadata?.detectedLanguage || "English";
+  const deliveredContent = await translateStaffReply(content, targetLanguage);
   const { error } = await admin.from("messages").insert({
     conversation_id: conversationId,
     direction: "outbound",
     sender_type: "human",
-    content,
+    content: deliveredContent,
     delivery_status: "sent",
+    metadata: {
+      detectedLanguage: targetLanguage,
+      englishTranslation:
+        targetLanguage.toLowerCase() === "english" ? null : content,
+      adminOriginalEnglish:
+        targetLanguage.toLowerCase() === "english" ? null : content,
+    },
   });
   if (error) throw new Error("Unable to send the message.");
   await admin

@@ -28,6 +28,11 @@ export type AdminLead = {
       id: string;
       sender_type: "guest" | "ai" | "human";
       content: string;
+      metadata: {
+        englishTranslation?: string;
+        detectedLanguage?: string;
+        adminOriginalEnglish?: string;
+      } | null;
       created_at: string;
     }[];
   } | null;

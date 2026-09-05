@@ -105,3 +105,9 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Add multilingual contract fixtures for French, Spanish, German, and Portuguese replies.
 - [ ] Re-import or manually update the active n8n workflow so the deployed workflow receives the new multilingual prompt.
 - [ ] Run live model conversations in the target languages and review naturalness, fact accuracy, and handoff behavior.
+- [x] Link web-preview booking submissions to their originating conversation.
+- [x] Show up to 100 messages in inquiry details and add direct navigation to the full conversation.
+- [x] Store English translations for new web-preview messages and display them beneath the original text for staff.
+- [x] Translate English staff replies into the web guest's detected language while preserving the staff original.
+- [x] Add the conversation identifier to booking links produced by the production n8n workflow export.
+- [ ] Extend the live Instagram workflow metadata and staff-send path after Meta credentials are available.
