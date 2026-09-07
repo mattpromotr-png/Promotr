@@ -46,9 +46,12 @@ export async function reconcilePaidCheckout(session: Stripe.Checkout.Session) {
             .update({ management_email_sent_at: new Date().toISOString() })
             .eq("id", bookingId);
       } catch (emailError) {
-        console.error("Booking email failed", {
-          name: emailError instanceof Error ? emailError.name : "UnknownError",
-        });
+        // Email is best-effort and must never turn a verified payment into a
+        // failed page. Next.js also renders console.error as a dev overlay.
+        console.warn(
+          "Booking email was not sent. Check the Resend sender domain and recipient restrictions.",
+          emailError instanceof Error ? emailError.message : "Unknown error",
+        );
       }
     }
   }

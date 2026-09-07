@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminNotice } from "@/components/admin/admin-notice";
 import { LeadsTable } from "@/components/admin/leads-table";
 import { PageHeading } from "@/components/admin/page-heading";
 import type { AdminLead, LeadStatus } from "@/lib/admin/types";
@@ -108,6 +109,23 @@ export default async function AdminLeadsPage({
   const statusCounts = Object.fromEntries(
     filters.map((status, index) => [status, countResults[index].count ?? 0]),
   );
+  const noticeMessage = params.error
+    ? params.error === "payment_protected"
+      ? "Paid inquiries must be retained for financial records and cannot be deleted."
+      : params.error === "table_unavailable"
+        ? "That table is already reserved for the selected date."
+        : params.error === "table_capacity"
+          ? "The selected table is too small for this party."
+          : params.error === "booking_change_failed"
+            ? "The booking could not be changed. Check its current status and try again."
+            : "The inquiry details were not valid. Check the required fields and try again."
+    : params.deleted
+      ? "The inquiry was permanently deleted."
+      : params.saved === "booking"
+        ? "The table booking was updated successfully."
+        : params.saved
+          ? "The inquiry details were saved."
+          : null;
 
   return (
     <AdminShell active="inquiries">
@@ -117,25 +135,11 @@ export default async function AdminLeadsPage({
         description="Review requests, contact guests, and manage progress. An inquiry is never a confirmed reservation."
       />
 
-      {(params.saved || params.deleted || params.error) && (
-        <div
-          role="status"
-          className={`mt-6 rounded-2xl border p-4 text-sm ${params.error ? "border-red-500/25 bg-red-500/10 text-red-700 dark:text-red-200" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"}`}
-        >
-          {params.error === "payment_protected"
-            ? "Paid inquiries must be retained for financial records and cannot be deleted."
-            : params.error === "table_unavailable"
-              ? "That table is already reserved for the selected date."
-              : params.error === "table_capacity"
-                ? "The selected table is too small for this party."
-                : params.error === "booking_change_failed"
-                  ? "The booking could not be changed. Check its current status and try again."
-                  : params.error
-                    ? "The inquiry details were not valid. Check the required fields and try again."
-                    : params.deleted
-                      ? "The inquiry was permanently deleted."
-                      : "The inquiry details were saved."}
-        </div>
+      {noticeMessage && (
+        <AdminNotice
+          message={noticeMessage}
+          type={params.error ? "error" : "success"}
+        />
       )}
 
       <section className="mt-8" aria-label="Inquiry controls">

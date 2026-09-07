@@ -28,6 +28,10 @@ export async function sendBookingManagementEmail(details: BookingEmail) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (!apiKey || !from || !appUrl)
     return { sent: false, reason: "not_configured" } as const;
+  if (/@(?:gmail|googlemail|outlook|hotmail|yahoo)\./i.test(from))
+    throw new Error(
+      "BOOKING_EMAIL_FROM must use onboarding@resend.dev for account-only testing or a domain verified in Resend.",
+    );
 
   const { createBookingManageToken } =
     await import("@/lib/bookings/manage-token");

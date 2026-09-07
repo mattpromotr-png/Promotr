@@ -19,14 +19,13 @@ import { useEffect, useState } from "react";
 import {
   acknowledgeBookingChange,
   deleteLead,
-  rescheduleTableBooking,
   updateLeadDetails,
 } from "@/app/admin/leads/actions";
+import { AdminBookingChangeForm } from "@/components/admin/admin-booking-change-form";
 import { LeadStatusForm } from "@/components/admin/lead-status-form";
 import { BookingConversation } from "@/components/admin/booking-conversation";
 import { RevenueForm } from "@/components/admin/revenue-form";
 import type { AdminLead } from "@/lib/admin/types";
-import { tablePackages } from "@/config/table-packages";
 
 const statusStyles: Record<AdminLead["status"], string> = {
   new: "border-violet/25 bg-violet/10 text-violet",
@@ -328,60 +327,13 @@ function DetailsDialog({
           )}
 
           {editing && tableBooking && (
-            <form
-              action={rescheduleTableBooking}
-              className="rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/5 p-4 sm:p-5"
-            >
-              <input type="hidden" name="leadId" value={lead.id} />
-              <input type="hidden" name="bookingId" value={tableBooking.id} />
-              <div>
-                <h3 className="text-foreground font-semibold">
-                  Change table booking
-                </h3>
-                <p className="text-muted mt-1 text-xs leading-5">
-                  Admin changes bypass the 48-hour cutoff, but capacity and
-                  double-booking rules still apply. A different listed deposit
-                  is recorded for review; it does not alter the Stripe amount
-                  already paid.
-                </p>
-              </div>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <EditField
-                  label="Booking date"
-                  name="bookingDate"
-                  value={tableBooking.booking_date}
-                  type="date"
-                  required
-                />
-                <EditField
-                  label="Party size"
-                  name="partySize"
-                  value={String(lead.party_size)}
-                  type="number"
-                  required
-                />
-                <label className="text-foreground text-sm font-medium sm:col-span-2">
-                  Assigned table
-                  <select
-                    name="tableId"
-                    defaultValue={tableBooking.table_id}
-                    className="focus-ring border-border bg-surface mt-2 min-h-11 w-full rounded-xl border px-3"
-                  >
-                    {tablePackages.map((table) => (
-                      <option key={table.id} value={table.id}>
-                        {table.name} · {table.capacity} guests · $
-                        {table.depositCad} deposit · ${table.minimumSpendCad}{" "}
-                        minimum
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <EditField label="Reason for change" name="reason" value="" />
-              </div>
-              <button className="focus-ring bg-brand-gradient mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl px-5 text-sm font-semibold text-white">
-                <CalendarDays size={16} /> Save booking change
-              </button>
-            </form>
+            <AdminBookingChangeForm
+              leadId={lead.id}
+              bookingId={tableBooking.id}
+              currentTableId={tableBooking.table_id}
+              bookingDate={tableBooking.booking_date}
+              partySize={lead.party_size}
+            />
           )}
 
           <section aria-labelledby="booking-information">
