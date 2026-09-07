@@ -43,10 +43,18 @@ const DEPOSIT_PAGE_SIZE = 20;
 export default async function RevenuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; salesPage?: string }>;
+  searchParams: Promise<{ page?: string; salesPage?: string; date?: string }>;
 }) {
   await requireAdmin();
   const params = await searchParams;
+  const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(params.date ?? "")
+    ? params.date!
+    : new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Toronto",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date());
   const requestedPage = Number.parseInt(params.page ?? "1", 10);
   const page =
     Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
@@ -116,6 +124,21 @@ export default async function RevenuePage({
         (item) => !date || (item.paid_at && new Date(item.paid_at) >= date),
       )
       .reduce((sum, item) => sum + Number(item.deposit_cad || 0), 0);
+  const paymentDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const selectedDateDeposits = confirmedDeposits.filter(
+    (item) =>
+      item.paid_at &&
+      paymentDate.format(new Date(item.paid_at)) === selectedDate,
+  );
+  const selectedDateTotal = selectedDateDeposits.reduce(
+    (sum, item) => sum + Number(item.deposit_cad || 0),
+    0,
+  );
   const breakdown = Object.entries(
     bookings
       .filter((item) => item.confirmed_revenue_cad !== null)
@@ -190,6 +213,39 @@ export default async function RevenuePage({
             </div>
           </div>
         </div>
+        <form
+          method="get"
+          className="border-border bg-elevated mt-5 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-end sm:justify-between"
+        >
+          <input type="hidden" name="page" value="1" />
+          <input type="hidden" name="salesPage" value={salesPage} />
+          <label className="text-foreground text-sm font-medium">
+            <span className="flex items-center gap-2">
+              <CalendarDays size={16} className="text-violet" /> Payment date
+            </span>
+            <input
+              type="date"
+              name="date"
+              defaultValue={selectedDate}
+              className="focus-ring border-border bg-surface mt-2 min-h-10 rounded-xl border px-3"
+            />
+          </label>
+          <div className="flex flex-wrap items-end gap-3 sm:justify-end">
+            <div className="text-right">
+              <p className="text-muted text-xs">Received on {selectedDate}</p>
+              <p className="text-foreground mt-1 text-xl font-semibold">
+                {money.format(selectedDateTotal)}
+              </p>
+              <p className="text-muted mt-1 text-[11px]">
+                {selectedDateDeposits.length} confirmed payment
+                {selectedDateDeposits.length === 1 ? "" : "s"}
+              </p>
+            </div>
+            <button className="focus-ring bg-brand-gradient min-h-10 rounded-xl px-4 text-sm font-semibold text-white">
+              View day
+            </button>
+          </div>
+        </form>
       </section>
       <section className="surface-card mt-6 overflow-hidden">
         <div className="border-border border-b px-5 py-4 sm:px-6">
@@ -284,7 +340,7 @@ export default async function RevenuePage({
             </p>
             <div className="flex gap-2">
               <Link
-                href={`/admin/revenue?page=${Math.max(1, page - 1)}&salesPage=${salesPage}`}
+                href={`/admin/revenue?page=${Math.max(1, page - 1)}&salesPage=${salesPage}&date=${selectedDate}`}
                 aria-disabled={page <= 1}
                 tabIndex={page <= 1 ? -1 : undefined}
                 className={cn(
@@ -297,7 +353,7 @@ export default async function RevenuePage({
                 <ChevronLeft size={16} /> Previous
               </Link>
               <Link
-                href={`/admin/revenue?page=${Math.min(depositTotalPages, page + 1)}&salesPage=${salesPage}`}
+                href={`/admin/revenue?page=${Math.min(depositTotalPages, page + 1)}&salesPage=${salesPage}&date=${selectedDate}`}
                 aria-disabled={page >= depositTotalPages}
                 tabIndex={page >= depositTotalPages ? -1 : undefined}
                 className={cn(
@@ -365,7 +421,7 @@ export default async function RevenuePage({
               </p>
               <div className="flex gap-2">
                 <Link
-                  href={`/admin/revenue?page=${page}&salesPage=${Math.max(1, salesPage - 1)}`}
+                  href={`/admin/revenue?page=${page}&salesPage=${Math.max(1, salesPage - 1)}&date=${selectedDate}`}
                   aria-disabled={salesPage <= 1}
                   className={cn(
                     "focus-ring border-border bg-elevated grid size-9 place-items-center rounded-xl border",
@@ -378,7 +434,7 @@ export default async function RevenuePage({
                   <ChevronLeft size={16} />
                 </Link>
                 <Link
-                  href={`/admin/revenue?page=${page}&salesPage=${Math.min(salesTotalPages, salesPage + 1)}`}
+                  href={`/admin/revenue?page=${page}&salesPage=${Math.min(salesTotalPages, salesPage + 1)}&date=${selectedDate}`}
                   aria-disabled={salesPage >= salesTotalPages}
                   className={cn(
                     "focus-ring border-border bg-elevated grid size-9 place-items-center rounded-xl border",

@@ -7,6 +7,7 @@ import type { TablePackage } from "@/config/table-packages";
 export type FloorBooking = {
   tableId: string;
   status: "held" | "confirmed" | string;
+  leadId?: string;
   guestName?: string;
   partySize?: number;
 };
@@ -18,6 +19,7 @@ type ClubFloorMapProps = {
   dimmedIds?: string[];
   bookings?: FloorBooking[];
   onSelect?: (table: TablePackage) => void;
+  onBookingSelect?: (booking: FloorBooking) => void;
 };
 
 export function ClubFloorMap({
@@ -27,6 +29,7 @@ export function ClubFloorMap({
   dimmedIds = [],
   bookings = [],
   onSelect,
+  onBookingSelect,
 }: ClubFloorMapProps) {
   const disabled = new Set(disabledIds);
   const dimmed = new Set(dimmedIds);
@@ -85,8 +88,10 @@ export function ClubFloorMap({
             <button
               key={table.id}
               type="button"
-              disabled={!onSelect || isDisabled}
-              onClick={() => onSelect?.(table)}
+              disabled={booking ? !onBookingSelect : !onSelect || isDisabled}
+              onClick={() =>
+                booking ? onBookingSelect?.(booking) : onSelect?.(table)
+              }
               style={{ left: `${table.x}%`, top: `${table.y}%` }}
               className={`focus-ring group absolute h-7 min-w-7 -translate-x-1/2 -translate-y-1/2 border px-1 text-[7px] font-black transition duration-200 sm:h-11 sm:min-w-11 sm:text-[10px] ${table.shape === "booth" ? "rounded-lg" : "rounded-full"} ${stateClass} ${isDimmed ? "scale-90 opacity-15 grayscale" : ""} ${!onSelect ? "cursor-default" : "disabled:cursor-not-allowed"}`}
               aria-label={`${table.name}${booking ? `, ${booking.status}` : isDisabled ? ", unavailable" : ", available"}`}

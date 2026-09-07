@@ -15,7 +15,7 @@ type Booking = {
   table_id: string;
   status: string;
   booking_date: string;
-  leads: { name: string; party_size: number } | null;
+  leads: { id: string; name: string; party_size: number } | null;
 };
 
 export default async function TableMapPage({
@@ -31,7 +31,7 @@ export default async function TableMapPage({
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("table_bookings")
-    .select("id,table_id,status,booking_date,leads(name,party_size)")
+    .select("id,table_id,status,booking_date,leads(id,name,party_size)")
     .eq("booking_date", date)
     .in("status", ["held", "confirmed"]);
   if (error) throw new Error("Unable to load the table map.");
@@ -40,6 +40,7 @@ export default async function TableMapPage({
     (booking): FloorBooking => ({
       tableId: booking.table_id,
       status: booking.status,
+      leadId: booking.leads?.id,
       guestName: booking.leads?.name,
       partySize: booking.leads?.party_size,
     }),
