@@ -61,7 +61,7 @@ export default function LandingPage() {
   return (
     <main className="bg-[#05050a] text-white">
       <LandingMotion />
-      <section className="relative min-h-svh overflow-hidden">
+      <section className="relative overflow-hidden xl:min-h-svh">
         <AmbientVideo
           src="/media/promotr-hero-nightclub.mp4"
           poster="/images/promotr-nightclub-hero-v2.png"
@@ -98,21 +98,21 @@ export default function LandingPage() {
           </header>
 
           <div
-            className="flex min-h-[calc(100svh-5rem)] max-w-3xl flex-col justify-center py-20"
+            className="flex max-w-3xl flex-col justify-start pt-4 pb-10 sm:pt-10 lg:pt-4 xl:min-h-[calc(100svh-5rem)]"
             data-reveal
           >
             <div className="mb-5 flex items-center gap-3 text-xs font-semibold tracking-[.22em] text-fuchsia-300 uppercase">
-              <span className="h-px w-10 bg-fuchsia-400" /> Downtown Toronto
+              <span className="h-px bg-fuchsia-400" /> Downtown Toronto
             </div>
             <h1 className="text-5xl leading-[.92] font-black tracking-[-.065em] sm:text-7xl lg:text-[6.8rem]">
               Own the night.
-              <span className="block bg-gradient-to-r from-fuchsia-300 via-violet-300 to-blue-300 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-fuchsia-300 via-violet-300 to-blue-300 bg-clip-text pb-[0.18em] text-transparent">
                 Remember the feeling.
               </span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-7 text-white/72 sm:text-lg">
               Big sound, electric energy, and elevated table service in the
-              heart of Toronto. Bring your people—we’ll take care of the night.
+              heart of Toronto. Bring your people. we’ll take care of the night.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -128,7 +128,7 @@ export default function LandingPage() {
                 Explore the venue
               </a>
             </div>
-            <div className="mt-12 flex flex-wrap gap-x-8 gap-y-3 text-xs text-white/62">
+            <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-xs text-white/62">
               <span className="flex items-center gap-2">
                 <Clock3 size={15} className="text-violet-300" />
                 Fri & Sat · 10 PM–3 AM
@@ -144,7 +144,7 @@ export default function LandingPage() {
 
       <section
         id="nights"
-        className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8"
+        className="relative mx-auto max-w-7xl px-4 py-24 pt-12 sm:px-6 lg:px-8 lg:pt-24"
       >
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
@@ -200,7 +200,7 @@ export default function LandingPage() {
       </section>
 
       <section
-        className="relative isolate min-h-[70svh] overflow-hidden border-y border-white/10"
+        className="relative isolate overflow-hidden border-y border-white/10 xl:min-h-[70svh]"
         data-reveal
       >
         <AmbientVideo
@@ -209,7 +209,7 @@ export default function LandingPage() {
           className="absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,10,.94),rgba(5,5,10,.58)_55%,rgba(5,5,10,.2))]" />
-        <div className="relative mx-auto flex min-h-[70svh] max-w-7xl items-center px-4 py-24 sm:px-6 lg:px-8">
+        <div className="relative mx-auto flex max-w-7xl items-start px-4 py-16 sm:px-6 sm:py-20 lg:px-8 xl:min-h-[70svh] xl:items-center xl:py-24">
           <div className="max-w-xl">
             <p className="text-xs font-bold tracking-[.2em] text-fuchsia-300 uppercase">
               Elevate the celebration
@@ -289,17 +289,17 @@ export default function LandingPage() {
       </section>
 
       <section
-        className="relative mx-auto max-w-7xl overflow-hidden px-4 py-24 sm:px-6 lg:px-8"
+        className="relative mx-auto max-w-7xl overflow-hidden px-4 py-10 sm:px-6 sm:py-24 lg:px-8"
         data-reveal
       >
-        <div className="relative min-h-[72svh] overflow-hidden rounded-[2.25rem] border border-white/10">
+        <div className="relative min-h-[52svh] overflow-hidden rounded-[2.25rem] border border-white/10 sm:min-h-[56svh] xl:min-h-[72svh]">
           <AmbientVideo
             src="/media/promotr-dance-floor.mp4"
             poster="/media/promotr-venue-interior.webp.jpeg"
             className="absolute inset-0 size-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/15 to-black/20" />
-          <div className="relative flex min-h-[72svh] flex-col items-center justify-end p-7 pb-12 text-center sm:p-14">
+          <div className="relative flex min-h-[52svh] flex-col items-center justify-end p-7 pb-12 text-center sm:min-h-[56svh] sm:p-14 xl:min-h-[72svh]">
             <p className="text-xs font-bold tracking-[.22em] text-fuchsia-300 uppercase">
               Feel the room
             </p>
@@ -376,15 +376,54 @@ export default function LandingPage() {
         Plan your night <ArrowRight size={16} />
       </Link>
 
-      <footer className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <Brand compact />
-          <p className="text-xs text-white/40">
-            19+ only · Please enjoy responsibly
-          </p>
-          <Link href="/book" className="text-sm font-semibold text-violet-300">
-            Plan your night →
-          </Link>
+      <footer className="border-t border-white/10 bg-gradient-to-b from-[#080810] to-black">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_.8fr_.8fr] lg:px-8">
+          <div>
+            <Brand />
+            <p className="mt-5 max-w-sm text-sm leading-6 text-white/50">
+              Downtown Toronto nightlife, elevated tables, and unforgettable
+              weekends—all in one room.
+            </p>
+            <Link
+              href="/book"
+              className="focus-ring mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-black transition hover:bg-fuchsia-100"
+            >
+              Plan your night <ArrowRight size={16} />
+            </Link>
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-[.18em] text-white/40 uppercase">
+              Explore
+            </p>
+            <nav className="mt-4 flex flex-col items-start gap-3 text-sm text-white/65">
+              <a href="#nights" className="transition hover:text-white">
+                Nights
+              </a>
+              <a href="#experience" className="transition hover:text-white">
+                Experience
+              </a>
+              <a href="#visit" className="transition hover:text-white">
+                Before you arrive
+              </a>
+            </nav>
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-[.18em] text-white/40 uppercase">
+              Venue
+            </p>
+            <div className="mt-4 space-y-3 text-sm text-white/65">
+              <p>Friday &amp; Saturday</p>
+              <p>10 PM—3 AM</p>
+              <p>19+ · Valid ID required</p>
+              <p>Downtown Toronto</p>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-white/10">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+            <p>© {new Date().getFullYear()} Promotr. All rights reserved.</p>
+            <p>19+ only · Please enjoy responsibly.</p>
+          </div>
         </div>
       </footer>
     </main>

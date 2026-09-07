@@ -1,10 +1,15 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-3" aria-label="Promotr">
+    <Link
+      href="/"
+      className="focus-ring inline-flex items-center gap-3 rounded-xl"
+      aria-label="Promotr home"
+    >
       <span className="shadow-violet grid size-10 shrink-0 place-items-center rounded-xl">
         <Image
           src="/images/promotr-mark.png"
@@ -28,6 +33,6 @@ export function Brand({ compact = false }: { compact?: boolean }) {
           NIGHTLIFE · TORONTO
         </span>
       </span>
-    </div>
+    </Link>
   );
 }

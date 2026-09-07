@@ -1,4 +1,5 @@
-import { LockKeyhole } from "lucide-react";
+import { ArrowLeft, LockKeyhole } from "lucide-react";
+import Link from "next/link";
 import { Brand } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signIn } from "./actions";
@@ -15,9 +16,19 @@ export default async function AdminLoginPage({
     <main className="relative grid min-h-svh place-items-center overflow-hidden px-4 py-8">
       <div className="ambient-glow" aria-hidden="true" />
       <div className="relative w-full max-w-md">
-        <header className="mb-6 flex items-center justify-between">
+        <header className="mb-6 flex items-center justify-between gap-3">
           <Brand compact />
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="focus-ring border-border bg-surface text-muted hover:text-foreground inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm transition-colors"
+            >
+              <ArrowLeft size={15} />
+              <span className="hidden sm:inline">Back to website</span>
+              <span className="sm:hidden">Back</span>
+            </Link>
+            <ThemeToggle />
+          </div>
         </header>
         <section className="surface-card p-6 sm:p-8">
           <span className="bg-violet/10 text-violet grid size-11 place-items-center rounded-xl">

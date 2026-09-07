@@ -1,4 +1,10 @@
-import { CalendarDays, LockKeyhole, MapPin, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  LockKeyhole,
+  MapPin,
+  ShieldCheck,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Brand } from "@/components/brand";
@@ -25,8 +31,16 @@ export default async function BookingPage({
       <div className="ambient-glow" aria-hidden="true" />
       <div className="relative mx-auto max-w-6xl">
         <header className="flex items-center justify-between py-2">
-          <Brand />
+          <Brand compact />
           <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="focus-ring border-border bg-surface text-muted hover:text-foreground inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition-colors"
+            >
+              <ArrowLeft size={15} aria-hidden="true" />
+              <span className="hidden md:inline">Back to website</span>
+              <span className="md:hidden">Back</span>
+            </Link>
             <Link
               href="/admin/login"
               className="focus-ring border-border bg-surface text-muted hover:text-foreground inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-medium transition-colors"
