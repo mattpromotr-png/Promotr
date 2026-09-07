@@ -118,39 +118,56 @@ export function AdminTableMap({
         onBookingSelect={setSelectedBooking}
       />
       {selectedBooking && (
-        <div className="border-border bg-elevated mt-5 flex flex-col gap-4 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="bg-violet/10 text-violet grid size-10 place-items-center rounded-xl">
-              <UserRound size={18} />
-            </span>
-            <div>
-              <p className="text-foreground font-semibold">
-                {selectedBooking.guestName || "Booking guest"}
-              </p>
-              <p className="text-muted mt-1 text-xs capitalize">
-                {selectedBooking.partySize || "Unknown"} guests ·{" "}
-                {selectedBooking.status}
-              </p>
+        <div
+          className="fixed inset-0 z-[70] grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+          role="presentation"
+          onMouseDown={(event) =>
+            event.target === event.currentTarget && setSelectedBooking(null)
+          }
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="table-booking-guest"
+            className="border-border bg-surface w-full max-w-md rounded-3xl border p-6 shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <span className="bg-violet/10 text-violet grid size-12 place-items-center rounded-2xl">
+                <UserRound size={20} />
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedBooking(null)}
+                className="focus-ring border-border bg-elevated text-muted grid size-10 place-items-center rounded-xl border"
+                aria-label="Close booking details"
+              >
+                <X size={16} />
+              </button>
             </div>
-          </div>
-          <div className="flex gap-2">
-            {selectedBooking.leadId && (
+            <p className="eyebrow mt-5">TABLE BOOKING</p>
+            <h2
+              id="table-booking-guest"
+              className="text-foreground mt-2 text-xl font-semibold"
+            >
+              {selectedBooking.guestName || "Booking guest"}
+            </h2>
+            <p className="text-muted mt-2 text-sm capitalize">
+              {selectedBooking.partySize || "Unknown"} guests ·{" "}
+              {selectedBooking.status}
+            </p>
+            {selectedBooking.leadId ? (
               <Link
                 href={`/admin/leads?lead=${selectedBooking.leadId}`}
-                className="focus-ring bg-brand-gradient inline-flex min-h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white"
+                className="focus-ring bg-brand-gradient mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-white"
               >
                 Open inquiry <ExternalLink size={15} />
               </Link>
+            ) : (
+              <p className="text-muted mt-5 text-xs">
+                No inquiry is linked to this table hold.
+              </p>
             )}
-            <button
-              type="button"
-              onClick={() => setSelectedBooking(null)}
-              className="focus-ring border-border bg-surface text-muted grid size-10 place-items-center rounded-xl border"
-              aria-label="Close booking details"
-            >
-              <X size={16} />
-            </button>
-          </div>
+          </section>
         </div>
       )}
     </>
