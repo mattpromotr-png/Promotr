@@ -20,6 +20,13 @@ const requestSchema = z.discriminatedUnion("action", [
     notes: z.string().trim().max(1000),
   }),
   baseSchema.extend({ action: z.literal("cancel") }),
+  baseSchema.extend({
+    action: z.literal("reschedule"),
+    bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    tableId: z.string().uuid(),
+    partySize: z.coerce.number().int().min(1).max(100),
+    reason: z.string().trim().max(500).optional(),
+  }),
 ]);
 
 export async function POST(request: NextRequest) {
@@ -89,6 +96,43 @@ export async function POST(request: NextRequest) {
         { status: 500 },
       );
     return NextResponse.json({ message: "Your booking details were updated." });
+  }
+
+  if (input.action === "reschedule") {
+    if (["cancelled", "refunded", "expired"].includes(booking.status))
+      return NextResponse.json(
+        { error: "This booking can no longer be changed." },
+        { status: 409 },
+      );
+    const { data, error: rescheduleError } = await admin.rpc(
+      "reschedule_table_booking",
+      {
+        p_booking_id: booking.id,
+        p_table_id: input.tableId,
+        p_booking_date: input.bookingDate,
+        p_party_size: input.partySize,
+        p_changed_by: "guest",
+        p_reason: input.reason || null,
+        p_allow_price_change: false,
+      },
+    );
+    if (rescheduleError) {
+      const message = rescheduleError.message;
+      const errorMessage = message.includes("change_cutoff")
+        ? "Date and table changes close 48 hours before the booking. Please contact the venue."
+        : message.includes("table_capacity_exceeded")
+          ? "That table is too small for your party."
+          : message.includes("table_unavailable")
+            ? "That table is no longer available for the selected date."
+            : "Unable to change this booking.";
+      return NextResponse.json({ error: errorMessage }, { status: 409 });
+    }
+    return NextResponse.json({
+      message: data.requiresReview
+        ? `Your request for ${data.tableName} on ${data.bookingDate} was sent to the venue because the deposit is different. Your current booking remains unchanged until staff approves it.`
+        : `Booking moved to ${data.tableName} on ${data.bookingDate}. The venue team has been notified.`,
+      booking: data,
+    });
   }
 
   if (["cancelled", "refunded"].includes(booking.status))

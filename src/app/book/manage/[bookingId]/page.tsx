@@ -22,7 +22,7 @@ export default async function ManageBookingPage({
   const { data: booking } = await admin
     .from("table_bookings")
     .select(
-      "id,lead_id,booking_date,status,minimum_spend_cad,deposit_cad,club_tables(name,zone,capacity)",
+      "id,lead_id,table_id,booking_date,status,minimum_spend_cad,deposit_cad,club_tables(name,zone,capacity)",
     )
     .eq("id", bookingId)
     .maybeSingle();
@@ -92,6 +92,9 @@ export default async function ManageBookingPage({
             details={{
               bookingId,
               token,
+              bookingDate: booking.booking_date,
+              tableId: booking.table_id,
+              depositCad: Number(booking.deposit_cad),
               name: lead.name,
               email: lead.email || "",
               phone: lead.phone || "",

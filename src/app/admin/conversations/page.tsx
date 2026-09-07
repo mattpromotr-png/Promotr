@@ -1,5 +1,7 @@
 import {
   Bot,
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   MessageCircle,
   Send,
@@ -14,6 +16,7 @@ import { returnConversationToAi, sendConversationReply } from "./actions";
 
 export const metadata = { title: "Conversations" };
 export const dynamic = "force-dynamic";
+const PAGE_SIZE = 30;
 
 type Conversation = {
   id: string;
@@ -40,20 +43,26 @@ type Message = {
 export default async function ConversationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ conversation?: string }>;
+  searchParams: Promise<{ conversation?: string; page?: string }>;
 }) {
   await requireAdmin();
-  const { conversation: requested } = await searchParams;
+  const { conversation: requested, page: pageValue } = await searchParams;
+  const requestedPage = Number.parseInt(pageValue ?? "1", 10);
+  const page =
+    Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const admin = createAdminClient();
   const listResult = await admin
     .from("conversations")
     .select(
       "id,channel,status,human_takeover,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id)",
+      { count: "exact" },
     )
     .order("last_message_at", { ascending: false })
-    .limit(40);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (listResult.error) throw new Error("Unable to load conversations.");
   const conversations = (listResult.data ?? []) as unknown as Conversation[];
+  const total = listResult.count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const selectedId = conversations.some((item) => item.id === requested)
     ? requested
     : conversations[0]?.id;
@@ -100,7 +109,7 @@ export default async function ConversationsPage({
                 return (
                   <Link
                     key={item.id}
-                    href={`/admin/conversations?conversation=${item.id}`}
+                    href={`/admin/conversations?conversation=${item.id}&page=${page}`}
                     className={`border-border block border-b px-5 py-4 transition-colors ${item.id === selectedId ? "bg-violet/10" : "hover:bg-elevated"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -124,6 +133,32 @@ export default async function ConversationsPage({
               })
             )}
           </div>
+          {totalPages > 1 && (
+            <nav
+              className="border-border flex items-center justify-between gap-2 border-t px-4 py-3"
+              aria-label="Conversation pages"
+            >
+              <Link
+                href={`/admin/conversations?page=${Math.max(1, page - 1)}`}
+                aria-disabled={page <= 1}
+                className={`focus-ring border-border grid size-9 place-items-center rounded-xl border ${page <= 1 ? "pointer-events-none opacity-40" : "text-foreground"}`}
+                aria-label="Previous conversation page"
+              >
+                <ChevronLeft size={16} />
+              </Link>
+              <span className="text-muted text-xs">
+                {page}/{totalPages} · {total}
+              </span>
+              <Link
+                href={`/admin/conversations?page=${Math.min(totalPages, page + 1)}`}
+                aria-disabled={page >= totalPages}
+                className={`focus-ring border-border grid size-9 place-items-center rounded-xl border ${page >= totalPages ? "pointer-events-none opacity-40" : "text-foreground"}`}
+                aria-label="Next conversation page"
+              >
+                <ChevronRight size={16} />
+              </Link>
+            </nav>
+          )}
         </aside>
 
         <section className="flex min-w-0 flex-col">

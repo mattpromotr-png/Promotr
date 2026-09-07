@@ -13,7 +13,7 @@ const filters = ["all", "new", "contacted", "pending", "booked"] as const;
 type Filter = (typeof filters)[number];
 const PAGE_SIZE = 20;
 const leadSelection =
-  "id,name,email,phone,instagram_handle,requested_date,preferred_arrival_time,party_size,occasion,booking_type,bottle_preference,notes,status,created_at,confirmed_revenue_cad,booked_at,conversations(id,status,handoff_reason,channel,human_takeover)";
+  "id,name,email,phone,instagram_handle,requested_date,preferred_arrival_time,party_size,occasion,booking_type,bottle_preference,notes,status,created_at,updated_at,confirmed_revenue_cad,booked_at,booking_change_status,booking_changed_at,booking_change_history(id,changed_by,previous_values,new_values,created_at),conversations(id,status,handoff_reason,channel,human_takeover),table_bookings(id,status,paid_at,table_id,booking_date,deposit_cad,minimum_spend_cad,club_tables(name,code))";
 
 export const metadata = { title: "Booking inquiries" };
 export const dynamic = "force-dynamic";
@@ -43,6 +43,9 @@ export default async function AdminLeadsPage({
     q?: string;
     page?: string;
     lead?: string;
+    error?: string;
+    saved?: string;
+    deleted?: string;
   }>;
 }) {
   await requireAdmin();
@@ -62,7 +65,7 @@ export default async function AdminLeadsPage({
   let query = admin
     .from("leads")
     .select(leadSelection, { count: "exact" })
-    .order("created_at", { ascending: false })
+    .order("updated_at", { ascending: false })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (filter !== "all") query = query.eq("status", filter);
   if (search)
@@ -113,6 +116,27 @@ export default async function AdminLeadsPage({
         title="Booking inquiries"
         description="Review requests, contact guests, and manage progress. An inquiry is never a confirmed reservation."
       />
+
+      {(params.saved || params.deleted || params.error) && (
+        <div
+          role="status"
+          className={`mt-6 rounded-2xl border p-4 text-sm ${params.error ? "border-red-500/25 bg-red-500/10 text-red-700 dark:text-red-200" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"}`}
+        >
+          {params.error === "payment_protected"
+            ? "Paid inquiries must be retained for financial records and cannot be deleted."
+            : params.error === "table_unavailable"
+              ? "That table is already reserved for the selected date."
+              : params.error === "table_capacity"
+                ? "The selected table is too small for this party."
+                : params.error === "booking_change_failed"
+                  ? "The booking could not be changed. Check its current status and try again."
+                  : params.error
+                    ? "The inquiry details were not valid. Check the required fields and try again."
+                    : params.deleted
+                      ? "The inquiry was permanently deleted."
+                      : "The inquiry details were saved."}
+        </div>
+      )}
 
       <section className="mt-8" aria-label="Inquiry controls">
         <form

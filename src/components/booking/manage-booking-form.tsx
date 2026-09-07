@@ -1,13 +1,25 @@
 "use client";
 
-import { ArrowLeft, Home, LoaderCircle, Save, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarClock,
+  Home,
+  LoaderCircle,
+  Save,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { ClubFloorMap } from "@/components/tables/club-floor-map";
+import { tablePackages } from "@/config/table-packages";
 
 type BookingDetails = {
   bookingId: string;
   token: string;
+  bookingDate: string;
+  tableId: string;
+  depositCad: number;
   name: string;
   email: string;
   phone: string;
@@ -22,6 +34,11 @@ export function ManageBookingForm({ details }: { details: BookingDetails }) {
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [cancelled, setCancelled] = useState(false);
+  const [showReschedule, setShowReschedule] = useState(false);
+  const [newDate, setNewDate] = useState(details.bookingDate);
+  const [newPartySize, setNewPartySize] = useState(details.partySize);
+  const [newTableId, setNewTableId] = useState(details.tableId);
+  const [unavailable, setUnavailable] = useState<string[]>([]);
   const [notice, setNotice] = useState<{
     type: "success" | "error";
     text: string;
@@ -89,6 +106,32 @@ export function ManageBookingForm({ details }: { details: BookingDetails }) {
     )
       return;
     if (await send({ action: "cancel" })) setCancelled(true);
+  }
+
+  async function loadAvailability(date: string) {
+    setNewDate(date);
+    if (!date) return setUnavailable([]);
+    try {
+      const response = await fetch(
+        `/api/tables?date=${date}&excludeBookingId=${details.bookingId}`,
+        { cache: "no-store" },
+      );
+      const payload = await response.json();
+      setUnavailable(payload.unavailableTableIds ?? []);
+    } catch {
+      setUnavailable([]);
+    }
+  }
+
+  async function reschedule() {
+    const saved = await send({
+      action: "reschedule",
+      bookingDate: newDate,
+      partySize: newPartySize,
+      tableId: newTableId,
+      reason: "Guest self-service change",
+    });
+    if (saved) router.refresh();
   }
 
   const input =
@@ -183,10 +226,80 @@ export function ManageBookingForm({ details }: { details: BookingDetails }) {
           className={`${input} py-3`}
         />
       </Field>
-      <p className="text-muted text-xs">
-        To change the booking date or table, contact the venue so availability
-        and pricing can be checked.
-      </p>
+      <section className="border-border bg-elevated rounded-2xl border p-4 sm:p-5">
+        <button
+          type="button"
+          onClick={() => {
+            setShowReschedule((value) => !value);
+            if (!showReschedule) void loadAvailability(newDate);
+          }}
+          className="focus-ring text-foreground flex w-full items-center justify-between gap-3 text-left font-semibold"
+        >
+          <span className="flex items-center gap-2">
+            <CalendarClock className="text-violet" size={18} /> Change date,
+            party or table
+          </span>
+          <span className="text-muted text-xs">
+            {showReschedule ? "Close" : "Open"}
+          </span>
+        </button>
+        {showReschedule && (
+          <div className="mt-5 space-y-4">
+            <p className="text-muted text-xs leading-5">
+              Available until 48 hours before the booking. Tables with a
+              different deposit require venue review.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="New date">
+                <input
+                  type="date"
+                  value={newDate}
+                  onChange={(event) =>
+                    void loadAvailability(event.target.value)
+                  }
+                  className={input}
+                />
+              </Field>
+              <Field label="Party size">
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={newPartySize}
+                  onChange={(event) =>
+                    setNewPartySize(Number(event.target.value))
+                  }
+                  className={input}
+                />
+              </Field>
+            </div>
+            <ClubFloorMap
+              tables={tablePackages}
+              selectedId={newTableId}
+              disabledIds={unavailable.filter((id) => id !== details.tableId)}
+              dimmedIds={tablePackages
+                .filter((table) => table.capacity < newPartySize)
+                .map((table) => table.id)}
+              onSelect={(table) => {
+                if (table.capacity >= newPartySize) setNewTableId(table.id);
+              }}
+            />
+            <p className="text-muted text-xs">
+              Tables fitting {newPartySize} guests can be selected. A table with
+              a different deposit is sent to staff for payment review while your
+              current booking stays protected.
+            </p>
+            <button
+              type="button"
+              onClick={() => void reschedule()}
+              disabled={busy || !newDate || !newTableId}
+              className="focus-ring bg-brand-gradient min-h-11 rounded-xl px-5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              Confirm booking change
+            </button>
+          </div>
+        )}
+      </section>
       {notice && (
         <p
           role="status"

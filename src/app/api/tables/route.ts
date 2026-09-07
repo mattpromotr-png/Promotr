@@ -3,13 +3,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(request: NextRequest) {
   const date = request.nextUrl.searchParams.get("date") || "";
+  const excludeBookingId = request.nextUrl.searchParams.get("excludeBookingId");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
     return NextResponse.json({ unavailableTableIds: [] });
-  const { data, error } = await createAdminClient()
+  let query = createAdminClient()
     .from("table_bookings")
     .select("table_id,status,hold_expires_at")
     .eq("booking_date", date)
     .in("status", ["held", "confirmed"]);
+  if (excludeBookingId && /^[0-9a-f-]{36}$/i.test(excludeBookingId))
+    query = query.neq("id", excludeBookingId);
+  const { data, error } = await query;
   if (error)
     return NextResponse.json(
       { error: "Unable to load table availability." },

@@ -18,6 +18,39 @@ export type AdminLead = {
   created_at: string;
   confirmed_revenue_cad: number | null;
   booked_at: string | null;
+  updated_at?: string;
+  booking_change_status?:
+    "guest_updated" | "change_requested" | "admin_updated" | null;
+  booking_changed_at?: string | null;
+  booking_change_history?: {
+    id: string;
+    changed_by: "guest" | "admin";
+    previous_values: Record<string, unknown>;
+    new_values: Record<string, unknown>;
+    created_at: string;
+  }[];
+  table_bookings?:
+    | {
+        id: string;
+        status: string;
+        paid_at: string | null;
+        table_id: string;
+        booking_date: string;
+        deposit_cad: number;
+        minimum_spend_cad: number;
+        club_tables?: { name: string; code: string } | null;
+      }
+    | {
+        id: string;
+        status: string;
+        paid_at: string | null;
+        table_id: string;
+        booking_date: string;
+        deposit_cad: number;
+        minimum_spend_cad: number;
+        club_tables?: { name: string; code: string } | null;
+      }[]
+    | null;
   conversations: {
     id: string;
     status: string;

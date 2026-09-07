@@ -41,6 +41,7 @@ Detailed boundaries are in `docs/architecture.md`.
 4. In Authentication, create the demo owner user using the same email as `ADMIN_EMAIL`.
 5. Add the project URL, anon key, and service-role key to `.env.local`. The service-role key is server-only.
 6. Update the seeded `booking_form_url` after deployment.
+7. Run each later migration in filename order, including `202609070001_booking_changes_and_email.sql` for rescheduling, audit history, and booking email tracking.
 
 Public/anonymous users have no table-read policy. Lead creation goes through the validated server endpoint and service-role RPC only. The application independently requires an authenticated user whose email matches `ADMIN_EMAIL` before using privileged lead operations.
 
@@ -83,8 +84,16 @@ Follow [docs/meta-setup.md](docs/meta-setup.md). It records the selected Instagr
 | Meta access token                | optional         | no     | credential           |
 | n8n URL + shared secret          | yes              | yes    | webhook credential   |
 | OpenAI key + model               | tests only/model | no     | credential + runtime |
+| `RESEND_API_KEY`                 | server only      | yes    | no                   |
+| `BOOKING_EMAIL_FROM`             | yes              | yes    | no                   |
 
 Never prefix secrets with `NEXT_PUBLIC_` or expose them to browser code.
+
+## Booking management email
+
+The verified Stripe payment flow sends the guest a private management link through Resend. Create a Resend account, verify the venue's sending domain, create an API key, then set `RESEND_API_KEY` and `BOOKING_EMAIL_FROM` locally and in Vercel. The free Resend tier is suitable for demo traffic; current provider quotas should be checked before production launch. Email failure never reverses a successful payment, and the success page still shows the same private management link.
+
+Guests may change the date, party size, or table until 48 hours before the event when the replacement uses the same deposit. Capacity and duplicate-table checks run atomically in Supabase. Different deposit tiers require staff handling so the recorded Stripe payment is never silently changed. Admins may override the time cutoff, and all operational booking changes are recorded in `booking_change_history`.
 
 ## Commands
 

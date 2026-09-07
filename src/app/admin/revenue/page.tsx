@@ -1,9 +1,18 @@
-import { CalendarDays, CircleDollarSign, TrendingUp, Wine } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  CircleDollarSign,
+  TrendingUp,
+  Wine,
+} from "lucide-react";
+import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
 import { RevenueForm } from "@/components/admin/revenue-form";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Revenue" };
 export const dynamic = "force-dynamic";
@@ -29,29 +38,50 @@ const money = new Intl.NumberFormat("en-CA", {
   style: "currency",
   currency: "CAD",
 });
+const DEPOSIT_PAGE_SIZE = 20;
 
-export default async function RevenuePage() {
+export default async function RevenuePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; salesPage?: string }>;
+}) {
   await requireAdmin();
+  const params = await searchParams;
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
+  const page =
+    Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const requestedSalesPage = Number.parseInt(params.salesPage ?? "1", 10);
+  const salesPage =
+    Number.isFinite(requestedSalesPage) && requestedSalesPage > 0
+      ? requestedSalesPage
+      : 1;
   const admin = createAdminClient();
-  const [{ data, error }, depositResult] = await Promise.all([
-    admin
-      .from("leads")
-      .select(
-        "id,name,bottle_preference,confirmed_revenue_cad,booked_at,requested_date",
-      )
-      .eq("status", "booked")
-      .eq("booking_type", "table")
-      .order("booked_at", { ascending: false }),
-    admin
-      .from("table_bookings")
-      .select(
-        "id,deposit_cad,paid_at,status,stripe_payment_intent_id,booking_date,club_tables(code,name,zone),leads(name,email)",
-      )
-      .not("paid_at", "is", null)
-      .order("paid_at", { ascending: false })
-      .limit(100),
-  ]);
-  if (error || depositResult.error) throw new Error("Unable to load revenue.");
+  const [{ data, error }, depositTotalsResult, depositResult] =
+    await Promise.all([
+      admin
+        .from("leads")
+        .select(
+          "id,name,bottle_preference,confirmed_revenue_cad,booked_at,requested_date",
+        )
+        .eq("status", "booked")
+        .eq("booking_type", "table")
+        .order("booked_at", { ascending: false }),
+      admin
+        .from("table_bookings")
+        .select("deposit_cad,paid_at,status")
+        .not("paid_at", "is", null),
+      admin
+        .from("table_bookings")
+        .select(
+          "id,deposit_cad,paid_at,status,stripe_payment_intent_id,booking_date,club_tables(code,name,zone),leads(name,email)",
+          { count: "exact" },
+        )
+        .not("paid_at", "is", null)
+        .order("paid_at", { ascending: false })
+        .range((page - 1) * DEPOSIT_PAGE_SIZE, page * DEPOSIT_PAGE_SIZE - 1),
+    ]);
+  if (error || depositResult.error || depositTotalsResult.error)
+    throw new Error("Unable to load revenue.");
   const bookings = (data ?? []) as RevenueLead[];
   const now = new Date();
   const startToday = new Date(now);
@@ -72,8 +102,13 @@ export default async function RevenuePage() {
     { label: "All confirmed", value: sumSince(), icon: Wine },
   ];
   const deposits = (depositResult.data ?? []) as unknown as DepositRecord[];
-  const confirmedDeposits = deposits.filter(
+  const confirmedDeposits = (depositTotalsResult.data ?? []).filter(
     (item) => item.status === "confirmed",
+  );
+  const depositTotal = depositResult.count ?? 0;
+  const depositTotalPages = Math.max(
+    1,
+    Math.ceil(depositTotal / DEPOSIT_PAGE_SIZE),
   );
   const depositSum = (date?: Date) =>
     confirmedDeposits
@@ -91,6 +126,14 @@ export default async function RevenuePage() {
         return totals;
       }, {}),
   ).sort((a, b) => b[1] - a[1]);
+  const salesTotalPages = Math.max(
+    1,
+    Math.ceil(bookings.length / DEPOSIT_PAGE_SIZE),
+  );
+  const visibleBookings = bookings.slice(
+    (salesPage - 1) * DEPOSIT_PAGE_SIZE,
+    salesPage * DEPOSIT_PAGE_SIZE,
+  );
 
   return (
     <AdminShell active="revenue">
@@ -154,7 +197,8 @@ export default async function RevenuePage() {
             Deposit transactions
           </h2>
           <p className="text-muted mt-1 text-xs">
-            Latest 100 verified Stripe payments, including later refunds.
+            Verified Stripe payments, including later refunds. Showing 20 per
+            page.
           </p>
         </div>
         {deposits.length === 0 ? (
@@ -229,6 +273,45 @@ export default async function RevenuePage() {
             </table>
           </div>
         )}
+        {depositTotalPages > 1 && (
+          <nav
+            className="border-border flex items-center justify-between gap-4 border-t px-5 py-4"
+            aria-label="Deposit transaction pages"
+          >
+            <p className="text-muted text-xs">
+              Page {Math.min(page, depositTotalPages)} of {depositTotalPages} ·{" "}
+              {depositTotal} transactions
+            </p>
+            <div className="flex gap-2">
+              <Link
+                href={`/admin/revenue?page=${Math.max(1, page - 1)}&salesPage=${salesPage}`}
+                aria-disabled={page <= 1}
+                tabIndex={page <= 1 ? -1 : undefined}
+                className={cn(
+                  "focus-ring border-border bg-elevated inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm",
+                  page <= 1
+                    ? "pointer-events-none opacity-40"
+                    : "text-foreground",
+                )}
+              >
+                <ChevronLeft size={16} /> Previous
+              </Link>
+              <Link
+                href={`/admin/revenue?page=${Math.min(depositTotalPages, page + 1)}&salesPage=${salesPage}`}
+                aria-disabled={page >= depositTotalPages}
+                tabIndex={page >= depositTotalPages ? -1 : undefined}
+                className={cn(
+                  "focus-ring border-border bg-elevated inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm",
+                  page >= depositTotalPages
+                    ? "pointer-events-none opacity-40"
+                    : "text-foreground",
+                )}
+              >
+                Next <ChevronRight size={16} />
+              </Link>
+            </div>
+          </nav>
+        )}
       </section>
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <section className="surface-card overflow-hidden">
@@ -247,7 +330,7 @@ export default async function RevenuePage() {
             </p>
           ) : (
             <div className="divide-border divide-y">
-              {bookings.slice(0, 20).map((item) => (
+              {visibleBookings.map((item) => (
                 <div key={item.id} className="space-y-3 px-5 py-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -271,6 +354,44 @@ export default async function RevenuePage() {
                 </div>
               ))}
             </div>
+          )}
+          {salesTotalPages > 1 && (
+            <nav
+              className="border-border flex items-center justify-between gap-3 border-t px-5 py-4"
+              aria-label="Recorded revenue pages"
+            >
+              <p className="text-muted text-xs">
+                Page {Math.min(salesPage, salesTotalPages)} of {salesTotalPages}
+              </p>
+              <div className="flex gap-2">
+                <Link
+                  href={`/admin/revenue?page=${page}&salesPage=${Math.max(1, salesPage - 1)}`}
+                  aria-disabled={salesPage <= 1}
+                  className={cn(
+                    "focus-ring border-border bg-elevated grid size-9 place-items-center rounded-xl border",
+                    salesPage <= 1
+                      ? "pointer-events-none opacity-40"
+                      : "text-foreground",
+                  )}
+                  aria-label="Previous recorded revenue page"
+                >
+                  <ChevronLeft size={16} />
+                </Link>
+                <Link
+                  href={`/admin/revenue?page=${page}&salesPage=${Math.min(salesTotalPages, salesPage + 1)}`}
+                  aria-disabled={salesPage >= salesTotalPages}
+                  className={cn(
+                    "focus-ring border-border bg-elevated grid size-9 place-items-center rounded-xl border",
+                    salesPage >= salesTotalPages
+                      ? "pointer-events-none opacity-40"
+                      : "text-foreground",
+                  )}
+                  aria-label="Next recorded revenue page"
+                >
+                  <ChevronRight size={16} />
+                </Link>
+              </div>
+            </nav>
           )}
         </section>
         <section className="surface-card overflow-hidden">

@@ -125,3 +125,12 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Add explicit homepage navigation to the booking form and admin login.
 - [x] Expand the public footer with useful venue details, section links, booking action, and responsible-entry information.
 - [ ] Complete final desktop and mobile visual acceptance in a connected browser before client handover.
+- [x] Keep inquiry and follow-up lists at 20 records per page and add pagination to deposit transactions and conversations.
+- [x] Allow admins to edit inquiry details inside the existing detail dialog.
+- [x] Add confirmed inquiry deletion while retaining Stripe-paid records for financial integrity.
+- [x] Add atomic table/date/party rescheduling with capacity, availability, and guest 48-hour checks.
+- [x] Surface guest booking updates in the newest-first admin list with a review acknowledgement.
+- [x] Add admin booking overrides with an audit trail while preserving the actual Stripe deposit amount.
+- [x] Add Resend transactional management-link email delivery after verified Stripe payment.
+- [ ] Apply and verify `202609070001_booking_changes_and_email.sql` in Supabase.
+- [ ] Configure and verify the Resend sender domain and email environment variables in Vercel.
