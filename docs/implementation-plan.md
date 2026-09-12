@@ -134,3 +134,18 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Add Resend transactional management-link email delivery after verified Stripe payment.
 - [ ] Apply and verify `202609070001_booking_changes_and_email.sql` in Supabase.
 - [ ] Configure and verify the Resend sender domain and email environment variables in Vercel.
+
+## Direct multichannel messaging (2026-09-12)
+
+Detailed architecture, message triggers, schema evolution, security rules, and acceptance
+gates are recorded in `docs/twilio-messaging-plan.md` so implementation can proceed without
+rereading the full project prompt.
+
+- [x] Decide on direct Next.js/Vercel integration and retain n8n exports as fallback.
+- [x] Define transactional SMS templates versus token-billed conversational AI.
+- [x] Define shared SMS/Instagram conversation architecture and database changes.
+- [ ] Implement foundation and transactional SMS notifications.
+- [ ] Implement signed inbound SMS, delivery callbacks, consent, and human handoff.
+- [ ] Add SMS/Instagram filters, linked inquiry threads, and direct staff SMS replies.
+- [ ] Connect the shared AI concierge to inbound SMS and complete live acceptance.
+- [ ] Add the direct Meta channel adapter after the client receives Meta access.
