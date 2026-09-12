@@ -38,25 +38,39 @@ type Message = {
     adminOriginalEnglish?: string;
   } | null;
   created_at: string;
+  delivery_status: string;
 };
 
 export default async function ConversationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ conversation?: string; page?: string }>;
+  searchParams: Promise<{
+    conversation?: string;
+    page?: string;
+    channel?: string;
+  }>;
 }) {
   await requireAdmin();
-  const { conversation: requested, page: pageValue } = await searchParams;
+  const {
+    conversation: requested,
+    page: pageValue,
+    channel: channelValue,
+  } = await searchParams;
+  const channel = ["sms", "instagram"].includes(channelValue || "")
+    ? channelValue!
+    : "all";
   const requestedPage = Number.parseInt(pageValue ?? "1", 10);
   const page =
     Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const admin = createAdminClient();
-  const listResult = await admin
+  let listQuery = admin
     .from("conversations")
     .select(
       "id,channel,status,human_takeover,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id)",
       { count: "exact" },
-    )
+    );
+  if (channel !== "all") listQuery = listQuery.eq("channel", channel);
+  const listResult = await listQuery
     .order("last_message_at", { ascending: false })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (listResult.error) throw new Error("Unable to load conversations.");
@@ -70,7 +84,9 @@ export default async function ConversationsPage({
   const messageResult = selectedId
     ? await admin
         .from("messages")
-        .select("id,conversation_id,sender_type,content,metadata,created_at")
+        .select(
+          "id,conversation_id,sender_type,content,metadata,created_at,delivery_status",
+        )
         .eq("conversation_id", selectedId)
         .order("created_at", { ascending: true })
         .limit(200)
@@ -84,8 +100,26 @@ export default async function ConversationsPage({
       <PageHeading
         eyebrow="LIVE GUEST SUPPORT"
         title="Conversations"
-        description="Review AI conversations and join website-preview chats when a guest needs a human. Instagram replies will use the same view after Meta messaging is connected."
+        description="Review SMS and Instagram conversations, take over when a guest needs help, and reply from one workspace."
       />
+      <nav
+        className="mt-6 flex flex-wrap gap-2"
+        aria-label="Conversation channel"
+      >
+        {[
+          ["all", "All"],
+          ["sms", "SMS"],
+          ["instagram", "Instagram"],
+        ].map(([value, label]) => (
+          <Link
+            key={value}
+            href={`/admin/conversations?channel=${value}`}
+            className={`focus-ring min-h-10 rounded-xl border px-4 py-2 text-sm font-medium ${channel === value ? "border-violet bg-violet/15 text-foreground" : "border-border bg-elevated text-muted"}`}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
       <div className="surface-card mt-8 grid min-h-[620px] overflow-hidden lg:grid-cols-[330px_1fr]">
         <aside className="border-border border-b lg:border-r lg:border-b-0">
           <div className="border-border border-b px-5 py-4">
@@ -105,11 +139,13 @@ export default async function ConversationsPage({
                   item.contacts?.display_name ||
                   (item.channel === "web_preview"
                     ? "Website guest"
-                    : "Instagram guest");
+                    : item.channel === "sms"
+                      ? "SMS guest"
+                      : "Instagram guest");
                 return (
                   <Link
                     key={item.id}
-                    href={`/admin/conversations?conversation=${item.id}&page=${page}`}
+                    href={`/admin/conversations?conversation=${item.id}&page=${page}&channel=${channel}`}
                     className={`border-border block border-b px-5 py-4 transition-colors ${item.id === selectedId ? "bg-violet/10" : "hover:bg-elevated"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -139,7 +175,7 @@ export default async function ConversationsPage({
               aria-label="Conversation pages"
             >
               <Link
-                href={`/admin/conversations?page=${Math.max(1, page - 1)}`}
+                href={`/admin/conversations?page=${Math.max(1, page - 1)}&channel=${channel}`}
                 aria-disabled={page <= 1}
                 className={`focus-ring border-border grid size-9 place-items-center rounded-xl border ${page <= 1 ? "pointer-events-none opacity-40" : "text-foreground"}`}
                 aria-label="Previous conversation page"
@@ -150,7 +186,7 @@ export default async function ConversationsPage({
                 {page}/{totalPages} · {total}
               </span>
               <Link
-                href={`/admin/conversations?page=${Math.min(totalPages, page + 1)}`}
+                href={`/admin/conversations?page=${Math.min(totalPages, page + 1)}&channel=${channel}`}
                 aria-disabled={page >= totalPages}
                 className={`focus-ring border-border grid size-9 place-items-center rounded-xl border ${page >= totalPages ? "pointer-events-none opacity-40" : "text-foreground"}`}
                 aria-label="Next conversation page"
@@ -174,13 +210,17 @@ export default async function ConversationsPage({
                     {selected.contacts?.display_name ||
                       (selected.channel === "web_preview"
                         ? "Website guest"
-                        : "Instagram guest")}
+                        : selected.channel === "sms"
+                          ? "SMS guest"
+                          : "Instagram guest")}
                   </h2>
                   <p className="text-muted mt-1 text-xs capitalize">
                     {selected.channel.replace("_", " ")} ·{" "}
-                    {selected.human_takeover
-                      ? "Human takeover active"
-                      : "AI handling"}
+                    {selected.channel === "sms"
+                      ? "Twilio SMS"
+                      : selected.human_takeover
+                        ? "Human takeover active"
+                        : "AI handling"}
                   </p>
                 </div>
                 {selected.channel === "instagram" ? (
@@ -244,11 +284,17 @@ export default async function ConversationsPage({
                           {message.metadata.adminOriginalEnglish}
                         </p>
                       )}
+                      {message.sender_type !== "guest" && (
+                        <p className="mt-1 text-[10px] capitalize opacity-60">
+                          {message.delivery_status}
+                        </p>
+                      )}
                     </div>
                   </article>
                 ))}
               </div>
-              {selected.channel === "web_preview" && (
+              {(selected.channel === "web_preview" ||
+                selected.channel === "sms") && (
                 <form
                   action={sendConversationReply}
                   className="border-border flex gap-3 border-t p-4 sm:p-5"
@@ -265,7 +311,11 @@ export default async function ConversationsPage({
                       required
                       maxLength={1000}
                       rows={2}
-                      placeholder="Type a reply and take over this conversation…"
+                      placeholder={
+                        selected.channel === "sms"
+                          ? "Send an SMS as Promotr staff..."
+                          : "Type a reply and take over this conversation..."
+                      }
                       className="focus-ring border-border bg-elevated text-foreground placeholder:text-muted w-full resize-none rounded-2xl border px-4 py-3 text-sm"
                     />
                   </label>

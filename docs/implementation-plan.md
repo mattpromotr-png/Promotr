@@ -144,8 +144,10 @@ rereading the full project prompt.
 - [x] Decide on direct Next.js/Vercel integration and retain n8n exports as fallback.
 - [x] Define transactional SMS templates versus token-billed conversational AI.
 - [x] Define shared SMS/Instagram conversation architecture and database changes.
-- [ ] Implement foundation and transactional SMS notifications.
-- [ ] Implement signed inbound SMS, delivery callbacks, consent, and human handoff.
-- [ ] Add SMS/Instagram filters, linked inquiry threads, and direct staff SMS replies.
+- [x] Implement the Twilio adapter, code-owned templates, and transactional SMS hooks.
+- [x] Implement signed inbound SMS, delivery callbacks, consent, and human handoff.
+- [x] Add SMS/Instagram inbox filters and direct staff SMS replies.
+- [ ] Apply `202609120001_twilio_messaging.sql`, configure Twilio/Vercel, and verify live delivery.
+- [ ] Show every linked SMS and Instagram thread as channel tabs inside inquiry details.
 - [ ] Connect the shared AI concierge to inbound SMS and complete live acceptance.
 - [ ] Add the direct Meta channel adapter after the client receives Meta access.

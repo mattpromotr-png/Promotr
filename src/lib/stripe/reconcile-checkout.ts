@@ -2,6 +2,7 @@ import "server-only";
 
 import type Stripe from "stripe";
 import { sendBookingManagementEmail } from "@/lib/email/resend";
+import { sendBookingSmsNotification } from "@/lib/messaging/notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function reconcilePaidCheckout(session: Stripe.Checkout.Session) {
@@ -22,11 +23,12 @@ export async function reconcilePaidCheckout(session: Stripe.Checkout.Session) {
     const { data: booking } = await admin
       .from("table_bookings")
       .select(
-        "id,booking_date,management_email_sent_at,club_tables(name),leads(name,email)",
+        "id,booking_date,management_email_sent_at,club_tables(name),leads(id,name,email)",
       )
       .eq("id", bookingId)
       .maybeSingle();
     const lead = booking?.leads as unknown as {
+      id: string;
       name: string;
       email: string | null;
     } | null;
@@ -54,6 +56,12 @@ export async function reconcilePaidCheckout(session: Stripe.Checkout.Session) {
         );
       }
     }
+    if (booking && lead)
+      await sendBookingSmsNotification({
+        leadId: lead.id,
+        eventType: "deposit_received",
+        eventKey: `booking:${bookingId}:deposit_received`,
+      });
   }
   return true;
 }

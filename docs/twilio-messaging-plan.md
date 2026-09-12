@@ -20,15 +20,15 @@ inside the deployed Next.js application on Vercel.
 Two initial booking templates are sufficient; booking type does not require three separate
 messages.
 
-| Event | Message behavior |
-| --- | --- |
-| Inquiry submitted without payment | Say the inquiry was received, is not confirmed, and include the private management link. |
-| Deposit received | Confirm the deposit amount, say the request is being processed, and include the private management link. |
-| Guest updates booking | Confirm which booking was updated and say availability will be rechecked. |
-| Admin updates booking | Describe the changed date, time, party size, type, or table without exposing internal notes. |
-| Status becomes booked | Send the approved confirmation, arrival guidance, venue location, and ID reminder. |
-| Booking cancelled or refunded | Confirm cancellation/refund status and provide a contact path when needed. |
-| Reminder (later phase) | Send one configurable reminder before the booking; no promotional content. |
+| Event                             | Message behavior                                                                                         |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Inquiry submitted without payment | Say the inquiry was received, is not confirmed, and include the private management link.                 |
+| Deposit received                  | Confirm the deposit amount, say the request is being processed, and include the private management link. |
+| Guest updates booking             | Confirm which booking was updated and say availability will be rechecked.                                |
+| Admin updates booking             | Describe the changed date, time, party size, type, or table without exposing internal notes.             |
+| Status becomes booked             | Send the approved confirmation, arrival guidance, venue location, and ID reminder.                       |
+| Booking cancelled or refunded     | Confirm cancellation/refund status and provide a contact path when needed.                               |
+| Reminder (later phase)            | Send one configurable reminder before the booking; no promotional content.                               |
 
 All templates identify Promotr, remain short, and support `STOP`. Store the exact rendered
 text so staff can see what the guest received.
@@ -135,4 +135,3 @@ orchestrator plus policy. Channel adapters only handle transport limits and prov
 - SMS-capable Twilio number or Messaging Service SID.
 - Approved venue name, address/location text, contact wording, and confirmation rules.
 - Approval for the booking-form consent wording and message catalogue.
-

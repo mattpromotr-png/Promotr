@@ -32,6 +32,7 @@
     "react-hook-form": "latest",
     "stripe": "^22.6.1",
     "tailwind-merge": "latest",
+    "twilio": "^6.1.1",
     "zod": "latest"
   },
   "devDependencies": {

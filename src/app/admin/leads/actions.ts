@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
+import { sendBookingSmsNotification } from "@/lib/messaging/notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const statuses = new Set(["new", "contacted", "pending", "booked"]);
@@ -68,6 +69,11 @@ export async function updateLeadDetails(formData: FormData) {
   };
   const { error } = await admin.from("leads").update(update).eq("id", leadId);
   if (error) throw new Error("Unable to update inquiry details.");
+  await sendBookingSmsNotification({
+    leadId,
+    eventType: "admin_updated",
+    eventKey: `lead:${leadId}:admin_updated:${Date.now()}`,
+  });
   revalidatePath("/admin");
   revalidatePath("/admin/leads");
   redirect(`/admin/leads?lead=${leadId}&saved=details`);
@@ -126,6 +132,12 @@ export async function updateLeadStatus(formData: FormData) {
   };
   const { error } = await admin.from("leads").update(update).eq("id", leadId);
   if (error) throw new Error("Unable to update lead status.");
+  if (status === "booked" && !current?.booked_at)
+    await sendBookingSmsNotification({
+      leadId,
+      eventType: "booking_confirmed",
+      eventKey: `lead:${leadId}:booking_confirmed`,
+    });
   revalidatePath("/admin");
   revalidatePath("/admin/leads");
 }
@@ -165,6 +177,11 @@ export async function rescheduleTableBooking(formData: FormData) {
         : "booking_change_failed";
     redirect(`/admin/leads?lead=${leadId}&error=${code}`);
   }
+  await sendBookingSmsNotification({
+    leadId,
+    eventType: "admin_updated",
+    eventKey: `booking:${bookingId}:admin_updated:${Date.now()}`,
+  });
   revalidatePath("/admin");
   revalidatePath("/admin/leads");
   revalidatePath("/admin/tables");

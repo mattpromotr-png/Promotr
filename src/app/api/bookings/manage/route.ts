@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { isValidBookingManageToken } from "@/lib/bookings/manage-token";
+import { sendBookingSmsNotification } from "@/lib/messaging/notifications";
 import { createStripeClient } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -95,6 +96,11 @@ export async function POST(request: NextRequest) {
         { error: "Unable to update this booking." },
         { status: 500 },
       );
+    await sendBookingSmsNotification({
+      leadId: booking.lead_id,
+      eventType: "guest_updated",
+      eventKey: `booking:${booking.id}:guest_updated:${Date.now()}`,
+    });
     return NextResponse.json({ message: "Your booking details were updated." });
   }
 
@@ -127,6 +133,12 @@ export async function POST(request: NextRequest) {
             : "Unable to change this booking.";
       return NextResponse.json({ error: errorMessage }, { status: 409 });
     }
+    if (!data.requiresReview)
+      await sendBookingSmsNotification({
+        leadId: booking.lead_id,
+        eventType: "guest_updated",
+        eventKey: `booking:${booking.id}:guest_rescheduled:${Date.now()}`,
+      });
     return NextResponse.json({
       message: data.requiresReview
         ? `Your request for ${data.tableName} on ${data.bookingDate} was sent to the venue because the deposit is different. Your current booking remains unchanged until staff approves it.`
@@ -181,6 +193,11 @@ export async function POST(request: NextRequest) {
       { error: "Unable to cancel this booking." },
       { status: 500 },
     );
+  await sendBookingSmsNotification({
+    leadId: booking.lead_id,
+    eventType: refundId ? "refund_started" : "booking_cancelled",
+    eventKey: `booking:${booking.id}:${status}`,
+  });
   return NextResponse.json({
     message: refundId
       ? "Your booking was cancelled and the deposit refund was started."

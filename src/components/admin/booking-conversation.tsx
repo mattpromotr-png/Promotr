@@ -143,7 +143,8 @@ export function BookingConversation({
               </p>
             )}
           </div>
-          {activeConversation.channel === "web_preview" ? (
+          {activeConversation.channel === "web_preview" ||
+          activeConversation.channel === "sms" ? (
             <form action={sendConversationReply} className="mt-3 flex gap-2">
               <input
                 type="hidden"
@@ -154,7 +155,11 @@ export function BookingConversation({
                 name="content"
                 required
                 maxLength={1000}
-                placeholder="Reply as Promotr staff…"
+                placeholder={
+                  activeConversation.channel === "sms"
+                    ? "Send an SMS as Promotr staff..."
+                    : "Reply as Promotr staff..."
+                }
                 className="focus-ring border-border bg-elevated text-foreground min-h-11 min-w-0 flex-1 rounded-xl border px-3 text-sm"
               />
               <button
@@ -174,9 +179,10 @@ export function BookingConversation({
               <MessageCircle size={17} /> Open Instagram inbox
             </a>
           )}
-          {activeConversation.channel === "web_preview" && (
+          {(activeConversation.channel === "web_preview" ||
+            activeConversation.channel === "sms") && (
             <p className="text-muted mt-2 text-xs">
-              Sending here pauses AI replies so staff can take over safely.
+              Sending here records a direct staff reply in this conversation.
             </p>
           )}
           <Link

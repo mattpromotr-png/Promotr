@@ -416,7 +416,8 @@ export function BookingForm({ conversationId }: { conversationId?: string }) {
               className="accent-violet mt-1 size-4"
               {...register("consent")}
             />
-            I agree that Promotr may contact me about this inquiry and payment.
+            I agree that Promotr may contact me by email or SMS about this
+            inquiry, payment, and booking changes. Message rates may apply.
           </label>
           <FieldError message={errors.consent?.message} />
           {validationError && (

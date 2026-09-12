@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin";
 import { translateStaffReply } from "@/lib/ai/translate-staff-reply";
+import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function sendConversationReply(formData: FormData) {
@@ -23,6 +24,12 @@ export async function sendConversationReply(formData: FormData) {
     .single();
   if (loadError || !conversation)
     throw new Error("Unable to load this conversation.");
+  if (conversation.channel === "sms") {
+    await sendSmsConversationMessage({ conversationId, content });
+    revalidatePath("/admin/conversations");
+    revalidatePath("/admin/leads");
+    return;
+  }
   if (conversation.channel !== "web_preview")
     throw new Error(
       "Instagram replies must be sent through Meta Business Suite until Meta messaging is connected.",

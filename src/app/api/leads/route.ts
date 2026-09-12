@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getServerEnvironment } from "@/lib/env/server";
+import { sendBookingSmsNotification } from "@/lib/messaging/notifications";
 import { getRateLimitKey } from "@/lib/security/request-key";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { bookingInquirySchema } from "@/lib/validation/booking";
@@ -59,6 +60,12 @@ export async function POST(request: NextRequest) {
         );
       throw error;
     }
+    if (result.data.bookingType !== "table")
+      await sendBookingSmsNotification({
+        leadId: String(data),
+        eventType: "inquiry_received",
+        eventKey: `lead:${data}:inquiry_received`,
+      });
     return NextResponse.json({ received: true, leadId: data }, { status: 201 });
   } catch (error) {
     console.error("Lead submission failed", {
