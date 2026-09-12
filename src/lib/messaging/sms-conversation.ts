@@ -50,7 +50,6 @@ export async function sendSmsConversationMessage(input: {
     const result = await sendTwilioSms({
       to: identity.normalized_address,
       body: input.content,
-      statusCallback: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/status`,
     });
     if (!result.configured) throw new Error("Twilio is not configured.");
     await Promise.all([

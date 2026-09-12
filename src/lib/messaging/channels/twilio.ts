@@ -53,20 +53,17 @@ export function validateTwilioRequest(
   );
 }
 
-export async function sendTwilioSms(input: {
-  to: string;
-  body: string;
-  statusCallback: string;
-}) {
+export async function sendTwilioSms(input: { to: string; body: string }) {
   const config = getTwilioConfiguration();
   if (!config) return { configured: false as const };
   const client = twilio(config.apiKeySid, config.apiKeySecret, {
     accountSid: config.accountSid,
   });
+  const statusCallback = getStatusCallbackUrl();
   const message = await client.messages.create({
     to: input.to,
     body: input.body,
-    statusCallback: input.statusCallback,
+    ...(statusCallback ? { statusCallback } : {}),
     ...(config.messagingServiceSid
       ? { messagingServiceSid: config.messagingServiceSid }
       : { from: config.from }),
@@ -76,4 +73,28 @@ export async function sendTwilioSms(input: {
     sid: message.sid,
     status: message.status,
   };
+}
+
+function getStatusCallbackUrl() {
+  const candidates = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.VERCEL_URL,
+  ];
+  for (const candidate of candidates) {
+    if (!candidate?.trim()) continue;
+    try {
+      const value = candidate.trim();
+      const url = new URL(
+        value.startsWith("http://") || value.startsWith("https://")
+          ? value
+          : `https://${value}`,
+      );
+      if (url.protocol !== "https:" || url.hostname === "localhost") continue;
+      return new URL("/api/webhooks/twilio/status", url).toString();
+    } catch {
+      continue;
+    }
+  }
+  return null;
 }

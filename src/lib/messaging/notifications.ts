@@ -186,7 +186,6 @@ export async function sendBookingSmsNotification(input: SendBookingSmsInput) {
     const result = await sendTwilioSms({
       to: phone,
       body: renderedContent,
-      statusCallback: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/status`,
     });
     if (!result.configured) {
       await markFailed(
