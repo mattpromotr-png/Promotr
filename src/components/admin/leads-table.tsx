@@ -23,7 +23,7 @@ import {
 } from "@/app/admin/leads/actions";
 import { AdminBookingChangeForm } from "@/components/admin/admin-booking-change-form";
 import { LeadStatusForm } from "@/components/admin/lead-status-form";
-import { BookingConversation } from "@/components/admin/booking-conversation";
+import { BookingConversations } from "@/components/admin/booking-conversations";
 import { RevenueForm } from "@/components/admin/revenue-form";
 import type { AdminLead } from "@/lib/admin/types";
 
@@ -473,7 +473,15 @@ function DetailsDialog({
             </p>
           </div>
 
-          <BookingConversation conversation={lead.conversations} />
+          <BookingConversations
+            conversations={
+              lead.linked_conversations?.length
+                ? lead.linked_conversations
+                : lead.conversations
+                  ? [lead.conversations]
+                  : []
+            }
+          />
 
           <div className="border-border flex flex-col gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
             <button

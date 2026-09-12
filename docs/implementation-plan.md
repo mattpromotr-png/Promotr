@@ -148,6 +148,7 @@ rereading the full project prompt.
 - [x] Implement signed inbound SMS, delivery callbacks, consent, and human handoff.
 - [x] Add SMS/Instagram inbox filters and direct staff SMS replies.
 - [ ] Apply `202609120001_twilio_messaging.sql`, configure Twilio/Vercel, and verify live delivery.
-- [ ] Show every linked SMS and Instagram thread as channel tabs inside inquiry details.
-- [ ] Connect the shared AI concierge to inbound SMS and complete live acceptance.
+- [x] Show every linked SMS and Instagram thread as channel tabs inside inquiry details.
+- [x] Connect the shared AI concierge to inbound SMS with bounded conversation history.
+- [ ] Complete live inbound, AI reply, handoff, and admin-reply acceptance tests.
 - [ ] Add the direct Meta channel adapter after the client receives Meta access.

@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function sendSmsConversationMessage(input: {
   conversationId: string;
   content: string;
+  senderType?: "human" | "ai";
 }) {
   const admin = createAdminClient();
   const { data: conversation, error: conversationError } = await admin
@@ -35,10 +36,12 @@ export async function sendSmsConversationMessage(input: {
     .insert({
       conversation_id: conversation.id,
       direction: "outbound",
-      sender_type: "human",
+      sender_type: input.senderType || "human",
       content: input.content,
       delivery_status: "pending",
-      metadata: { sentFromAdmin: true },
+      metadata: {
+        sentFromAdmin: (input.senderType || "human") === "human",
+      },
     })
     .select("id")
     .single();
@@ -61,9 +64,13 @@ export async function sendSmsConversationMessage(input: {
       admin
         .from("conversations")
         .update({
-          human_takeover: true,
-          status: "open",
-          handoff_reason: null,
+          ...((input.senderType || "human") === "human"
+            ? {
+                human_takeover: true,
+                status: "open",
+                handoff_reason: null,
+              }
+            : {}),
           last_message_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })

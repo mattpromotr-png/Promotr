@@ -5,7 +5,11 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminNotice } from "@/components/admin/admin-notice";
 import { LeadsTable } from "@/components/admin/leads-table";
 import { PageHeading } from "@/components/admin/page-heading";
-import type { AdminLead, LeadStatus } from "@/lib/admin/types";
+import type {
+  AdminConversation,
+  AdminLead,
+  LeadStatus,
+} from "@/lib/admin/types";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { cn } from "@/lib/utils";
@@ -90,6 +94,7 @@ export default async function AdminLeadsPage({
     throw new Error("Unable to load booking inquiries.");
 
   const leads = (leadResult.data ?? []) as unknown as AdminLead[];
+  await attachLinkedConversations(admin, leads);
   const selectedId = /^[0-9a-f-]{36}$/i.test(params.lead ?? "")
     ? params.lead
     : undefined;
@@ -103,6 +108,7 @@ export default async function AdminLeadsPage({
     if (selectedResult.error)
       throw new Error("Unable to load booking details.");
     initialLead = selectedResult.data as unknown as AdminLead | null;
+    if (initialLead) await attachLinkedConversations(admin, [initialLead]);
   }
   const total = leadResult.count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -267,4 +273,38 @@ export default async function AdminLeadsPage({
       )}
     </AdminShell>
   );
+}
+
+async function attachLinkedConversations(
+  admin: ReturnType<typeof createAdminClient>,
+  leads: AdminLead[],
+) {
+  if (!leads.length) return;
+  const { data, error } = await admin
+    .from("lead_conversations")
+    .select(
+      "lead_id,conversations(id,status,handoff_reason,channel,human_takeover)",
+    )
+    .in(
+      "lead_id",
+      leads.map((lead) => lead.id),
+    );
+  if (error) throw new Error("Unable to load linked conversations.");
+  for (const lead of leads) {
+    const linked = (data || [])
+      .filter((item) => item.lead_id === lead.id)
+      .flatMap((item) => {
+        const value = item.conversations as unknown as
+          AdminConversation | AdminConversation[] | null;
+        return value ? (Array.isArray(value) ? value : [value]) : [];
+      });
+    const all = [
+      ...(lead.conversations ? [lead.conversations] : []),
+      ...linked,
+    ];
+    lead.linked_conversations = all.filter(
+      (conversation, index) =>
+        all.findIndex((item) => item.id === conversation.id) === index,
+    );
+  }
 }

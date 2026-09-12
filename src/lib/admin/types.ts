@@ -1,6 +1,25 @@
 export type LeadStatus = "new" | "contacted" | "pending" | "booked";
 export type BookingType = "guest_list" | "table" | "unsure";
 
+export type AdminConversation = {
+  id: string;
+  status: string;
+  handoff_reason: string | null;
+  channel: string;
+  human_takeover: boolean;
+  messages?: {
+    id: string;
+    sender_type: "guest" | "ai" | "human";
+    content: string;
+    metadata: {
+      englishTranslation?: string;
+      detectedLanguage?: string;
+      adminOriginalEnglish?: string;
+    } | null;
+    created_at: string;
+  }[];
+};
+
 export type AdminLead = {
   id: string;
   name: string;
@@ -51,22 +70,6 @@ export type AdminLead = {
         club_tables?: { name: string; code: string } | null;
       }[]
     | null;
-  conversations: {
-    id: string;
-    status: string;
-    handoff_reason: string | null;
-    channel: string;
-    human_takeover: boolean;
-    messages?: {
-      id: string;
-      sender_type: "guest" | "ai" | "human";
-      content: string;
-      metadata: {
-        englishTranslation?: string;
-        detectedLanguage?: string;
-        adminOriginalEnglish?: string;
-      } | null;
-      created_at: string;
-    }[];
-  } | null;
+  conversations: AdminConversation | null;
+  linked_conversations?: AdminConversation[];
 };

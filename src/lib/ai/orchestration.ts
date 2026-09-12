@@ -20,6 +20,8 @@ const complaintPattern =
   /\b(angry|complain|complaint|refund|scam|rude|terrible|awful|security hurt|charged twice)\b/i;
 const sensitivePattern =
   /\b(password|credit card|card number|passport|government id|social insurance)\b/i;
+const humanContactPattern =
+  /\b(contact|speak|talk|connect|reach|message)\b.{0,35}\b(admin|staff|manager|human|person|team|owner)\b|\b(admin|staff|manager|human|person|team|owner)\b.{0,35}\b(contact|speak|talk|connect|reach|message)\b/i;
 
 export function deterministicHandoff(text: string): AiHostResponse | null {
   if (complaintPattern.test(text)) {
@@ -42,6 +44,13 @@ export function deterministicHandoff(text: string): AiHostResponse | null {
       handoffReason: "Sensitive information request or disclosure",
     };
   }
+  if (humanContactPattern.test(text))
+    return {
+      ...SAFE_AI_FALLBACK,
+      reply:
+        "I have flagged this conversation for the Promotr team. A staff member can review your message and reply here.",
+      handoffReason: "Guest requested direct contact with venue staff",
+    };
   return null;
 }
 

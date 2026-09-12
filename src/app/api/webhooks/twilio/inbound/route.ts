@@ -1,8 +1,13 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import {
   normalizeSmsPhone,
   validateTwilioRequest,
 } from "@/lib/messaging/channels/twilio";
+import {
+  generateConciergeReply,
+  smsConciergeText,
+} from "@/lib/messaging/concierge";
+import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const handoffPattern =
@@ -89,7 +94,7 @@ export async function POST(request: NextRequest) {
       },
       { onConflict: "venue_id,contact_id,channel" },
     )
-    .select("id")
+    .select("id,human_takeover")
     .single();
   if (!conversation) return twiml();
 
@@ -137,7 +142,7 @@ export async function POST(request: NextRequest) {
         { onConflict: "lead_id,conversation_id", ignoreDuplicates: true },
       );
 
-  if (handoffPattern.test(content))
+  if (handoffPattern.test(content)) {
     await admin
       .from("conversations")
       .update({
@@ -147,7 +152,68 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", conversation.id);
+    if (!optOutType)
+      after(async () => {
+        try {
+          await sendSmsConversationMessage({
+            conversationId: conversation.id,
+            content:
+              "Promotr: I have flagged this conversation for our team. A staff member can review your message and reply here.",
+            senderType: "ai",
+          });
+        } catch (error) {
+          console.error("Unable to send SMS handoff acknowledgement", error);
+        }
+      });
+  } else if (!conversation.human_takeover && !optOutType)
+    after(async () => {
+      try {
+        await processSmsWithConcierge(conversation.id);
+      } catch (error) {
+        console.error("Unable to process inbound SMS", error);
+      }
+    });
   return twiml();
+}
+
+async function processSmsWithConcierge(conversationId: string) {
+  const admin = createAdminClient();
+  const { data: conversation } = await admin
+    .from("conversations")
+    .select("human_takeover")
+    .eq("id", conversationId)
+    .single();
+  if (!conversation || conversation.human_takeover) return;
+  const { data } = await admin
+    .from("messages")
+    .select("direction,content")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: false })
+    .limit(8);
+  const recent = [...(data || [])].reverse().map((message) => ({
+    role:
+      message.direction === "inbound"
+        ? ("user" as const)
+        : ("assistant" as const),
+    content: message.content,
+  }));
+  if (!recent.length) return;
+  const result = await generateConciergeReply(recent);
+  await sendSmsConversationMessage({
+    conversationId,
+    content: smsConciergeText(result),
+    senderType: "ai",
+  });
+  if (result.handoffRequired)
+    await admin
+      .from("conversations")
+      .update({
+        status: "handoff_required",
+        human_takeover: true,
+        handoff_reason: result.handoffReason,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", conversationId);
 }
 
 function twiml() {
