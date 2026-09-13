@@ -129,7 +129,11 @@ export function BookingConversation({
                         </p>
                       )}
                     <p className="text-muted mt-1 text-[10px] capitalize">
-                      {message.sender_type}
+                      {message.sender_type === "ai"
+                        ? "Concierge"
+                        : message.sender_type === "human"
+                          ? "Staff"
+                          : "Guest"}
                     </p>
                   </div>
                   {message.sender_type !== "guest" && (
@@ -182,7 +186,8 @@ export function BookingConversation({
           {(activeConversation.channel === "web_preview" ||
             activeConversation.channel === "sms") && (
             <p className="text-muted mt-2 text-xs">
-              Sending here records a direct staff reply in this conversation.
+              This sends a staff reply. Automatic concierge replies remain
+              active unless paused in the full conversation.
             </p>
           )}
           <Link

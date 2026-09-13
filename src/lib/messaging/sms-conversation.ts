@@ -63,13 +63,6 @@ export async function sendSmsConversationMessage(input: {
       admin
         .from("conversations")
         .update({
-          ...((input.senderType || "human") === "human"
-            ? {
-                human_takeover: true,
-                status: "open",
-                handoff_reason: null,
-              }
-            : {}),
           last_message_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })

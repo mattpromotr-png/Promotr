@@ -19,7 +19,10 @@ export async function generateConciergeReply(
   const deterministic = deterministicHandoff(latest);
   if (deterministic) return deterministic;
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return SAFE_AI_FALLBACK;
+  if (!apiKey) {
+    console.error("Concierge response unavailable: OPENAI_API_KEY is missing");
+    return SAFE_AI_FALLBACK;
+  }
 
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -93,7 +96,13 @@ export async function generateConciergeReply(
       }),
       cache: "no-store",
     });
-    if (!response.ok) return SAFE_AI_FALLBACK;
+    if (!response.ok) {
+      console.error("Concierge OpenAI request failed", {
+        status: response.status,
+        requestId: response.headers.get("x-request-id"),
+      });
+      return SAFE_AI_FALLBACK;
+    }
     const payload = (await response.json()) as {
       output?: Array<{
         content?: Array<{ type?: string; text?: string }>;
@@ -105,14 +114,22 @@ export async function generateConciergeReply(
     const parsed = aiHostResponseSchema.safeParse(
       JSON.parse(outputText || "null"),
     );
-    if (!parsed.success) return SAFE_AI_FALLBACK;
+    if (!parsed.success) {
+      console.error("Concierge response failed schema validation", {
+        requestId: response.headers.get("x-request-id"),
+      });
+      return SAFE_AI_FALLBACK;
+    }
     return {
       ...parsed.data,
       missingQualificationFields: [],
       shareBookingForm:
         parsed.data.shareBookingForm && latestMessageAllowsBookingLink(latest),
     };
-  } catch {
+  } catch (error) {
+    console.error("Concierge response processing failed", {
+      name: error instanceof Error ? error.name : "UnknownError",
+    });
     return SAFE_AI_FALLBACK;
   }
 }

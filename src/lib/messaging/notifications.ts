@@ -82,6 +82,14 @@ export async function sendBookingSmsNotification(input: SendBookingSmsInput) {
     identity = createdIdentity;
   }
 
+  await admin
+    .from("contacts")
+    .update({
+      display_name: lead.name,
+      last_seen_at: new Date().toISOString(),
+    })
+    .eq("id", identity.contact_id);
+
   await admin.from("sms_consents").upsert(
     {
       lead_id: lead.id,

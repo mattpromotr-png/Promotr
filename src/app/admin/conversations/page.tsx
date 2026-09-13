@@ -4,6 +4,8 @@ import {
   ChevronRight,
   ExternalLink,
   MessageCircle,
+  PauseCircle,
+  PlayCircle,
   Send,
   UserRound,
 } from "lucide-react";
@@ -12,7 +14,11 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { returnConversationToAi, sendConversationReply } from "./actions";
+import {
+  pauseConversationAutomation,
+  resumeConversationAutomation,
+  sendConversationReply,
+} from "./actions";
 
 export const metadata = { title: "Conversations" };
 export const dynamic = "force-dynamic";
@@ -25,7 +31,24 @@ type Conversation = {
   human_takeover: boolean;
   handoff_reason: string | null;
   last_message_at: string;
-  contacts: { display_name: string | null; instagram_scoped_id: string } | null;
+  contacts: {
+    display_name: string | null;
+    instagram_scoped_id: string;
+    contact_channels: Array<{
+      channel: string;
+      normalized_address: string;
+    }>;
+  } | null;
+  lead_conversations: Array<{
+    leads: LinkedLead | LinkedLead[] | null;
+  }>;
+};
+type LinkedLead = {
+  id: string;
+  name: string;
+  status: string;
+  requested_date: string;
+  created_at: string;
 };
 type Message = {
   id: string;
@@ -66,7 +89,7 @@ export default async function ConversationsPage({
   let listQuery = admin
     .from("conversations")
     .select(
-      "id,channel,status,human_takeover,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id)",
+      "id,channel,status,human_takeover,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id,contact_channels(channel,normalized_address)),lead_conversations(leads(id,name,status,requested_date,created_at))",
       { count: "exact" },
     );
   if (channel !== "all") listQuery = listQuery.eq("channel", channel);
@@ -135,13 +158,7 @@ export default async function ConversationsPage({
               <p className="text-muted p-6 text-sm">No conversations yet.</p>
             ) : (
               conversations.map((item) => {
-                const guest =
-                  item.contacts?.display_name ||
-                  (item.channel === "web_preview"
-                    ? "Website guest"
-                    : item.channel === "sms"
-                      ? "SMS guest"
-                      : "Instagram guest");
+                const guest = conversationGuestName(item);
                 return (
                   <Link
                     key={item.id}
@@ -152,11 +169,15 @@ export default async function ConversationsPage({
                       <p className="text-foreground truncate text-sm font-medium">
                         {guest}
                       </p>
-                      {item.human_takeover && (
+                      {item.human_takeover ? (
                         <span className="text-violet text-[10px] font-semibold">
-                          HUMAN
+                          PAUSED
                         </span>
-                      )}
+                      ) : item.status === "handoff_required" ? (
+                        <span className="text-[10px] font-semibold text-amber-500">
+                          NEEDS REVIEW
+                        </span>
+                      ) : null}
                     </div>
                     <p className="text-muted mt-1 text-xs capitalize">
                       {item.channel.replace("_", " ")} ·{" "}
@@ -207,21 +228,34 @@ export default async function ConversationsPage({
               <header className="border-border flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4 sm:px-6">
                 <div>
                   <h2 className="text-foreground font-semibold">
-                    {selected.contacts?.display_name ||
-                      (selected.channel === "web_preview"
-                        ? "Website guest"
-                        : selected.channel === "sms"
-                          ? "SMS guest"
-                          : "Instagram guest")}
+                    {conversationGuestName(selected)}
                   </h2>
                   <p className="text-muted mt-1 text-xs capitalize">
                     {selected.channel.replace("_", " ")} ·{" "}
-                    {selected.channel === "sms"
-                      ? "Twilio SMS"
-                      : selected.human_takeover
-                        ? "Human takeover active"
-                        : "AI handling"}
+                    {selected.human_takeover
+                      ? "Automatic replies paused"
+                      : "Concierge active"}
                   </p>
+                  {selected.channel === "sms" &&
+                    conversationPhone(selected) && (
+                      <p className="text-muted mt-1 text-xs">
+                        {conversationPhone(selected)} · Primary SMS identity
+                      </p>
+                    )}
+                  {conversationLeads(selected).length > 0 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                      <span className="text-muted">Linked inquiries:</span>
+                      {conversationLeads(selected).map((lead) => (
+                        <Link
+                          key={lead.id}
+                          href={`/admin/leads?lead=${lead.id}`}
+                          className="border-border bg-elevated text-foreground rounded-full border px-2 py-1"
+                        >
+                          {lead.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {selected.channel === "instagram" ? (
                   <a
@@ -234,7 +268,7 @@ export default async function ConversationsPage({
                     Open Instagram inbox
                   </a>
                 ) : selected.human_takeover ? (
-                  <form action={returnConversationToAi}>
+                  <form action={resumeConversationAutomation}>
                     <input
                       type="hidden"
                       name="conversationId"
@@ -244,11 +278,26 @@ export default async function ConversationsPage({
                       className="focus-ring border-border bg-elevated inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm"
                       type="submit"
                     >
-                      <Bot size={15} />
-                      Return to AI
+                      <PlayCircle size={15} />
+                      Resume automatic replies
                     </button>
                   </form>
-                ) : null}
+                ) : (
+                  <form action={pauseConversationAutomation}>
+                    <input
+                      type="hidden"
+                      name="conversationId"
+                      value={selected.id}
+                    />
+                    <button
+                      className="focus-ring border-border bg-elevated inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm"
+                      type="submit"
+                    >
+                      <PauseCircle size={15} />
+                      Pause automatic replies
+                    </button>
+                  </form>
+                )}
               </header>
               <div className="bg-elevated/35 flex-1 space-y-3 overflow-y-auto p-5 sm:p-6">
                 {messages.map((message) => (
@@ -267,7 +316,11 @@ export default async function ConversationsPage({
                         ) : (
                           <MessageCircle size={11} />
                         )}
-                        {message.sender_type}
+                        {message.sender_type === "ai"
+                          ? "Concierge"
+                          : message.sender_type === "human"
+                            ? "Staff"
+                            : "Guest"}
                       </p>
                       {message.content}
                       {message.metadata?.englishTranslation &&
@@ -314,7 +367,7 @@ export default async function ConversationsPage({
                       placeholder={
                         selected.channel === "sms"
                           ? "Send an SMS as Promotr staff..."
-                          : "Type a reply and take over this conversation..."
+                          : "Send a message as Promotr staff..."
                       }
                       className="focus-ring border-border bg-elevated text-foreground placeholder:text-muted w-full resize-none rounded-2xl border px-4 py-3 text-sm"
                     />
@@ -334,4 +387,31 @@ export default async function ConversationsPage({
       </div>
     </AdminShell>
   );
+}
+
+function conversationLeads(conversation: Conversation) {
+  return (conversation.lead_conversations || [])
+    .flatMap((link) => {
+      if (!link.leads) return [];
+      return Array.isArray(link.leads) ? link.leads : [link.leads];
+    })
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+function conversationGuestName(conversation: Conversation) {
+  return (
+    conversationLeads(conversation)[0]?.name ||
+    conversation.contacts?.display_name ||
+    (conversation.channel === "web_preview"
+      ? "Website guest"
+      : conversation.channel === "sms"
+        ? "SMS guest"
+        : "Instagram guest")
+  );
+}
+
+function conversationPhone(conversation: Conversation) {
+  return conversation.contacts?.contact_channels.find(
+    (contact) => contact.channel === "sms",
+  )?.normalized_address;
 }

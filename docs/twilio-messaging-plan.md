@@ -39,8 +39,9 @@ text so staff can see what the guest received.
 2. The route validates the Twilio signature, normalizes the phone number to E.164, and
    deduplicates with `MessageSid`.
 3. Supabase resolves the person, SMS identity, conversation, lead links, and recent context.
-4. If human takeover is active, store the message and notify the dashboard without AI.
-5. Otherwise, deterministic safety/handoff rules run before one optional AI call.
+4. If automatic replies are explicitly paused, store the message for staff without replying.
+5. Otherwise, deterministic safety/handoff rules run before one optional AI call. A staff-attention
+   flag does not by itself pause later concierge replies.
 6. The SMS adapter sends the response and stores the Twilio SID.
 7. `POST /api/webhooks/twilio/status` updates queued, sent, delivered, undelivered, or failed.
 
@@ -96,8 +97,9 @@ orchestrator plus policy. Channel adapters only handle transport limits and prov
 
 - Conversations page: `All`, `SMS`, and `Instagram` filters with unread and human-follow-up
   indicators.
-- Conversation detail: complete scrollable transcript, delivery state, takeover control,
-  direct staff reply, and linked inquiry.
+- Conversation detail: complete scrollable transcript, delivery state, explicit pause/resume
+  control, direct staff reply, primary phone identity, and every linked inquiry. Staff replies do
+  not implicitly pause the concierge.
 - Inquiry detail: channel tabs for SMS and Instagram; both stay linked to the same inquiry.
 - If a channel has no conversation, show a clear empty state. For an inquiry with valid SMS
   consent, staff may start an SMS thread.

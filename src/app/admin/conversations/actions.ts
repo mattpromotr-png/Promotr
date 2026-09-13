@@ -65,9 +65,6 @@ export async function sendConversationReply(formData: FormData) {
   await admin
     .from("conversations")
     .update({
-      human_takeover: true,
-      status: "open",
-      handoff_reason: null,
       last_message_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
@@ -76,7 +73,24 @@ export async function sendConversationReply(formData: FormData) {
   revalidatePath("/admin/leads");
 }
 
-export async function returnConversationToAi(formData: FormData) {
+export async function pauseConversationAutomation(formData: FormData) {
+  await requireAdmin();
+  const conversationId = String(formData.get("conversationId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(conversationId)) return;
+  const { error } = await createAdminClient()
+    .from("conversations")
+    .update({
+      human_takeover: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", conversationId)
+    .in("channel", ["web_preview", "sms"]);
+  if (error) throw new Error("Unable to pause automatic replies.");
+  revalidatePath("/admin/conversations");
+  revalidatePath("/admin/leads");
+}
+
+export async function resumeConversationAutomation(formData: FormData) {
   await requireAdmin();
   const conversationId = String(formData.get("conversationId") ?? "");
   if (!/^[0-9a-f-]{36}$/i.test(conversationId)) return;
@@ -84,12 +98,11 @@ export async function returnConversationToAi(formData: FormData) {
     .from("conversations")
     .update({
       human_takeover: false,
-      status: "open",
-      handoff_reason: null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
-    .eq("channel", "web_preview");
-  if (error) throw new Error("Unable to return this conversation to AI.");
+    .in("channel", ["web_preview", "sms"]);
+  if (error) throw new Error("Unable to resume automatic replies.");
   revalidatePath("/admin/conversations");
+  revalidatePath("/admin/leads");
 }

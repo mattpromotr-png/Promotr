@@ -147,7 +147,6 @@ export async function POST(request: NextRequest) {
       .from("conversations")
       .update({
         status: "handoff_required",
-        human_takeover: true,
         handoff_reason: "Guest requested staff attention by SMS.",
         updated_at: new Date().toISOString(),
       })
@@ -199,6 +198,12 @@ async function processSmsWithConcierge(conversationId: string) {
   }));
   if (!recent.length) return;
   const result = await generateConciergeReply(recent);
+  const { data: latestMode } = await admin
+    .from("conversations")
+    .select("human_takeover")
+    .eq("id", conversationId)
+    .single();
+  if (!latestMode || latestMode.human_takeover) return;
   await sendSmsConversationMessage({
     conversationId,
     content: smsConciergeText(result),
@@ -209,7 +214,6 @@ async function processSmsWithConcierge(conversationId: string) {
       .from("conversations")
       .update({
         status: "handoff_required",
-        human_takeover: true,
         handoff_reason: result.handoffReason,
         updated_at: new Date().toISOString(),
       })

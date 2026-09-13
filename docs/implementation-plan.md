@@ -150,5 +150,9 @@ rereading the full project prompt.
 - [ ] Apply `202609120001_twilio_messaging.sql`, configure Twilio/Vercel, and verify live delivery.
 - [x] Show every linked SMS and Instagram thread as channel tabs inside inquiry details.
 - [x] Connect the shared AI concierge to inbound SMS with bounded conversation history.
+- [x] Keep normalized phone numbers as SMS identity and surface linked inquiries in the admin conversation view.
+- [x] Separate staff-attention flags from explicit automation pause/resume controls.
+- [x] Keep staff replies from disabling the concierge and retry automation after safe technical fallbacks.
+- [x] Remove proactive AI terminology from guest-facing chat branding while retaining truthful internal attribution.
 - [ ] Complete live inbound, AI reply, handoff, and admin-reply acceptance tests.
 - [ ] Add the direct Meta channel adapter after the client receives Meta access.
