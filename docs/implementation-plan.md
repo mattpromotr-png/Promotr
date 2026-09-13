@@ -159,3 +159,5 @@ rereading the full project prompt.
 - [x] Keep automatic SMS replies enabled by default with an explicit admin pause control.
 - [x] Include a secure self-service URL in both table-booking and non-table inquiry SMS messages.
 - [x] Add route loading feedback and consistent pressed/disabled interaction states.
+- [x] Make admin inquiry/follow-up data loading resilient to transient and legacy-relation query failures.
+- [x] Compact revenue editing to five records per page and keep long transcripts inside a dedicated chat scroller.

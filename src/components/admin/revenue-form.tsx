@@ -20,17 +20,17 @@ export function RevenueForm({
   return (
     <form
       action={updateConfirmedRevenue}
-      className="border-border bg-elevated rounded-2xl border p-4"
+      className="border-border bg-elevated rounded-xl border p-3"
     >
-      <div className="mb-3">
+      <div className="mb-2">
         <p className="text-foreground text-sm font-semibold">Revenue</p>
-        <p className="text-muted mt-1 text-xs">
+        <p className="text-muted mt-0.5 text-[11px]">
           Record the final confirmed bottle-service amount for this booking.
         </p>
       </div>
       <label className="text-foreground text-sm font-medium">
         Confirmed bottle-service revenue (CAD)
-        <div className="mt-2 flex gap-2">
+        <div className="mt-1.5 flex gap-2">
           <input name="leadId" type="hidden" value={leadId} />
           <input
             name="amount"
@@ -43,20 +43,20 @@ export function RevenueForm({
             required
             placeholder="0.00"
             disabled={!enabled}
-            className="focus-ring border-border bg-surface text-foreground min-h-10 min-w-0 flex-1 rounded-xl border px-3 text-sm"
+            className="focus-ring border-border bg-surface text-foreground min-h-9 min-w-0 flex-1 rounded-lg border px-3 text-sm"
           />
           {changed && (
             <button
               type="submit"
               disabled={!enabled}
-              className="focus-ring bg-brand-gradient min-h-10 rounded-xl px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
+              className="focus-ring bg-brand-gradient min-h-9 rounded-lg px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
             >
               Save amount
             </button>
           )}
         </div>
       </label>
-      <p className="text-muted mt-2 text-xs">
+      <p className="text-muted mt-1.5 text-[11px]">
         {enabled
           ? "This amount will appear in the Revenue dashboard."
           : disabledReason ||

@@ -25,7 +25,9 @@ type FollowUp = {
   handoff_reason: string | null;
   last_message_at: string;
   contacts: { display_name: string | null; instagram_scoped_id: string } | null;
-  leads: Array<{ id: string; name: string }> | null;
+  lead_conversations:
+    | Array<{ leads: { id: string; name: string } | Array<{ id: string; name: string }> | null }>
+    | null;
 };
 
 export default async function FollowUpsPage({
@@ -39,15 +41,18 @@ export default async function FollowUpsPage({
   const page =
     Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const admin = createAdminClient();
-  const result = await admin
-    .from("conversations")
-    .select(
-      "id,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id),leads(id,name)",
-      { count: "exact" },
-    )
-    .eq("status", "handoff_required")
-    .order("last_message_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  const loadFollowUps = () =>
+    admin
+      .from("conversations")
+      .select(
+        "id,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id),lead_conversations(leads(id,name))",
+        { count: "exact" },
+      )
+      .eq("status", "handoff_required")
+      .order("last_message_at", { ascending: false })
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  let result = await loadFollowUps();
+  if (result.error) result = await loadFollowUps();
   if (result.error) throw new Error("Unable to load human follow-ups.");
 
   const followUps = (result.data ?? []) as unknown as FollowUp[];
@@ -88,7 +93,10 @@ export default async function FollowUpsPage({
       ) : (
         <div className="mt-6 grid gap-4 xl:grid-cols-2">
           {followUps.map((followUp) => {
-            const relatedLead = followUp.leads?.[0];
+            const linkedLead = followUp.lead_conversations?.[0]?.leads;
+            const relatedLead = Array.isArray(linkedLead)
+              ? linkedLead[0]
+              : linkedLead;
             return (
               <article
                 key={followUp.id}

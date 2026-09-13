@@ -39,6 +39,7 @@ const money = new Intl.NumberFormat("en-CA", {
   currency: "CAD",
 });
 const DEPOSIT_PAGE_SIZE = 20;
+const SALES_PAGE_SIZE = 5;
 
 export default async function RevenuePage({
   searchParams,
@@ -151,11 +152,11 @@ export default async function RevenuePage({
   ).sort((a, b) => b[1] - a[1]);
   const salesTotalPages = Math.max(
     1,
-    Math.ceil(bookings.length / DEPOSIT_PAGE_SIZE),
+    Math.ceil(bookings.length / SALES_PAGE_SIZE),
   );
   const visibleBookings = bookings.slice(
-    (salesPage - 1) * DEPOSIT_PAGE_SIZE,
-    salesPage * DEPOSIT_PAGE_SIZE,
+    (salesPage - 1) * SALES_PAGE_SIZE,
+    salesPage * SALES_PAGE_SIZE,
   );
 
   return (
@@ -376,7 +377,7 @@ export default async function RevenuePage({
               Add or update revenue
             </h2>
             <p className="text-muted mt-1 text-xs">
-              Booked table and bottle-service inquiries
+              Booked table and bottle-service inquiries · 5 per page
             </p>
           </div>
           {bookings.length === 0 ? (
@@ -387,7 +388,7 @@ export default async function RevenuePage({
           ) : (
             <div className="divide-border divide-y">
               {visibleBookings.map((item) => (
-                <div key={item.id} className="space-y-3 px-5 py-5">
+                <div key={item.id} className="space-y-2 px-4 py-3">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-foreground text-sm font-medium">

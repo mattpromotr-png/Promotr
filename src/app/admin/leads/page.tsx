@@ -86,11 +86,25 @@ export default async function AdminLeadsPage({
       countQuery = countQuery.eq("status", status as LeadStatus);
     return countQuery;
   });
-  const [leadResult, ...countResults] = await Promise.all([
+  const [initialLeadResult, ...countResults] = await Promise.all([
     query,
     ...countRequests,
   ]);
-  if (leadResult.error || countResults.some((result) => result.error))
+  let leadResult = initialLeadResult;
+  if (leadResult.error) {
+    let retryQuery = admin
+      .from("leads")
+      .select(leadSelection, { count: "exact" })
+      .order("updated_at", { ascending: false })
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    if (filter !== "all") retryQuery = retryQuery.eq("status", filter);
+    if (search)
+      retryQuery = retryQuery.or(
+        `name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%,instagram_handle.ilike.%${search}%`,
+      );
+    leadResult = await retryQuery;
+  }
+  if (leadResult.error)
     throw new Error("Unable to load booking inquiries.");
 
   const leads = (leadResult.data ?? []) as unknown as AdminLead[];
@@ -113,7 +127,10 @@ export default async function AdminLeadsPage({
   const total = leadResult.count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const statusCounts = Object.fromEntries(
-    filters.map((status, index) => [status, countResults[index].count ?? 0]),
+    filters.map((status, index) => [
+      status,
+      countResults[index]?.error ? 0 : (countResults[index]?.count ?? 0),
+    ]),
   );
   const noticeMessage = params.error
     ? params.error === "payment_protected"

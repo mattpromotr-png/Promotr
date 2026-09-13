@@ -148,7 +148,7 @@ export default async function ConversationsPage({
           </Link>
         ))}
       </nav>
-      <div className="surface-card mt-8 grid min-h-[620px] overflow-hidden lg:grid-cols-[330px_1fr]">
+      <div className="surface-card mt-8 grid h-[min(720px,calc(100svh-210px))] min-h-[520px] overflow-hidden lg:grid-cols-[330px_1fr]">
         <aside className="border-border border-b lg:border-r lg:border-b-0">
           <div className="border-border border-b px-5 py-4">
             <h2 className="text-foreground font-semibold">
@@ -223,7 +223,7 @@ export default async function ConversationsPage({
           )}
         </aside>
 
-        <section className="flex min-w-0 flex-col">
+        <section className="flex min-h-0 min-w-0 flex-col overflow-hidden">
           {!selected ? (
             <div className="text-muted grid flex-1 place-items-center p-8 text-sm">
               Select a conversation.
@@ -304,7 +304,7 @@ export default async function ConversationsPage({
                   </form>
                 )}
               </header>
-              <div className="bg-elevated/35 flex-1 space-y-3 overflow-y-auto p-5 sm:p-6">
+              <div className="bg-elevated/35 min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-5 sm:p-6">
                 {messages.map((message) => (
                   <article
                     key={message.id}
