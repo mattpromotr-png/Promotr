@@ -18,7 +18,7 @@ const filters = ["all", "new", "contacted", "pending", "booked"] as const;
 type Filter = (typeof filters)[number];
 const PAGE_SIZE = 20;
 const leadSelection =
-  "id,name,email,phone,instagram_handle,requested_date,preferred_arrival_time,party_size,occasion,booking_type,bottle_preference,notes,status,created_at,updated_at,confirmed_revenue_cad,booked_at,booking_change_status,booking_changed_at,booking_change_history(id,changed_by,previous_values,new_values,created_at),conversations(id,status,handoff_reason,channel,human_takeover),table_bookings(id,status,paid_at,table_id,booking_date,deposit_cad,minimum_spend_cad,club_tables(name,code))";
+  "id,name,email,phone,instagram_handle,requested_date,preferred_arrival_time,party_size,occasion,booking_type,bottle_preference,notes,status,created_at,updated_at,confirmed_revenue_cad,booked_at,booking_change_status,booking_changed_at,booking_change_history(id,changed_by,previous_values,new_values,created_at),conversations!leads_conversation_id_fkey(id,status,handoff_reason,channel,human_takeover),table_bookings(id,status,paid_at,table_id,booking_date,deposit_cad,minimum_spend_cad,club_tables(name,code))";
 
 export const metadata = { title: "Booking inquiries" };
 export const dynamic = "force-dynamic";
