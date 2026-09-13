@@ -16,6 +16,7 @@ describe("booking SMS templates", () => {
     });
     expect(message).toContain("not confirmed yet");
     expect(message).toContain("Reply STOP");
+    expect(message).toContain(base.manageUrl);
   });
 
   it("includes the verified deposit amount and management link", () => {

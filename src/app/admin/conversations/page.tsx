@@ -10,6 +10,8 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
+
+import { ConversationLiveRefresh } from "@/components/admin/conversation-live-refresh";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -125,6 +127,9 @@ export default async function ConversationsPage({
         title="Conversations"
         description="Review SMS and Instagram conversations, take over when a guest needs help, and reply from one workspace."
       />
+      <div className="mt-3">
+        <ConversationLiveRefresh />
+      </div>
       <nav
         className="mt-6 flex flex-wrap gap-2"
         aria-label="Conversation channel"

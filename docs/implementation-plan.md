@@ -156,3 +156,6 @@ rereading the full project prompt.
 - [x] Remove proactive AI terminology from guest-facing chat branding while retaining truthful internal attribution.
 - [ ] Complete live inbound, AI reply, handoff, and admin-reply acceptance tests.
 - [ ] Add the direct Meta channel adapter after the client receives Meta access.
+- [x] Keep automatic SMS replies enabled by default with an explicit admin pause control.
+- [x] Include a secure self-service URL in both table-booking and non-table inquiry SMS messages.
+- [x] Add route loading feedback and consistent pressed/disabled interaction states.

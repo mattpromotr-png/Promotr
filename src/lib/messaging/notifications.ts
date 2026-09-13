@@ -1,6 +1,9 @@
 import "server-only";
 
-import { createBookingManageToken } from "@/lib/bookings/manage-token";
+import {
+  createBookingManageToken,
+  createInquiryManageToken,
+} from "@/lib/bookings/manage-token";
 import {
   sendTwilioSms,
   normalizeSmsPhone,
@@ -136,8 +139,11 @@ export async function sendBookingSmsNotification(input: SendBookingSmsInput) {
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const manageUrl = booking
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/book/manage/${booking.id}?token=${createBookingManageToken(booking.id)}`
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+  const manageUrl = appUrl
+    ? booking
+      ? `${appUrl}/book/manage/${booking.id}?token=${encodeURIComponent(createBookingManageToken(booking.id))}`
+      : `${appUrl}/book/manage/inquiry/${lead.id}?token=${encodeURIComponent(createInquiryManageToken(lead.id))}`
     : null;
   const renderedContent = renderBookingSms({
     eventType: input.eventType,

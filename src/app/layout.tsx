@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
+import { NavigationFeedback } from "@/components/navigation-feedback";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
@@ -25,6 +26,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <NavigationFeedback />
+          </Suspense>
           {children}
         </ThemeProvider>
       </body>

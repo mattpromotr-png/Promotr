@@ -64,6 +64,55 @@ textarea {
   font: inherit;
 }
 
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a[href],
+button:not(:disabled) {
+  transition:
+    transform 140ms ease,
+    filter 140ms ease,
+    opacity 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+a[href]:active,
+button:not(:disabled):active {
+  transform: scale(0.975);
+  filter: brightness(1.12);
+}
+
+button:disabled {
+  cursor: wait;
+}
+
+.navigation-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 200;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--violet) 18%, transparent);
+}
+
+.navigation-progress::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  background: linear-gradient(90deg, var(--violet), var(--magenta));
+  box-shadow: 0 0 16px var(--violet);
+  animation: navigation-progress 1s ease-in-out infinite;
+}
+
+@keyframes navigation-progress {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(350%); }
+}
+
 .surface-card {
   border: 1px solid var(--border);
   border-radius: 1.5rem;
