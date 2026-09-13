@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { latestMessageAllowsBookingLink } from "@/lib/messaging/policy";
+import {
+  latestMessageAllowsBookingLink,
+  requiresStaffAttention,
+} from "@/lib/messaging/policy";
 
 describe("SMS booking-link policy", () => {
   it("allows direct booking requests", () => {
@@ -14,5 +17,24 @@ describe("SMS booking-link policy", () => {
     expect(latestMessageAllowsBookingLink("What music do you play?")).toBe(
       false,
     );
+  });
+});
+
+describe("SMS staff-attention policy", () => {
+  it("escalates direct staff and urgent safety requests", () => {
+    expect(requiresStaffAttention("Can I speak to an admin directly?")).toBe(
+      true,
+    );
+    expect(requiresStaffAttention("This is urgent, please help now")).toBe(
+      true,
+    );
+    expect(requiresStaffAttention("I was charged twice and need a refund")).toBe(
+      true,
+    );
+  });
+
+  it("does not escalate ordinary venue questions", () => {
+    expect(requiresStaffAttention("What music do you play?")).toBe(false);
+    expect(requiresStaffAttention("What time do you open?")).toBe(false);
   });
 });

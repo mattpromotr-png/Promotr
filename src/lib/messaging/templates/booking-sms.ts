@@ -9,8 +9,13 @@ function details(input: BookingSmsTemplateInput) {
   return `${input.bookingDate}${time}`;
 }
 
-function withLink(message: string, manageUrl?: string | null) {
-  return manageUrl ? `${message} Manage: ${manageUrl}` : message;
+function withLink(
+  message: string,
+  manageUrl?: string | null,
+  includeOptOut = false,
+) {
+  const linked = manageUrl ? `${message} Manage: ${manageUrl}` : message;
+  return includeOptOut ? `${linked} Reply STOP to opt out.` : linked;
 }
 
 export function renderBookingSms(input: BookingSmsTemplateInput) {
@@ -19,32 +24,34 @@ export function renderBookingSms(input: BookingSmsTemplateInput) {
   switch (input.eventType) {
     case "inquiry_received":
       return withLink(
-        `Promotr: Hi ${guest}, we received your inquiry for ${when}. It is not confirmed yet; our team will review availability. Reply STOP to opt out.`,
+        `Promotr: Hey ${guest}! We got your party request for ${when}. Our team will check availability and get back to you. It is not confirmed yet.`,
         input.manageUrl,
+        true,
       );
     case "deposit_received":
       return withLink(
-        `Promotr: Hi ${guest}, your $${Number(input.depositCad || 0).toFixed(2)} CAD deposit was received for ${when}. Our team is processing your booking. Reply STOP to opt out.`,
+        `Promotr: You're all set, ${guest}! We received your $${Number(input.depositCad || 0).toFixed(2)} CAD deposit for ${when}. Our team is now processing your booking.`,
         input.manageUrl,
+        true,
       );
     case "guest_updated":
       return withLink(
-        `Promotr: Your booking details for ${when} were updated. Our team will recheck availability and contact you if needed.`,
+        `Promotr: Your plans are updated for ${when}. Our team will recheck the details and contact you if anything else is needed.`,
         input.manageUrl,
       );
     case "admin_updated":
       return withLink(
-        `Promotr: Our team updated your booking details for ${when}. Please review the latest information.`,
+        `Promotr: We updated your booking details for ${when}. Please take a moment to review the latest information.`,
         input.manageUrl,
       );
     case "booking_confirmed":
       return withLink(
-        `Promotr: Your booking for ${when} is confirmed. Bring valid government-issued ID. Entry remains subject to venue policies.`,
+        `Promotr: Great news, ${guest} - your booking for ${when} is confirmed! Bring valid government-issued ID. Venue entry policies still apply.`,
         input.manageUrl,
       );
     case "booking_cancelled":
-      return `Promotr: Your booking for ${when} was cancelled. Contact the venue if you believe this is incorrect.`;
+      return `Promotr: Your booking for ${when} has been cancelled. If this does not look right, reply here and our team will help.`;
     case "refund_started":
-      return `Promotr: Your booking for ${when} was cancelled and your deposit refund was started. Bank processing times may vary.`;
+      return `Promotr: Your booking for ${when} is cancelled and your deposit refund has started. Your bank's processing time may vary.`;
   }
 }

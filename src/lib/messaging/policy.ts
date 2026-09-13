@@ -4,3 +4,15 @@ const bookingRequestPattern =
 export function latestMessageAllowsBookingLink(message: string) {
   return bookingRequestPattern.test(message);
 }
+
+const directStaffRequestPattern =
+  /\b(?:speak|talk|chat|connect|contact|transfer|pass me|put me through)\b.{0,40}\b(?:human|person|someone|staff|team|manager|admin|owner)\b|\b(?:human|staff|manager|admin)\b.{0,30}\b(?:please|now|directly|contact|help|reply|call)\b/iu;
+const urgentAttentionPattern =
+  /\b(?:urgent|urgently|emergency|immediately|asap|right now|unsafe|danger|threat|injured|medical|police|security|charged twice|double charged|refund|complaint)\b/iu;
+
+export function requiresStaffAttention(message: string) {
+  return (
+    directStaffRequestPattern.test(message) ||
+    urgentAttentionPattern.test(message)
+  );
+}

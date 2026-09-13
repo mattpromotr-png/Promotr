@@ -161,3 +161,5 @@ rereading the full project prompt.
 - [x] Add route loading feedback and consistent pressed/disabled interaction states.
 - [x] Make admin inquiry/follow-up data loading resilient to transient and legacy-relation query failures.
 - [x] Compact revenue editing to five records per page and keep long transcripts inside a dedicated chat scroller.
+- [x] Improve guest-facing SMS tone and deterministically escalate direct staff, urgent, safety, complaint, and refund requests.
+- [x] Document the production Supabase tables and safe database-management rules.

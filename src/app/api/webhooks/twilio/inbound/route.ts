@@ -7,11 +7,9 @@ import {
   generateConciergeReply,
   smsConciergeText,
 } from "@/lib/messaging/concierge";
+import { requiresStaffAttention } from "@/lib/messaging/policy";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const handoffPattern =
-  /\b(human|person|staff|manager|admin|complaint|refund|charged|security)\b/i;
 
 export async function POST(request: NextRequest) {
   const form = await request.formData();
@@ -142,7 +140,7 @@ export async function POST(request: NextRequest) {
         { onConflict: "lead_id,conversation_id", ignoreDuplicates: true },
       );
 
-  if (handoffPattern.test(content)) {
+  if (requiresStaffAttention(content)) {
     await admin
       .from("conversations")
       .update({
@@ -157,7 +155,7 @@ export async function POST(request: NextRequest) {
           await sendSmsConversationMessage({
             conversationId: conversation.id,
             content:
-              "Promotr: I have flagged this conversation for our team. A staff member can review your message and reply here.",
+              "Promotr: Thanks for letting us know. I've sent this to our venue team for priority review, and a staff member can reply to you here.",
             senderType: "ai",
           });
         } catch (error) {
