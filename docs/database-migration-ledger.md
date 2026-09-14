@@ -6,6 +6,7 @@ database passwords, service-role keys, or customer data in this file.
 | Migration                                            | Environment | Applied at       | Applied by             | Backup verified | Result                        | Workflow verification                                                                                                                   | Notes                                                         |
 | ---------------------------------------------------- | ----------- | ---------------- | ---------------------- | --------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | Baseline through `202609120001_twilio_messaging.sql` | Production  | 2026-09-14 audit | Read-only verification | Pending         | Live schema outcomes verified | Existing booking, payment, SMS, conversation, and admin operations reported working; full regression required before next schema change | Exact historical manual execution dates/checksums are unknown |
+| `202609140001_manager_mobile_app.sql`                 | Production  | 2026-09-14       | User-reported manual SQL Editor run | Not confirmed | User reported SQL success | Mobile login, conversation reads, SMS reply, follow-up resolution, and existing web workflows remain unverified | Additive staff membership and manager device tables only |
 
 ## Required verification for each production migration
 

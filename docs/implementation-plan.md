@@ -166,3 +166,13 @@ rereading the full project prompt.
 - [x] Complete a read-only live database audit covering schema presence, aggregate consistency, anonymous exposure, and application-query compatibility.
 - [ ] Establish a staging Supabase project, recoverable backup procedure, and recorded migration ledger before the next schema expansion.
 - [ ] Backfill legacy Instagram/web-preview identities into `contact_channels` before direct multichannel expansion.
+
+## Manager mobile companion app (2026-09-14)
+
+- [x] Create a separate Expo/React Native manager application with the Promotr visual system.
+- [x] Add SMS and Instagram conversation sections, follow-ups, conversation detail, and SMS staff replies.
+- [x] Add bearer-authenticated, venue-scoped mobile conversation API routes.
+- [x] Add an additive migration for staff memberships and manager device registrations.
+- [x] Apply `202609140001_manager_mobile_app.sql` to production (user-reported SQL Editor success; backup not confirmed).
+- [ ] Configure the mobile Supabase/API public environment values and complete live login/read/reply tests.
+- [ ] Connect Expo device registration to inbound-message and follow-up push delivery.

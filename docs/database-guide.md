@@ -59,6 +59,16 @@ separately reviewed general notification model.
 | Voice calls      | Contacts, channel identities, messages                               | Call sessions, consent, provider state, timing, and transcript linkage                 |
 | Manager app/PWA  | Venues and Supabase Auth                                             | Staff memberships, roles, device push subscriptions, preferences, notification history |
 
+## Manager mobile app
+
+| Table               | Purpose                                                                   |
+| ------------------- | ------------------------------------------------------------------------- |
+| `staff_memberships` | Connects an authenticated Supabase user to a venue and staff role.        |
+| `manager_devices`   | Stores registered Expo push tokens for manager-owned iOS/Android devices. |
+
+These tables are additive and backend-only. They do not change existing booking,
+payment, SMS, conversation, or inquiry relationships.
+
 ## Safe management rules
 
 - Do not manually delete paid `table_bookings`, their leads, or financial history.
