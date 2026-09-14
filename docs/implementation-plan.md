@@ -174,5 +174,5 @@ rereading the full project prompt.
 - [x] Add bearer-authenticated, venue-scoped mobile conversation API routes.
 - [x] Add an additive migration for staff memberships and manager device registrations.
 - [x] Apply `202609140001_manager_mobile_app.sql` to production (user-reported SQL Editor success; backup not confirmed).
-- [ ] Configure the mobile Supabase/API public environment values and complete live login/read/reply tests.
+- [x] Configure the mobile Supabase/API public environment values and complete user-verified live login, conversation read, SMS reply, Twilio receipt, and dashboard persistence tests.
 - [ ] Connect Expo device registration to inbound-message and follow-up push delivery.
