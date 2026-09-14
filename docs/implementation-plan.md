@@ -75,7 +75,7 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Rename inquiry stages to New, Contacted, Pending, and Booked.
 - [x] Add web-preview conversation persistence, staff takeover, dashboard inbox, and inquiry-level chat.
 - [x] Add staff-entered confirmed bottle-service revenue with daily, weekly, monthly, and total views.
-- [ ] Apply and verify `202609030001_client_dashboard_expansion.sql` in the target Supabase project.
+- [x] Verify the live schema produced by `202609030001_client_dashboard_expansion.sql` in the target Supabase project.
 - [ ] Connect Instagram delivery after Meta messaging access is approved.
 - [ ] Later phase: choose and integrate a deposit provider such as Stripe after payment rules are approved.
 - [ ] Later phase: design the club table map after receiving the floor plan, table inventory, capacities, and booking rules.
@@ -90,10 +90,10 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Apply and verify `202609040001_table_deposits.sql` in Supabase.
 - [x] Configure Stripe test keys and webhook, then complete a test-mode payment round trip.
 - [x] Expand the provisional floor plan to 30 interactive tables with guest and admin views.
-- [ ] Apply and verify `202609040002_expand_table_map.sql` in Supabase.
+- [x] Verify the live 30-table inventory produced by `202609040002_expand_table_map.sql` in Supabase.
 - [x] Add a private post-payment booking-management link for guest detail updates and cancellation.
 - [x] Add a provisional 48-hour refund policy with automatic Stripe refund and table release.
-- [ ] Apply and verify `202609040003_booking_self_service.sql` in Supabase.
+- [x] Verify the live booking self-service columns produced by `202609040003_booking_self_service.sql` in Supabase.
 - [ ] Replace provisional table positions and prices when the client provides the real floor plan and commercial rules.
 
 ## Reliability and multilingual replies (2026-09-05)
@@ -132,7 +132,7 @@ All non-live gates are complete and mapped in `docs/acceptance-status.md`. The r
 - [x] Surface guest booking updates in the newest-first admin list with a review acknowledgement.
 - [x] Add admin booking overrides with an audit trail while preserving the actual Stripe deposit amount.
 - [x] Add Resend transactional management-link email delivery after verified Stripe payment.
-- [ ] Apply and verify `202609070001_booking_changes_and_email.sql` in Supabase.
+- [x] Verify the live booking-change schema and RPC produced by `202609070001_booking_changes_and_email.sql` in Supabase.
 - [ ] Configure and verify the Resend sender domain and email environment variables in Vercel.
 
 ## Direct multichannel messaging (2026-09-12)
@@ -147,7 +147,7 @@ rereading the full project prompt.
 - [x] Implement the Twilio adapter, code-owned templates, and transactional SMS hooks.
 - [x] Implement signed inbound SMS, delivery callbacks, consent, and human handoff.
 - [x] Add SMS/Instagram inbox filters and direct staff SMS replies.
-- [ ] Apply `202609120001_twilio_messaging.sql`, configure Twilio/Vercel, and verify live delivery.
+- [x] Verify the live schema produced by `202609120001_twilio_messaging.sql` and successful Twilio delivery.
 - [x] Show every linked SMS and Instagram thread as channel tabs inside inquiry details.
 - [x] Connect the shared AI concierge to inbound SMS with bounded conversation history.
 - [x] Keep normalized phone numbers as SMS identity and surface linked inquiries in the admin conversation view.
@@ -163,3 +163,6 @@ rereading the full project prompt.
 - [x] Compact revenue editing to five records per page and keep long transcripts inside a dedicated chat scroller.
 - [x] Improve guest-facing SMS tone and deterministically escalate direct staff, urgent, safety, complaint, and refund requests.
 - [x] Document the production Supabase tables and safe database-management rules.
+- [x] Complete a read-only live database audit covering schema presence, aggregate consistency, anonymous exposure, and application-query compatibility.
+- [ ] Establish a staging Supabase project, recoverable backup procedure, and recorded migration ledger before the next schema expansion.
+- [ ] Backfill legacy Instagram/web-preview identities into `contact_channels` before direct multichannel expansion.
