@@ -175,4 +175,5 @@ rereading the full project prompt.
 - [x] Add an additive migration for staff memberships and manager device registrations.
 - [x] Apply `202609140001_manager_mobile_app.sql` to production (user-reported SQL Editor success; backup not confirmed).
 - [x] Configure the mobile Supabase/API public environment values and complete user-verified live login, conversation read, SMS reply, Twilio receipt, and dashboard persistence tests.
-- [ ] Connect Expo device registration to inbound-message and follow-up push delivery.
+- [x] Connect Expo device registration to inbound-message and follow-up push delivery.
+- [ ] Create the EAS project/development build and complete a physical-device push notification test.

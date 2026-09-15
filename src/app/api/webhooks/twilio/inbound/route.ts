@@ -9,6 +9,7 @@ import {
 } from "@/lib/messaging/concierge";
 import { requiresStaffAttention } from "@/lib/messaging/policy";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
+import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
 
   const { data: leads } = await admin
     .from("leads")
-    .select("id,phone")
+    .select("id,phone,name")
     .eq("venue_id", venue.id)
     .not("phone", "is", null)
     .order("updated_at", { ascending: false })
@@ -140,7 +141,23 @@ export async function POST(request: NextRequest) {
         { onConflict: "lead_id,conversation_id", ignoreDuplicates: true },
       );
 
-  if (requiresStaffAttention(content)) {
+  const needsStaff = requiresStaffAttention(content);
+  after(async () => {
+    try {
+      await notifyVenueManagers({
+        venueId: venue.id,
+        conversationId: conversation.id,
+        channel: "sms",
+        title: needsStaff ? "Guest needs staff help" : `New SMS from ${lead?.name || phone}`,
+        body: content,
+        kind: needsStaff ? "follow_up" : "new_message",
+      });
+    } catch (error) {
+      console.error("Unable to notify managers", error);
+    }
+  });
+
+  if (needsStaff) {
     await admin
       .from("conversations")
       .update({
@@ -177,7 +194,7 @@ async function processSmsWithConcierge(conversationId: string) {
   const admin = createAdminClient();
   const { data: conversation } = await admin
     .from("conversations")
-    .select("human_takeover")
+    .select("human_takeover,venue_id")
     .eq("id", conversationId)
     .single();
   if (!conversation || conversation.human_takeover) return;
@@ -207,7 +224,7 @@ async function processSmsWithConcierge(conversationId: string) {
     content: smsConciergeText(result),
     senderType: "ai",
   });
-  if (result.handoffRequired)
+  if (result.handoffRequired) {
     await admin
       .from("conversations")
       .update({
@@ -216,6 +233,19 @@ async function processSmsWithConcierge(conversationId: string) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", conversationId);
+    try {
+      await notifyVenueManagers({
+        venueId: conversation.venue_id,
+        conversationId,
+        channel: "sms",
+        title: "Conversation needs review",
+        body: result.handoffReason || "A guest conversation needs staff attention.",
+        kind: "follow_up",
+      });
+    } catch (error) {
+      console.error("Unable to notify managers about follow-up", error);
+    }
+  }
 }
 
 function twiml() {
