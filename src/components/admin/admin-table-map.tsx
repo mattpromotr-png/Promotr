@@ -54,8 +54,8 @@ export function AdminTableMap({
     "focus-ring border-border bg-elevated text-foreground min-h-10 rounded-xl border px-3 text-sm";
   return (
     <>
-      <div className="border-border bg-elevated mb-5 rounded-2xl border p-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="border-border bg-elevated mb-3 rounded-xl border p-3">
+        <div className="mb-2 flex items-center justify-between gap-3">
           <p className="text-foreground flex items-center gap-2 text-sm font-semibold">
             <SlidersHorizontal className="text-violet" size={16} />
             Filter floor map

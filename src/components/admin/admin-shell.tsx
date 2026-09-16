@@ -65,11 +65,11 @@ export function AdminShell({
 
       <header className="border-border/80 bg-canvas/90 fixed inset-x-0 top-0 z-40 border-b backdrop-blur-xl">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-4 sm:h-20">
+          <div className="flex h-16 items-center justify-between gap-4">
             <Brand compact />
 
             <nav
-              className="hidden items-center gap-1.5 sm:flex"
+              className="hidden items-center gap-1 xl:flex"
               aria-label="Admin navigation"
             >
               {navigation.map((item) => {
@@ -118,7 +118,7 @@ export function AdminShell({
           </div>
 
           <nav
-            className="flex gap-2 overflow-x-auto pb-3 sm:hidden"
+            className="flex gap-2 overflow-x-auto pb-3 xl:hidden"
             aria-label="Admin navigation"
           >
             {navigation.map((item) => {
@@ -145,7 +145,7 @@ export function AdminShell({
         </div>
       </header>
 
-      <div className="relative mx-auto max-w-[1600px] px-4 pt-36 pb-10 sm:px-6 sm:pt-28 lg:px-8">
+      <div className="relative mx-auto max-w-[1600px] px-4 pt-32 pb-8 sm:px-6 lg:px-8 xl:pt-24">
         {children}
       </div>
     </main>

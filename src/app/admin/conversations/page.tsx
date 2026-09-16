@@ -167,31 +167,28 @@ export default async function ConversationsPage({
         eyebrow="LIVE GUEST SUPPORT"
         title="Conversations"
         description="Review SMS and Instagram conversations, take over when a guest needs help, and reply from one workspace."
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <ConversationLiveRefresh />
+            {[
+              ["all", "All"],
+              ["sms", "SMS"],
+              ["instagram", "Instagram"],
+            ].map(([value, label]) => (
+              <Link
+                key={value}
+                href={`/admin/conversations?channel=${value}`}
+                className={`focus-ring inline-flex min-h-9 items-center rounded-xl border px-3 text-xs font-medium ${channel === value ? "border-violet bg-violet/15 text-foreground" : "border-border bg-elevated text-muted"}`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        }
       />
-      <div className="mt-3">
-        <ConversationLiveRefresh />
-      </div>
-      <nav
-        className="mt-6 flex flex-wrap gap-2"
-        aria-label="Conversation channel"
-      >
-        {[
-          ["all", "All"],
-          ["sms", "SMS"],
-          ["instagram", "Instagram"],
-        ].map(([value, label]) => (
-          <Link
-            key={value}
-            href={`/admin/conversations?channel=${value}`}
-            className={`focus-ring min-h-10 rounded-xl border px-4 py-2 text-sm font-medium ${channel === value ? "border-violet bg-violet/15 text-foreground" : "border-border bg-elevated text-muted"}`}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
-      <div className="surface-card mt-8 grid h-[min(720px,calc(100svh-210px))] min-h-[520px] overflow-hidden lg:grid-cols-[330px_1fr]">
-        <aside className="border-border border-b lg:border-r lg:border-b-0">
-          <div className="border-border border-b px-5 py-4">
+      <div className="surface-card mt-4 grid h-[min(820px,calc(100svh-180px))] min-h-[540px] overflow-hidden lg:grid-cols-[310px_1fr]">
+        <aside className="border-border flex min-h-0 flex-col border-b lg:border-r lg:border-b-0">
+          <div className="border-border border-b px-4 py-3">
             <h2 className="text-foreground font-semibold">
               Recent conversations
             </h2>
@@ -199,7 +196,7 @@ export default async function ConversationsPage({
               {conversations.length} most recent
             </p>
           </div>
-          <div className="max-h-72 overflow-y-auto lg:max-h-[550px]">
+          <div className="max-h-72 flex-1 overflow-y-auto lg:max-h-none">
             {conversations.length === 0 ? (
               <p className="text-muted p-6 text-sm">No conversations yet.</p>
             ) : (
@@ -209,7 +206,7 @@ export default async function ConversationsPage({
                   <Link
                     key={item.id}
                     href={`/admin/conversations?conversation=${item.id}&page=${page}&channel=${channel}`}
-                    className={`border-border block border-b px-5 py-4 transition-colors ${item.id === selectedId ? "bg-violet/10" : "hover:bg-elevated"}`}
+                    className={`border-border block border-b px-4 py-3 transition-colors ${item.id === selectedId ? "bg-violet/10" : "hover:bg-elevated"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-foreground truncate text-sm font-medium">
@@ -275,7 +272,7 @@ export default async function ConversationsPage({
             </div>
           ) : (
             <>
-              <header className="border-border flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4 sm:px-6">
+              <header className="border-border flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
                 <div>
                   <h2 className="text-foreground font-semibold">
                     {conversationGuestName(selected)}

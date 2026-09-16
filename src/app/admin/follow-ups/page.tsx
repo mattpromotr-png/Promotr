@@ -25,9 +25,10 @@ type FollowUp = {
   handoff_reason: string | null;
   last_message_at: string;
   contacts: { display_name: string | null; instagram_scoped_id: string } | null;
-  lead_conversations:
-    | Array<{ leads: { id: string; name: string } | Array<{ id: string; name: string }> | null }>
-    | null;
+  lead_conversations: Array<{
+    leads:
+      { id: string; name: string } | Array<{ id: string; name: string }> | null;
+  }> | null;
 };
 
 export default async function FollowUpsPage({
@@ -67,7 +68,7 @@ export default async function FollowUpsPage({
         description="These conversations need a staff decision, confirmation, or sensitive response that the AI should not provide."
       />
 
-      <div className="mt-7 rounded-2xl border border-amber-500/20 bg-amber-500/8 p-4 text-sm leading-6 text-amber-900 dark:text-amber-100/85">
+      <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/8 p-3 text-sm leading-5 text-amber-900 dark:text-amber-100/85">
         <div className="flex gap-3">
           <AlertTriangle className="mt-0.5 shrink-0 text-amber-500" size={18} />
           <p>
@@ -79,7 +80,7 @@ export default async function FollowUpsPage({
       </div>
 
       {followUps.length === 0 ? (
-        <div className="surface-card mt-6 grid place-items-center p-14 text-center">
+        <div className="surface-card mt-4 grid place-items-center p-10 text-center">
           <div className="grid size-12 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
             <AlertTriangle size={21} />
           </div>
@@ -91,7 +92,7 @@ export default async function FollowUpsPage({
           </p>
         </div>
       ) : (
-        <div className="mt-6 grid gap-4 xl:grid-cols-2">
+        <div className="mt-4 grid gap-4 xl:grid-cols-2">
           {followUps.map((followUp) => {
             const linkedLead = followUp.lead_conversations?.[0]?.leads;
             const relatedLead = Array.isArray(linkedLead)
@@ -100,7 +101,7 @@ export default async function FollowUpsPage({
             return (
               <article
                 key={followUp.id}
-                className="surface-card flex flex-col p-5 sm:p-6"
+                className="surface-card flex flex-col p-4 sm:p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex min-w-0 items-center gap-3">
@@ -125,7 +126,7 @@ export default async function FollowUpsPage({
                   </span>
                 </div>
 
-                <div className="border-border bg-elevated mt-5 flex-1 rounded-2xl border p-4">
+                <div className="border-border bg-elevated mt-4 flex-1 rounded-2xl border p-3.5">
                   <p className="text-muted text-xs font-medium tracking-wide uppercase">
                     Reason
                   </p>
@@ -135,7 +136,7 @@ export default async function FollowUpsPage({
                   </p>
                 </div>
 
-                <div className="mt-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div className="mt-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                   <p className="text-muted flex items-center gap-2 text-xs">
                     <CalendarClock size={15} className="text-violet" />
                     {new Intl.DateTimeFormat("en-CA", {

@@ -167,22 +167,22 @@ export default async function RevenuePage({
         description="Revenue includes only staff-entered amounts for table inquiries marked Booked. Starting package prices are never treated as confirmed sales."
       />
       <section
-        className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
         aria-label="Revenue totals"
       >
         {metrics.map(({ label, value, icon: Icon }) => (
-          <article key={label} className="metric-card p-5">
-            <span className="bg-violet/10 text-violet grid size-10 place-items-center rounded-xl">
+          <article key={label} className="metric-card p-4">
+            <span className="bg-violet/10 text-violet grid size-9 place-items-center rounded-xl">
               <Icon size={19} />
             </span>
-            <p className="text-muted mt-5 text-sm">{label}</p>
-            <p className="text-foreground mt-1 text-2xl font-semibold">
+            <p className="text-muted mt-3 text-xs">{label}</p>
+            <p className="text-foreground mt-0.5 text-xl font-semibold">
               {money.format(value)}
             </p>
           </article>
         ))}
       </section>
-      <section className="surface-card mt-6 p-5 sm:p-6">
+      <section className="surface-card mt-4 p-4 sm:p-5">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="eyebrow">STRIPE DEPOSITS</p>
@@ -216,7 +216,7 @@ export default async function RevenuePage({
         </div>
         <form
           method="get"
-          className="border-border bg-elevated mt-5 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-end sm:justify-between"
+          className="border-border bg-elevated mt-3 flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-end sm:justify-between"
         >
           <input type="hidden" name="page" value="1" />
           <input type="hidden" name="salesPage" value={salesPage} />
@@ -248,7 +248,7 @@ export default async function RevenuePage({
           </div>
         </form>
       </section>
-      <section className="surface-card mt-6 overflow-hidden">
+      <section className="surface-card mt-4 overflow-hidden">
         <div className="border-border border-b px-5 py-4 sm:px-6">
           <h2 className="text-foreground font-semibold">
             Deposit transactions
@@ -278,7 +278,7 @@ export default async function RevenuePage({
               <tbody className="divide-border divide-y">
                 {deposits.map((deposit) => (
                   <tr key={deposit.id} className="hover:bg-elevated/35">
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3">
                       <p className="text-foreground font-medium">
                         {deposit.leads?.name ?? "Guest"}
                       </p>
@@ -286,7 +286,7 @@ export default async function RevenuePage({
                         {deposit.leads?.email ?? "No email"}
                       </p>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3">
                       <p className="text-foreground">
                         {deposit.club_tables?.name ?? "Table"}
                       </p>
@@ -294,10 +294,10 @@ export default async function RevenuePage({
                         {deposit.club_tables?.zone ?? "Venue"}
                       </p>
                     </td>
-                    <td className="text-muted px-5 py-4">
+                    <td className="text-muted px-5 py-3">
                       {deposit.booking_date}
                     </td>
-                    <td className="text-muted px-5 py-4">
+                    <td className="text-muted px-5 py-3">
                       {deposit.paid_at
                         ? new Intl.DateTimeFormat("en-CA", {
                             dateStyle: "medium",
@@ -310,7 +310,7 @@ export default async function RevenuePage({
                         </p>
                       )}
                     </td>
-                    <td className="px-5 py-4 capitalize">
+                    <td className="px-5 py-3 capitalize">
                       <span
                         className={
                           deposit.status === "confirmed"
@@ -321,7 +321,7 @@ export default async function RevenuePage({
                         {deposit.status}
                       </span>
                     </td>
-                    <td className="text-foreground px-5 py-4 text-right font-semibold">
+                    <td className="text-foreground px-5 py-3 text-right font-semibold">
                       {money.format(Number(deposit.deposit_cad || 0))}
                     </td>
                   </tr>
@@ -370,7 +370,7 @@ export default async function RevenuePage({
           </nav>
         )}
       </section>
-      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
         <section className="surface-card overflow-hidden">
           <div className="border-border border-b px-5 py-4">
             <h2 className="text-foreground font-semibold">

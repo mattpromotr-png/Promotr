@@ -99,8 +99,8 @@ export default async function LostFoundAdminPage() {
         }
       />
 
-      <div className="mt-6 grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-        <section className="surface-card p-5">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[0.75fr_1.25fr]">
+        <section className="surface-card p-4">
           <div className="flex items-center gap-3">
             <span className="bg-violet/10 text-violet grid size-10 place-items-center rounded-xl">
               <Plus size={18} />
@@ -114,7 +114,7 @@ export default async function LostFoundAdminPage() {
           </div>
           <form
             action={addFoundItem}
-            className="mt-5 grid gap-3 sm:grid-cols-2"
+            className="mt-4 grid gap-3 sm:grid-cols-2"
           >
             <input
               required
@@ -241,7 +241,7 @@ export default async function LostFoundAdminPage() {
         </section>
       </div>
 
-      <section className="surface-card mt-5 overflow-hidden">
+      <section className="surface-card mt-4 overflow-hidden">
         <div className="border-border flex items-center justify-between border-b p-5">
           <div>
             <h2 className="font-semibold">Guest reports</h2>

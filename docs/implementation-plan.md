@@ -211,3 +211,12 @@ rereading the full project prompt.
 - [x] Supply only safe, available found-item details to the concierge on relevant turns; exclude internal notes and guest records.
 - [ ] Apply `202609160004_lost_and_found.sql` in staging/production before deploying the feature.
 - [ ] Complete a live SMS-to-form-to-dashboard test and verify a plausible inventory match never exposes private or internal details.
+
+## Compact admin workspace (2026-09-16)
+
+- [x] Reduce shared desktop header, page-heading, and content spacing without changing admin behavior.
+- [x] Move conversation channel controls and live status into the heading row so the inbox begins above the fold.
+- [x] Consolidate inquiry search and status filters into one responsive desktop control row.
+- [x] Compact overview metrics, follow-up cards, revenue summaries and rows, table controls, and Lost & Found panels.
+- [x] Keep tablet navigation horizontally scrollable instead of squeezing the full desktop navigation into the header.
+- [ ] Complete signed-in desktop visual acceptance at common laptop and large-desktop viewport sizes.

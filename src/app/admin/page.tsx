@@ -182,29 +182,29 @@ export default async function AdminOverviewPage() {
       />
 
       <section
-        className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
         aria-label="Key metrics"
       >
         {metrics.map((metric) => {
           const Icon = metric.icon;
           return (
-            <article key={metric.label} className="metric-card p-5">
+            <article key={metric.label} className="metric-card p-4">
               <div
-                className={`grid size-10 place-items-center rounded-xl ${metric.color}`}
+                className={`grid size-9 place-items-center rounded-xl ${metric.color}`}
               >
                 <Icon size={19} aria-hidden="true" />
               </div>
-              <p className="text-muted mt-5 text-sm">{metric.label}</p>
-              <p className="text-foreground mt-1 text-3xl font-semibold tracking-tight">
+              <p className="text-muted mt-3 text-xs">{metric.label}</p>
+              <p className="text-foreground mt-0.5 text-2xl font-semibold tracking-tight">
                 {metric.value}
               </p>
-              <p className="text-muted mt-2 text-xs">{metric.detail}</p>
+              <p className="text-muted mt-1 text-xs">{metric.detail}</p>
             </article>
           );
         })}
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1.35fr_.65fr]">
         <section
           className="surface-card overflow-hidden"
           aria-labelledby="recent-heading"
@@ -233,7 +233,7 @@ export default async function AdminOverviewPage() {
                 <Link
                   key={lead.id}
                   href={`/admin/leads?lead=${lead.id}`}
-                  className="hover:bg-elevated/70 focus-ring grid gap-3 px-5 py-4 transition-colors sm:grid-cols-[1fr_auto_auto] sm:items-center sm:px-6"
+                  className="hover:bg-elevated/70 focus-ring grid gap-3 px-5 py-3 transition-colors sm:grid-cols-[1fr_auto_auto] sm:items-center sm:px-6"
                 >
                   <div className="min-w-0">
                     <p className="text-foreground truncate font-medium">
@@ -260,7 +260,7 @@ export default async function AdminOverviewPage() {
         </section>
 
         <section
-          className="surface-card p-5 sm:p-6"
+          className="surface-card p-4 sm:p-5"
           aria-labelledby="trend-heading"
         >
           <div className="flex items-start justify-between gap-3">
@@ -275,7 +275,7 @@ export default async function AdminOverviewPage() {
             </div>
           </div>
           <div
-            className="mt-8 flex h-40 items-end justify-between gap-2"
+            className="mt-5 flex h-32 items-end justify-between gap-2"
             aria-label="Inquiry activity chart"
           >
             {dayCounts.map((day) => (
@@ -295,7 +295,7 @@ export default async function AdminOverviewPage() {
               </div>
             ))}
           </div>
-          <div className="border-border mt-6 grid grid-cols-2 gap-4 border-t pt-5">
+          <div className="border-border mt-4 grid grid-cols-2 gap-4 border-t pt-4">
             <div>
               <p className="text-muted text-xs">Table inquiries</p>
               <p className="text-foreground mt-1 text-xl font-semibold">
@@ -313,7 +313,7 @@ export default async function AdminOverviewPage() {
       </div>
 
       <section
-        className="surface-card mt-6 overflow-hidden"
+        className="surface-card mt-4 overflow-hidden"
         aria-labelledby="conversation-heading"
       >
         <div className="border-border flex items-center justify-between border-b px-5 py-4 sm:px-6">

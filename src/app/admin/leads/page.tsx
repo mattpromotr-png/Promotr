@@ -104,8 +104,7 @@ export default async function AdminLeadsPage({
       );
     leadResult = await retryQuery;
   }
-  if (leadResult.error)
-    throw new Error("Unable to load booking inquiries.");
+  if (leadResult.error) throw new Error("Unable to load booking inquiries.");
 
   const leads = (leadResult.data ?? []) as unknown as AdminLead[];
   await attachLinkedConversations(admin, leads);
@@ -165,9 +164,12 @@ export default async function AdminLeadsPage({
         />
       )}
 
-      <section className="mt-8" aria-label="Inquiry controls">
+      <section
+        className="mt-5 gap-3 xl:flex xl:items-center"
+        aria-label="Inquiry controls"
+      >
         <form
-          className="flex flex-col gap-3 sm:flex-row"
+          className="flex flex-1 flex-col gap-2 sm:flex-row"
           action="/admin/leads"
           method="get"
         >
@@ -184,18 +186,18 @@ export default async function AdminLeadsPage({
               name="q"
               defaultValue={search}
               placeholder="Search name, email, phone or Instagram…"
-              className="focus-ring border-border bg-surface text-foreground placeholder:text-muted min-h-12 w-full rounded-2xl border pr-4 pl-11 text-sm shadow-sm"
+              className="focus-ring border-border bg-surface text-foreground placeholder:text-muted min-h-10 w-full rounded-xl border pr-4 pl-11 text-sm shadow-sm"
             />
           </label>
           <button
-            className="focus-ring bg-brand-gradient shadow-violet min-h-12 rounded-2xl px-5 text-sm font-semibold text-white"
+            className="focus-ring bg-brand-gradient shadow-violet min-h-10 rounded-xl px-4 text-sm font-semibold text-white"
             type="submit"
           >
             Search
           </button>
           {search && (
             <Link
-              className="focus-ring border-border bg-surface text-muted inline-flex min-h-12 items-center justify-center rounded-2xl border px-4 text-sm"
+              className="focus-ring border-border bg-surface text-muted inline-flex min-h-10 items-center justify-center rounded-xl border px-4 text-sm"
               href={pageHref({ status: filter, query: "", page: 1 })}
             >
               Clear
@@ -204,7 +206,7 @@ export default async function AdminLeadsPage({
         </form>
 
         <nav
-          className="mt-4 flex gap-2 overflow-x-auto pb-2"
+          className="mt-3 flex shrink-0 gap-1.5 overflow-x-auto pb-1 xl:mt-0"
           aria-label="Filter inquiries by status"
         >
           {filters.map((status) => (
@@ -213,7 +215,7 @@ export default async function AdminLeadsPage({
               href={pageHref({ status, query: search, page: 1 })}
               aria-current={filter === status ? "page" : undefined}
               className={cn(
-                "focus-ring inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border px-3.5 text-sm capitalize",
+                "focus-ring inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs capitalize",
                 filter === status
                   ? "border-violet bg-violet/10 text-foreground"
                   : "border-border bg-surface text-muted hover:text-foreground",

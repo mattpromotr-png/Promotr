@@ -10,13 +10,13 @@ export function PageHeading({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+    <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
       <div>
         <p className="eyebrow">{eyebrow}</p>
-        <h1 className="text-foreground mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="text-foreground mt-1.5 text-3xl font-semibold tracking-tight">
           {title}
         </h1>
-        <p className="text-muted mt-2 max-w-2xl text-sm leading-6">
+        <p className="text-muted mt-1 max-w-3xl text-sm leading-5">
           {description}
         </p>
       </div>

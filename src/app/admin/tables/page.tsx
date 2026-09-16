@@ -57,9 +57,9 @@ export default async function TableMapPage({
         title="Table map"
         description="See table availability, payment holds, and confirmed bookings for any date. Hover over a table for its package details."
       />
-      <div className="mt-8 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
+      <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
         <form
-          className="surface-card flex flex-wrap items-end gap-3 p-4"
+          className="surface-card flex flex-wrap items-end gap-3 p-3"
           method="get"
         >
           <label className="text-foreground text-sm font-medium">
@@ -86,7 +86,7 @@ export default async function TableMapPage({
         <Metric label="Payment holds" value={held} tone="text-amber-300" />
         <Metric label="Confirmed" value={confirmed} tone="text-emerald-300" />
       </div>
-      <section className="surface-card mt-5 p-4 sm:p-6">
+      <section className="surface-card mt-4 p-3 sm:p-4">
         <AdminTableMap tables={tablePackages} bookings={bookings} />
       </section>
     </AdminShell>
@@ -103,9 +103,9 @@ function Metric({
   tone: string;
 }) {
   return (
-    <div className="surface-card min-w-32 p-4">
+    <div className="surface-card min-w-28 p-3">
       <p className="text-muted text-xs">{label}</p>
-      <p className={`mt-1 text-2xl font-bold ${tone}`}>{value}</p>
+      <p className={`mt-0.5 text-xl font-bold ${tone}`}>{value}</p>
     </div>
   );
 }
