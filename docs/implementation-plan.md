@@ -189,6 +189,7 @@ rereading the full project prompt.
 - [x] Add structured contact memory and compact rolling conversation summaries without a vector database.
 - [x] Add per-conversation SMS follow-up timing, interval, attempt limit, message, and on/off dashboard controls.
 - [x] Add a secured follow-up processor designed for Supabase Cron instead of frequent Vercel Hobby cron.
+- [x] Add a controlled general-nightlife fallback for unlisted questions, with clear venue-fact boundaries and unrelated-topic redirection.
 - [ ] Apply `202609160002_conversation_intelligence_followups.sql` in staging/production and complete live multilingual and scheduled follow-up acceptance tests.
 
 ## Conversation ordering and realtime manager UX (2026-09-16)

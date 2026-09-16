@@ -51,6 +51,28 @@ describe("Vera prompt routing", () => {
     expect(result.systemPrompt).toContain("Never claim an item is theirs");
   });
 
+  it("uses the general nightlife fallback for an unlisted planning question", () => {
+    const result = buildVeraSystemPrompt([
+      { role: "user", content: "What should I bring for a night out?" },
+    ]);
+
+    expect(result.scenarioIds).toEqual(["opening", "general_nightlife"]);
+    expect(result.systemPrompt).toContain("ordinary general knowledge");
+    expect(result.systemPrompt).toContain("not confirmed Promotr policy");
+  });
+
+  it("redirects unrelated questions without pretending to be a general assistant", () => {
+    const result = buildVeraSystemPrompt([
+      { role: "user", content: "Can you help debug my JavaScript project?" },
+    ]);
+
+    expect(result.scenarioIds).toContain("general_nightlife");
+    expect(result.systemPrompt).toContain("unrelated to nightlife");
+    expect(result.systemPrompt).toContain(
+      "redirect to planning the guest's night",
+    );
+  });
+
   it("never loads more than three scenario modules", () => {
     const result = selectVeraScenarios([
       {

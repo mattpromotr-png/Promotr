@@ -69,15 +69,17 @@ export function selectVeraScenarios(messages: PromptMessage[]) {
     (message) => message.role === "user",
   ).length;
   const selected: VeraScenarioId[] = [];
+  let matchedTopic = false;
 
   if (userMessageCount <= 1) selected.push("opening");
   for (const [scenario, pattern] of scenarioPatterns) {
     if (pattern.test(recentContext) && !selected.includes(scenario)) {
       selected.push(scenario);
+      matchedTopic = true;
     }
     if (selected.length >= 3) break;
   }
-  if (selected.length === 0) selected.push("identity_social");
+  if (!matchedTopic) selected.push("general_nightlife");
 
   return { latestUser, scenarioIds: selected };
 }
