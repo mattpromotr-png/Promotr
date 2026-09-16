@@ -30,6 +30,10 @@ export async function GET(
       { error: "Conversation not found" },
       { status: 404 },
     );
+  await admin.rpc("mark_manager_conversation_read", {
+    p_staff_membership_id: manager.membershipId,
+    p_conversation_id: conversationId,
+  });
   const messages = await admin
     .from("messages")
     .select(
@@ -71,32 +75,38 @@ export async function GET(
       nextAt: conversation.data.next_follow_up_at,
       message: conversation.data.follow_up_message,
     },
-    messages: (messages.data ?? []).map((message) => ({
-      id: message.id,
-      direction: message.direction,
-      sender:
-        message.sender_type === "human"
-          ? "staff"
-          : message.sender_type === "ai"
-            ? "concierge"
-            : "guest",
-      body: message.content,
-      englishBody:
-        typeof message.metadata === "object" &&
-        message.metadata &&
-        "englishTranslation" in message.metadata
-          ? String(message.metadata.englishTranslation || "") || undefined
-          : undefined,
-      adminOriginalEnglish:
-        typeof message.metadata === "object" &&
-        message.metadata &&
-        "adminOriginalEnglish" in message.metadata
-          ? String(message.metadata.adminOriginalEnglish || "") || undefined
-          : undefined,
-      createdAt: message.created_at,
-      status: message.delivery_status,
-    })),
+    messages: (messages.data ?? [])
+      .filter(
+        (message) =>
+          !(
+            typeof message.metadata === "object" &&
+            message.metadata &&
+            "adminGroupedInto" in message.metadata
+          ),
+      )
+      .map((message) => ({
+        id: message.id,
+        direction: message.direction,
+        sender:
+          message.sender_type === "human"
+            ? "staff"
+            : message.sender_type === "ai"
+              ? "concierge"
+              : "guest",
+        body: adminEnglishBody(message.content, message.metadata),
+        createdAt: message.created_at,
+        status: message.delivery_status,
+      })),
   });
+}
+
+function adminEnglishBody(content: string, metadata: unknown) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata))
+    return content;
+  const value = metadata as Record<string, unknown>;
+  return String(
+    value.adminOriginalEnglish || value.englishTranslation || content,
+  );
 }
 
 export async function PATCH(

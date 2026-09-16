@@ -190,3 +190,14 @@ rereading the full project prompt.
 - [x] Add per-conversation SMS follow-up timing, interval, attempt limit, message, and on/off dashboard controls.
 - [x] Add a secured follow-up processor designed for Supabase Cron instead of frequent Vercel Hobby cron.
 - [ ] Apply `202609160002_conversation_intelligence_followups.sql` in staging/production and complete live multilingual and scheduled follow-up acceptance tests.
+
+## Conversation ordering and realtime manager UX (2026-09-16)
+
+- [x] Add a database-backed per-conversation SMS processing claim so concurrent Vercel invocations cannot generate replies for the same message batch.
+- [x] Add a three-second quiet window that combines rapid consecutive guest texts into one concierge turn and suppresses stale generated replies when a newer text arrives.
+- [x] Preserve original-language content in storage while showing the available English/admin-original text only in web and mobile manager interfaces.
+- [x] Add authenticated Supabase Realtime subscriptions with a low-frequency refresh fallback in the web dashboard and manager app.
+- [x] Add durable per-manager read cursors and unread counts for conversation lists.
+- [x] Pass web lint, TypeScript, 45 unit tests, production build, mobile TypeScript, and Android export verification.
+- [ ] Apply `202609160003_sms_queue_realtime_reads.sql` to production before deploying these source changes.
+- [ ] Complete live acceptance with three rapid inbound SMS messages, a non-English exchange, two signed-in manager clients, background push, and foreground realtime updates.

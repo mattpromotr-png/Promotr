@@ -15,6 +15,7 @@ export type AdminConversation = {
       englishTranslation?: string;
       detectedLanguage?: string;
       adminOriginalEnglish?: string;
+      adminGroupedInto?: string;
     } | null;
     created_at: string;
   }[];

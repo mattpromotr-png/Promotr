@@ -41,6 +41,7 @@ export function BookingConversation({
   const activeConversation = conversation;
 
   const sortedMessages = [...messages]
+    .filter((message) => !message.metadata?.adminGroupedInto)
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
     .slice(-100);
 
@@ -119,15 +120,9 @@ export function BookingConversation({
                   <div
                     className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-6 ${message.sender_type === "guest" ? "bg-surface text-foreground border-border border" : "bg-violet/12 text-foreground"}`}
                   >
-                    {message.content}
-                    {message.metadata?.englishTranslation &&
-                      message.metadata.englishTranslation !==
-                        message.content && (
-                        <p className="mt-2 border-t border-current/10 pt-2 text-xs opacity-70">
-                          <span className="font-semibold">English:</span>{" "}
-                          {message.metadata.englishTranslation}
-                        </p>
-                      )}
+                    {message.metadata?.adminOriginalEnglish ||
+                      message.metadata?.englishTranslation ||
+                      message.content}
                     <p className="text-muted mt-1 text-[10px] capitalize">
                       {message.sender_type === "ai"
                         ? "Concierge"

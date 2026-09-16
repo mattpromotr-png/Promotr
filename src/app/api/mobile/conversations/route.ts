@@ -28,6 +28,18 @@ export async function GET(request: Request) {
       { status: 500 },
     );
 
+  const unreadResult = await admin.rpc("manager_conversation_unread_counts", {
+    p_staff_membership_id: manager.membershipId,
+  });
+  const unreadCounts = new Map(
+    (
+      (unreadResult.data ?? []) as Array<{
+        conversation_id: string;
+        unread_count: number | string;
+      }>
+    ).map((row) => [row.conversation_id, Number(row.unread_count) || 0]),
+  );
+
   const ids = (result.data ?? []).map((item) => item.id);
   const latest = ids.length
     ? await admin
@@ -69,7 +81,7 @@ export async function GET(request: Request) {
           previews.get(item.id)?.original ||
           "Open conversation",
         updatedAt: item.last_message_at,
-        unread: 0,
+        unread: unreadCounts.get(item.id) || 0,
         needsFollowUp: item.status === "handoff_required",
         automationPaused: item.human_takeover,
       };

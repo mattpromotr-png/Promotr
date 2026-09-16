@@ -72,6 +72,7 @@ type Message = {
     englishTranslation?: string;
     detectedLanguage?: string;
     adminOriginalEnglish?: string;
+    adminGroupedInto?: string;
   } | null;
   created_at: string;
   delivery_status: string;
@@ -86,7 +87,7 @@ export default async function ConversationsPage({
     channel?: string;
   }>;
 }) {
-  await requireAdmin();
+  const user = await requireAdmin();
   const {
     conversation: requested,
     page: pageValue,
@@ -99,6 +100,13 @@ export default async function ConversationsPage({
   const page =
     Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const admin = createAdminClient();
+  const membership = await admin
+    .from("staff_memberships")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("active", true)
+    .limit(1)
+    .maybeSingle();
   let listQuery = admin
     .from("conversations")
     .select(
@@ -111,12 +119,32 @@ export default async function ConversationsPage({
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (listResult.error) throw new Error("Unable to load conversations.");
   const conversations = (listResult.data ?? []) as unknown as Conversation[];
+  const unreadResult = membership.data
+    ? await admin.rpc("manager_conversation_unread_counts", {
+        p_staff_membership_id: membership.data.id,
+      })
+    : { data: [] };
+  const unreadCounts = new Map(
+    (
+      (unreadResult.data ?? []) as Array<{
+        conversation_id: string;
+        unread_count: number | string;
+      }>
+    ).map((row) => [row.conversation_id, Number(row.unread_count) || 0]),
+  );
   const total = listResult.count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const selectedId = conversations.some((item) => item.id === requested)
     ? requested
     : conversations[0]?.id;
   const selected = conversations.find((item) => item.id === selectedId);
+  if (membership.data && selectedId) {
+    await admin.rpc("mark_manager_conversation_read", {
+      p_staff_membership_id: membership.data.id,
+      p_conversation_id: selectedId,
+    });
+    unreadCounts.set(selectedId, 0);
+  }
   const messageResult = selectedId
     ? await admin
         .from("messages")
@@ -129,7 +157,9 @@ export default async function ConversationsPage({
     : { data: [], error: null };
   if (messageResult.error)
     throw new Error("Unable to load conversation messages.");
-  const messages = (messageResult.data ?? []) as Message[];
+  const messages = ((messageResult.data ?? []) as Message[]).filter(
+    (message) => !message.metadata?.adminGroupedInto,
+  );
 
   return (
     <AdminShell active="conversations">
@@ -192,6 +222,10 @@ export default async function ConversationsPage({
                       ) : item.status === "handoff_required" ? (
                         <span className="text-[10px] font-semibold text-amber-500">
                           NEEDS REVIEW
+                        </span>
+                      ) : unreadCounts.get(item.id) ? (
+                        <span className="bg-magenta grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {unreadCounts.get(item.id)}
                         </span>
                       ) : null}
                     </div>
@@ -453,21 +487,7 @@ export default async function ConversationsPage({
                             ? "Staff"
                             : "Guest"}
                       </p>
-                      {message.content}
-                      {message.metadata?.englishTranslation &&
-                        message.metadata.englishTranslation !==
-                          message.content && (
-                          <p className="mt-2 border-t border-current/10 pt-2 text-xs opacity-75">
-                            <span className="font-semibold">English:</span>{" "}
-                            {message.metadata.englishTranslation}
-                          </p>
-                        )}
-                      {message.metadata?.adminOriginalEnglish && (
-                        <p className="mt-2 border-t border-current/10 pt-2 text-xs opacity-75">
-                          <span className="font-semibold">Staff wrote:</span>{" "}
-                          {message.metadata.adminOriginalEnglish}
-                        </p>
-                      )}
+                      {adminEnglishContent(message)}
                       {message.sender_type !== "guest" && (
                         <p className="mt-1 text-[10px] capitalize opacity-60">
                           {message.delivery_status}
@@ -551,6 +571,14 @@ function conversationPhone(conversation: Conversation) {
   return conversation.contacts?.contact_channels.find(
     (contact) => contact.channel === "sms",
   )?.normalized_address;
+}
+
+function adminEnglishContent(message: Message) {
+  return (
+    message.metadata?.adminOriginalEnglish ||
+    message.metadata?.englishTranslation ||
+    message.content
+  );
 }
 
 function formatMessageTime(value: string) {

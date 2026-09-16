@@ -12,6 +12,8 @@ import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   const form = await request.formData();
   const params = Object.fromEntries(
@@ -97,19 +99,19 @@ export async function POST(request: NextRequest) {
     .single();
   if (!conversation) return twiml();
 
-  const { data: inboundMessage } = await admin
-    .from("messages")
-    .insert({
-      conversation_id: conversation.id,
-      provider_message_id: messageSid,
-      direction: "inbound",
-      sender_type: "guest",
-      content,
-      delivery_status: "received",
-      metadata: { twilio: { from: params.From, to: params.To } },
-    })
-    .select("id")
-    .single();
+  const { error: inboundError } = await admin.from("messages").insert({
+    conversation_id: conversation.id,
+    provider_message_id: messageSid,
+    direction: "inbound",
+    sender_type: "guest",
+    content,
+    delivery_status: "received",
+    metadata: { twilio: { from: params.From, to: params.To } },
+  });
+  if (inboundError) {
+    console.error("Unable to store inbound SMS", { code: inboundError.code });
+    return twiml();
+  }
 
   if (conversation.follow_up_enabled) {
     await admin
@@ -184,23 +186,11 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", conversation.id);
-    if (!optOutType)
-      after(async () => {
-        try {
-          await sendSmsConversationMessage({
-            conversationId: conversation.id,
-            content:
-              "Promotr: Thanks for letting us know. I've sent this to our venue team for priority review, and a staff member can reply to you here.",
-            senderType: "ai",
-          });
-        } catch (error) {
-          console.error("Unable to send SMS handoff acknowledgement", error);
-        }
-      });
-  } else if (!optOutType)
+  }
+  if (!optOutType)
     after(async () => {
       try {
-        await processSmsWithConcierge(conversation.id, inboundMessage?.id);
+        await processQueuedSmsWithConcierge(conversation.id);
       } catch (error) {
         console.error("Unable to process inbound SMS", error);
       }
@@ -208,130 +198,217 @@ export async function POST(request: NextRequest) {
   return twiml();
 }
 
-async function processSmsWithConcierge(
+type ConciergeClaim = {
+  claimed?: boolean;
+  reason?: string;
+  messageId?: string;
+  createdAt?: string;
+};
+
+async function processQueuedSmsWithConcierge(conversationId: string) {
+  await wait(3000);
+  const admin = createAdminClient();
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const { data, error } = await admin.rpc("claim_sms_concierge_work", {
+      p_conversation_id: conversationId,
+      p_quiet_seconds: 3,
+    });
+    if (error) {
+      console.error("Unable to claim SMS concierge work", {
+        code: error.code,
+      });
+      return;
+    }
+    const claim = (data || {}) as ConciergeClaim;
+    if (claim.claimed && claim.messageId && claim.createdAt) {
+      const outcome = await processClaimedSmsBatch(conversationId, {
+        messageId: claim.messageId,
+        createdAt: claim.createdAt,
+      });
+      if (outcome !== "retry") return;
+      await wait(3000);
+      continue;
+    }
+    if (!["busy", "not_quiet"].includes(claim.reason || "")) return;
+    await wait(1800);
+  }
+}
+
+async function processClaimedSmsBatch(
   conversationId: string,
-  inboundMessageId?: string,
+  claim: { messageId: string; createdAt: string },
 ) {
   const admin = createAdminClient();
-  const { data: conversation } = await admin
-    .from("conversations")
-    .select(
-      "human_takeover,venue_id,contact_id,rolling_summary,contacts(display_name,preferred_language,memory)",
-    )
-    .eq("id", conversationId)
-    .single();
-  if (!conversation) return;
-  const { data } = await admin
-    .from("messages")
-    .select("id,direction,content,metadata")
-    .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: false })
-    .limit(8);
-  const recent = [...(data || [])].reverse().map((message) => ({
-    role:
-      message.direction === "inbound"
-        ? ("user" as const)
-        : ("assistant" as const),
-    content: message.content,
-  }));
-  if (!recent.length) return;
-  const contact = Array.isArray(conversation.contacts)
-    ? conversation.contacts[0]
-    : conversation.contacts;
-  const result = await generateConciergeReply(recent, {
-    summary: conversation.rolling_summary,
-    contactMemory: asRecord(contact?.memory),
-    knownName: contact?.display_name,
-    preferredLanguage: contact?.preferred_language,
-  });
-  const latestInbound = data?.find(
-    (message) =>
-      message.id === inboundMessageId || message.direction === "inbound",
-  );
-  if (latestInbound) {
-    await admin
-      .from("messages")
-      .update({
-        metadata: {
-          ...asRecord(latestInbound.metadata),
-          detectedLanguage: result.detectedLanguage,
-          englishTranslation: result.latestGuestMessageEnglish,
-        },
-      })
-      .eq("id", latestInbound.id);
-  }
-  const existingFacts = Array.isArray(asRecord(contact?.memory).facts)
-    ? (asRecord(contact?.memory).facts as unknown[]).filter(
-        (fact): fact is string => typeof fact === "string",
+  let processed = false;
+  let outcome: "processed" | "retry" | "stop" = "stop";
+  try {
+    const { data: conversation } = await admin
+      .from("conversations")
+      .select(
+        "human_takeover,venue_id,contact_id,rolling_summary,contacts(display_name,preferred_language,memory)",
       )
-    : [];
-  const memoryFacts = [
-    ...new Set([...existingFacts, ...result.memoryFacts]),
-  ].slice(-20);
-  await Promise.all([
-    admin
-      .from("contacts")
-      .update({
-        ...(result.guestFirstName && !contact?.display_name
-          ? { display_name: result.guestFirstName }
-          : {}),
-        preferred_language:
-          result.detectedLanguage === "Unknown"
-            ? contact?.preferred_language
-            : result.detectedLanguage,
-        memory: {
-          ...asRecord(contact?.memory),
-          facts: memoryFacts,
-          updatedAt: new Date().toISOString(),
-        },
-        memory_updated_at: new Date().toISOString(),
-      })
-      .eq("id", conversation.contact_id),
-    admin
-      .from("conversations")
-      .update({
-        rolling_summary: result.conversationSummary,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", conversationId),
-  ]);
-  const { data: latestMode } = await admin
-    .from("conversations")
-    .select("human_takeover")
-    .eq("id", conversationId)
-    .single();
-  if (!latestMode || latestMode.human_takeover) return;
-  await sendSmsConversationMessage({
-    conversationId,
-    content: smsConciergeText(result),
-    senderType: "ai",
-    metadata: {
-      detectedLanguage: result.detectedLanguage,
-      englishTranslation: result.replyEnglish,
-    },
-  });
-  if (result.handoffRequired) {
-    await admin
-      .from("conversations")
-      .update({
-        status: "handoff_required",
-        handoff_reason: result.handoffReason,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", conversationId);
-    try {
-      await notifyVenueManagers({
-        venueId: conversation.venue_id,
-        conversationId,
-        channel: "sms",
-        title: "Conversation needs review",
-        body:
-          result.handoffReason || "A guest conversation needs staff attention.",
-        kind: "follow_up",
-      });
-    } catch (error) {
-      console.error("Unable to notify managers about follow-up", error);
+      .eq("id", conversationId)
+      .single();
+    if (!conversation || conversation.human_takeover) return;
+    const { data } = await admin
+      .from("messages")
+      .select("id,direction,content,metadata,created_at")
+      .eq("conversation_id", conversationId)
+      .lte("created_at", claim.createdAt)
+      .order("created_at", { ascending: false })
+      .limit(12);
+    const ordered = [...(data || [])].reverse();
+    const trailingInbound = [] as typeof ordered;
+    for (let index = ordered.length - 1; index >= 0; index -= 1) {
+      if (ordered[index]?.direction !== "inbound") break;
+      trailingInbound.unshift(ordered[index]!);
     }
+    if (!trailingInbound.length) return;
+    const batchStart = ordered.length - trailingInbound.length;
+    const batchText = trailingInbound
+      .map((message) => message.content)
+      .join("\n");
+    const recent = [
+      ...ordered.slice(0, batchStart).map((message) => ({
+        role:
+          message.direction === "inbound"
+            ? ("user" as const)
+            : ("assistant" as const),
+        content: message.content,
+      })),
+      { role: "user" as const, content: batchText },
+    ].slice(-8);
+    const contact = Array.isArray(conversation.contacts)
+      ? conversation.contacts[0]
+      : conversation.contacts;
+    const result = await generateConciergeReply(recent, {
+      summary: conversation.rolling_summary,
+      contactMemory: asRecord(contact?.memory),
+      knownName: contact?.display_name,
+      preferredLanguage: contact?.preferred_language,
+    });
+    const grouped = trailingInbound.slice(0, -1);
+    const latestInbound = trailingInbound.at(-1)!;
+    await Promise.all([
+      ...grouped.map((message) =>
+        admin
+          .from("messages")
+          .update({
+            metadata: {
+              ...asRecord(message.metadata),
+              adminGroupedInto: latestInbound.id,
+            },
+          })
+          .eq("id", message.id),
+      ),
+      admin
+        .from("messages")
+        .update({
+          metadata: {
+            ...asRecord(latestInbound.metadata),
+            detectedLanguage: result.detectedLanguage,
+            englishTranslation: result.latestGuestMessageEnglish,
+            groupedGuestMessageCount: trailingInbound.length,
+          },
+        })
+        .eq("id", latestInbound.id),
+    ]);
+    const existingFacts = Array.isArray(asRecord(contact?.memory).facts)
+      ? (asRecord(contact?.memory).facts as unknown[]).filter(
+          (fact): fact is string => typeof fact === "string",
+        )
+      : [];
+    const memoryFacts = [
+      ...new Set([...existingFacts, ...result.memoryFacts]),
+    ].slice(-20);
+    await Promise.all([
+      admin
+        .from("contacts")
+        .update({
+          ...(result.guestFirstName && !contact?.display_name
+            ? { display_name: result.guestFirstName }
+            : {}),
+          preferred_language:
+            result.detectedLanguage === "Unknown"
+              ? contact?.preferred_language
+              : result.detectedLanguage,
+          memory: {
+            ...asRecord(contact?.memory),
+            facts: memoryFacts,
+            updatedAt: new Date().toISOString(),
+          },
+          memory_updated_at: new Date().toISOString(),
+        })
+        .eq("id", conversation.contact_id),
+      admin
+        .from("conversations")
+        .update({
+          rolling_summary: result.conversationSummary,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", conversationId),
+    ]);
+    const { data: latestMode } = await admin
+      .from("conversations")
+      .select("human_takeover")
+      .eq("id", conversationId)
+      .single();
+    const { data: latestInboundNow } = await admin
+      .from("messages")
+      .select("id")
+      .eq("conversation_id", conversationId)
+      .eq("direction", "inbound")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!latestMode || latestMode.human_takeover) return outcome;
+    if (latestInboundNow?.id !== claim.messageId) {
+      outcome = "retry";
+      return outcome;
+    }
+    await sendSmsConversationMessage({
+      conversationId,
+      content: smsConciergeText(result),
+      senderType: "ai",
+      metadata: {
+        detectedLanguage: result.detectedLanguage,
+        englishTranslation: result.replyEnglish,
+        replyThroughInboundMessageId: claim.messageId,
+      },
+    });
+    processed = true;
+    outcome = "processed";
+    if (result.handoffRequired) {
+      await admin
+        .from("conversations")
+        .update({
+          status: "handoff_required",
+          handoff_reason: result.handoffReason,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", conversationId);
+      try {
+        await notifyVenueManagers({
+          venueId: conversation.venue_id,
+          conversationId,
+          channel: "sms",
+          title: "Conversation needs review",
+          body:
+            result.handoffReason ||
+            "A guest conversation needs staff attention.",
+          kind: "follow_up",
+        });
+      } catch (error) {
+        console.error("Unable to notify managers about follow-up", error);
+      }
+    }
+    return outcome;
+  } finally {
+    await admin.rpc("finish_sms_concierge_work", {
+      p_conversation_id: conversationId,
+      p_message_id: claim.messageId,
+      p_processed: processed,
+    });
   }
 }
 
@@ -339,6 +416,10 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
+}
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 function twiml() {
