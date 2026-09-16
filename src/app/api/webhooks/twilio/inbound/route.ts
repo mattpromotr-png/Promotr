@@ -7,7 +7,11 @@ import {
   generateConciergeReply,
   smsConciergeText,
 } from "@/lib/messaging/concierge";
-import { requiresStaffAttention } from "@/lib/messaging/policy";
+import {
+  conversationNeedsLostFoundForm,
+  latestMessageNeedsLostFoundForm,
+  requiresStaffAttention,
+} from "@/lib/messaging/policy";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -281,11 +285,32 @@ async function processClaimedSmsBatch(
     const contact = Array.isArray(conversation.contacts)
       ? conversation.contacts[0]
       : conversation.contacts;
+    const lostItemTurn = latestMessageNeedsLostFoundForm(batchText);
+    const foundItems = lostItemTurn
+      ? (
+          await admin
+            .from("found_items")
+            .select(
+              "item_name,description,found_date,found_location,table_number",
+            )
+            .eq("venue_id", conversation.venue_id)
+            .eq("status", "available")
+            .order("found_date", { ascending: false })
+            .limit(20)
+        ).data
+      : [];
     const result = await generateConciergeReply(recent, {
       summary: conversation.rolling_summary,
       contactMemory: asRecord(contact?.memory),
       knownName: contact?.display_name,
       preferredLanguage: contact?.preferred_language,
+      availableFoundItems: (foundItems ?? []).map((item) => ({
+        itemName: item.item_name,
+        description: item.description,
+        foundDate: item.found_date,
+        foundLocation: item.found_location,
+        tableNumber: item.table_number,
+      })),
     });
     const grouped = trailingInbound.slice(0, -1);
     const latestInbound = trailingInbound.at(-1)!;
@@ -368,7 +393,11 @@ async function processClaimedSmsBatch(
     }
     await sendSmsConversationMessage({
       conversationId,
-      content: smsConciergeText(result),
+      content: smsConciergeText(result, {
+        lostFoundFormUrl: conversationNeedsLostFoundForm(recent)
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/lost-found?conversation=${conversationId}`
+          : undefined,
+      }),
       senderType: "ai",
       metadata: {
         detectedLanguage: result.detectedLanguage,

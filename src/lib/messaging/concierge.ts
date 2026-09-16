@@ -17,6 +17,13 @@ type ConciergeMemoryContext = {
   contactMemory?: Record<string, unknown> | null;
   knownName?: string | null;
   preferredLanguage?: string | null;
+  availableFoundItems?: Array<{
+    itemName: string;
+    description: string;
+    foundDate: string;
+    foundLocation?: string | null;
+    tableNumber?: string | null;
+  }>;
 };
 
 export async function generateConciergeReply(
@@ -37,6 +44,7 @@ export async function generateConciergeReply(
     contactMemory: memoryContext.contactMemory || {},
     knownName: memoryContext.knownName || null,
     preferredLanguage: memoryContext.preferredLanguage || null,
+    availableFoundItems: memoryContext.availableFoundItems?.slice(0, 20) || [],
   });
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -187,8 +195,17 @@ function withFallbackIntelligence(
   };
 }
 
-export function smsConciergeText(result: AiHostResponse) {
+export function smsConciergeText(
+  result: AiHostResponse,
+  options: { lostFoundFormUrl?: string } = {},
+) {
   const reply = result.reply.replace(/https?:\/\/\S+/gi, "").trim();
-  if (!result.shareBookingForm) return reply;
-  return `${reply} Booking inquiry: ${process.env.NEXT_PUBLIC_APP_URL}/book`;
+  const links: string[] = [];
+  if (result.shareBookingForm) {
+    links.push(`Booking inquiry: ${process.env.NEXT_PUBLIC_APP_URL}/book`);
+  }
+  if (options.lostFoundFormUrl) {
+    links.push(`Lost-item report: ${options.lostFoundFormUrl}`);
+  }
+  return [reply, ...links].join(" ");
 }

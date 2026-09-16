@@ -201,3 +201,13 @@ rereading the full project prompt.
 - [x] Pass web lint, TypeScript, 45 unit tests, production build, mobile TypeScript, and Android export verification.
 - [ ] Apply `202609160003_sms_queue_realtime_reads.sql` to production before deploying these source changes.
 - [ ] Complete live acceptance with three rapid inbound SMS messages, a non-English exchange, two signed-in manager clients, background push, and foreground realtime updates.
+
+## Lost and found operations (2026-09-16)
+
+- [x] Add a public lost-item report with required guest contact details, item description, date, optional time, and last known location.
+- [x] Add separate guest-report and venue-found-inventory records with safe status-based retention.
+- [x] Add a compact admin Lost & Found tab for inventory entry, report review, and status management.
+- [x] Route lost-item conversations to the dedicated playbook and append the report form without repeatedly sharing it.
+- [x] Supply only safe, available found-item details to the concierge on relevant turns; exclude internal notes and guest records.
+- [ ] Apply `202609160004_lost_and_found.sql` in staging/production before deploying the feature.
+- [ ] Complete a live SMS-to-form-to-dashboard test and verify a plausible inventory match never exposes private or internal details.

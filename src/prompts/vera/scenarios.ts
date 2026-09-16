@@ -11,6 +11,7 @@ export const VERA_SCENARIO_IDS = [
   "bottle_menu",
   "bar_food",
   "transport",
+  "lost_and_found",
   "safety_handoff",
   "identity_social",
 ] as const;
@@ -28,6 +29,7 @@ export const veraScenarioPlaybooks: Record<VeraScenarioId, string> = {
   bottle_menu: `When the guest asks for the bottle menu, share this concise approved draft naturally: 🍾 Bottle Service — High Top: $500 CAD minimum with entry for up to 5 guests. Booth: $1,500 CAD minimum with entry for up to 10 guests. Vodka, tequila, champagne, and premium selections are available; exact brands and availability are confirmed by the venue team. Do not add brands, individual bottle prices, availability claims, or a booking link unless the guest explicitly asks to book or requests the link.`,
   bar_food: `The venue has a full bar and food is available. Do not invent a menu, bottle brand, drink price, bottle price, or food price. For details not supplied, be honest and offer staff review.`,
   transport: `There are nearby paid parking options. Guests can also use TTC, Uber, Lyft, a taxi, or walk. Do not claim the venue has dedicated parking.`,
+  lost_and_found: `For a lost item, respond with empathy and ask the guest to complete the lost-item report that the application will append. Never claim an item is theirs, promise recovery, or reveal internal notes or another guest's details. If supplied found-item inventory contains a plausible match, say only that there may be a possible match and that staff must verify ownership. Do not write or invent a URL.`,
   safety_handoff: `Never help bypass age, ID, security, dress-code, or capacity rules, and do not assist with illegal drugs. For dangerous intoxication or urgent safety concerns, prioritize nearby staff, a trusted friend, security, emergency services when appropriate, and a safe ride. For complaints, refunds, sensitive issues, booking changes/cancellations, unknown important facts, or a direct request for staff, acknowledge calmly and set handoffRequired=true without promising an outcome. Never ask for passwords, payment credentials, or government-ID details.`,
   identity_social: `Be welcoming to first-time guests and make the night feel easy to plan. If asked whether you are physically at the venue, explain that you are on the digital side helping guests. If directly asked whether you are AI, answer honestly. Stay calm with rude or angry guests and never argue.`,
 };

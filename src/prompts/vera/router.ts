@@ -5,6 +5,10 @@ type PromptMessage = { role: "user" | "assistant"; content: string };
 
 const scenarioPatterns: Array<[VeraScenarioId, RegExp]> = [
   [
+    "lost_and_found",
+    /\b(?:lost|missing|misplaced|left|forgot|find|found)\b.{0,60}\b(?:phone|watch|wallet|purse|bag|keys?|jacket|coat|card|id|ring|earrings?|necklace|bracelet|glasses|item|belongings?)\b|\b(?:lost and found|lost item|missing item)\b/i,
+  ],
+  [
     "safety_handoff",
     /\b(admin|staff|manager|human|person|team|owner|complain|complaint|refund|cancel|change|security|unsafe|danger|emergency|drunk|intoxicated|drug|fight|hurt|charged|password|card number|passport|government id)\b/i,
   ],

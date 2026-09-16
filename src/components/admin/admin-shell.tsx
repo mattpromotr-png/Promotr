@@ -7,6 +7,7 @@ import {
   LogOut,
   MessagesSquare,
   Map,
+  PackageSearch,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -42,6 +43,12 @@ const navigation = [
     icon: CircleDollarSign,
   },
   { key: "tables", label: "Table map", href: "/admin/tables", icon: Map },
+  {
+    key: "lost-found",
+    label: "Lost & found",
+    href: "/admin/lost-found",
+    icon: PackageSearch,
+  },
 ] as const;
 
 export function AdminShell({

@@ -42,6 +42,15 @@ describe("Vera prompt routing", () => {
     expect(result.systemPrompt).not.toContain("premium vodka $450");
   });
 
+  it("loads the lost-and-found safety playbook for missing items", () => {
+    const result = buildVeraSystemPrompt([
+      { role: "user", content: "I think I lost my watch near our table" },
+    ]);
+
+    expect(result.scenarioIds).toContain("lost_and_found");
+    expect(result.systemPrompt).toContain("Never claim an item is theirs");
+  });
+
   it("never loads more than three scenario modules", () => {
     const result = selectVeraScenarios([
       {
