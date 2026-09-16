@@ -7,6 +7,7 @@ export async function sendSmsConversationMessage(input: {
   conversationId: string;
   content: string;
   senderType?: "human" | "ai";
+  metadata?: Record<string, unknown>;
 }) {
   const admin = createAdminClient();
   const { data: conversation, error: conversationError } = await admin
@@ -40,6 +41,7 @@ export async function sendSmsConversationMessage(input: {
       content: input.content,
       delivery_status: "pending",
       metadata: {
+        ...input.metadata,
         sentFromAdmin: (input.senderType || "human") === "human",
       },
     })

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin";
 import { translateStaffReply } from "@/lib/ai/translate-staff-reply";
+import { normalizeLanguageName } from "@/lib/ai/language";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -19,13 +20,29 @@ export async function sendConversationReply(formData: FormData) {
   const admin = createAdminClient();
   const { data: conversation, error: loadError } = await admin
     .from("conversations")
-    .select("channel")
+    .select("channel,contact_id")
     .eq("id", conversationId)
     .single();
   if (loadError || !conversation)
     throw new Error("Unable to load this conversation.");
   if (conversation.channel === "sms") {
-    await sendSmsConversationMessage({ conversationId, content });
+    const { data: contact } = await admin
+      .from("contacts")
+      .select("preferred_language")
+      .eq("id", conversation.contact_id)
+      .maybeSingle();
+    const targetLanguage = normalizeLanguageName(contact?.preferred_language);
+    const deliveredContent = await translateStaffReply(content, targetLanguage);
+    await sendSmsConversationMessage({
+      conversationId,
+      content: deliveredContent,
+      metadata: {
+        detectedLanguage: targetLanguage,
+        englishTranslation: content,
+        adminOriginalEnglish:
+          targetLanguage.toLowerCase() === "english" ? null : content,
+      },
+    });
     revalidatePath("/admin/conversations");
     revalidatePath("/admin/leads");
     return;
@@ -73,6 +90,47 @@ export async function sendConversationReply(formData: FormData) {
   revalidatePath("/admin/leads");
 }
 
+export async function updateConversationFollowUp(formData: FormData) {
+  await requireAdmin();
+  const conversationId = String(formData.get("conversationId") ?? "");
+  const enabled = formData.get("enabled") === "on";
+  const delayMinutes = boundedInteger(formData.get("delayMinutes"), 15, 43200);
+  const intervalMinutes = boundedInteger(
+    formData.get("intervalMinutes"),
+    60,
+    43200,
+  );
+  const maxAttempts = boundedInteger(formData.get("maxAttempts"), 1, 5);
+  const followUpMessage = String(formData.get("followUpMessage") ?? "")
+    .trim()
+    .slice(0, 600);
+  if (
+    !/^[0-9a-f-]{36}$/i.test(conversationId) ||
+    delayMinutes === null ||
+    intervalMinutes === null ||
+    maxAttempts === null
+  )
+    throw new Error("Invalid follow-up settings.");
+  const { error } = await createAdminClient()
+    .from("conversations")
+    .update({
+      follow_up_enabled: enabled,
+      follow_up_delay_minutes: delayMinutes,
+      follow_up_interval_minutes: intervalMinutes,
+      follow_up_max_attempts: maxAttempts,
+      follow_up_attempts: 0,
+      next_follow_up_at: enabled
+        ? new Date(Date.now() + delayMinutes * 60_000).toISOString()
+        : null,
+      follow_up_message: followUpMessage || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", conversationId)
+    .eq("channel", "sms");
+  if (error) throw new Error("Unable to update follow-up settings.");
+  revalidatePath("/admin/conversations");
+}
+
 export async function pauseConversationAutomation(formData: FormData) {
   await requireAdmin();
   const conversationId = String(formData.get("conversationId") ?? "");
@@ -105,4 +163,15 @@ export async function resumeConversationAutomation(formData: FormData) {
   if (error) throw new Error("Unable to resume automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");
+}
+
+function boundedInteger(
+  value: FormDataEntryValue | null,
+  minimum: number,
+  maximum: number,
+) {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  return Number.isInteger(parsed) && parsed >= minimum && parsed <= maximum
+    ? parsed
+    : null;
 }

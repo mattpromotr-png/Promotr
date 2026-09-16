@@ -9,6 +9,10 @@ const scenarioPatterns: Array<[VeraScenarioId, RegExp]> = [
     /\b(admin|staff|manager|human|person|team|owner|complain|complaint|refund|cancel|change|security|unsafe|danger|emergency|drunk|intoxicated|drug|fight|hurt|charged|password|card number|passport|government id)\b/i,
   ],
   [
+    "bottle_menu",
+    /\b(bottle menu|bottle list|bottle options?|what bottles?|drink menu)\b/i,
+  ],
+  [
     "tables_reservations",
     /\b(tables?|booths?|high[ -]?tops?|vip|bottle service|reserve|reservation|book|booking|minimum spend|party size|guest count)\b/i,
   ],

@@ -20,6 +20,7 @@ import {
   pauseConversationAutomation,
   resumeConversationAutomation,
   sendConversationReply,
+  updateConversationFollowUp,
 } from "./actions";
 
 export const metadata = { title: "Conversations" };
@@ -32,10 +33,20 @@ type Conversation = {
   status: string;
   human_takeover: boolean;
   handoff_reason: string | null;
+  rolling_summary: string | null;
   last_message_at: string;
+  follow_up_enabled: boolean;
+  follow_up_delay_minutes: number;
+  follow_up_interval_minutes: number;
+  follow_up_max_attempts: number;
+  follow_up_attempts: number;
+  next_follow_up_at: string | null;
+  follow_up_message: string | null;
   contacts: {
     display_name: string | null;
     instagram_scoped_id: string;
+    preferred_language: string | null;
+    memory: { facts?: string[] } | null;
     contact_channels: Array<{
       channel: string;
       normalized_address: string;
@@ -91,7 +102,7 @@ export default async function ConversationsPage({
   let listQuery = admin
     .from("conversations")
     .select(
-      "id,channel,status,human_takeover,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id,contact_channels(channel,normalized_address)),lead_conversations(leads(id,name,status,requested_date,created_at))",
+      "id,channel,status,human_takeover,handoff_reason,rolling_summary,last_message_at,follow_up_enabled,follow_up_delay_minutes,follow_up_interval_minutes,follow_up_max_attempts,follow_up_attempts,next_follow_up_at,follow_up_message,contacts(display_name,instagram_scoped_id,preferred_language,memory,contact_channels(channel,normalized_address)),lead_conversations(leads(id,name,status,requested_date,created_at))",
       { count: "exact" },
     );
   if (channel !== "all") listQuery = listQuery.eq("channel", channel);
@@ -247,6 +258,11 @@ export default async function ConversationsPage({
                         {conversationPhone(selected)} · Primary SMS identity
                       </p>
                     )}
+                  {selected.contacts?.preferred_language && (
+                    <p className="text-muted mt-1 text-xs">
+                      Guest language: {selected.contacts.preferred_language}
+                    </p>
+                  )}
                   {conversationLeads(selected).length > 0 && (
                     <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
                       <span className="text-muted">Linked inquiries:</span>
@@ -304,6 +320,116 @@ export default async function ConversationsPage({
                   </form>
                 )}
               </header>
+              {(selected.rolling_summary ||
+                (selected.contacts?.memory?.facts?.length ?? 0) > 0) && (
+                <details className="border-border border-b px-5 py-3 sm:px-6">
+                  <summary className="text-foreground cursor-pointer text-sm font-semibold">
+                    Remembered guest details
+                  </summary>
+                  {selected.rolling_summary && (
+                    <p className="text-muted mt-3 text-sm leading-6">
+                      {selected.rolling_summary}
+                    </p>
+                  )}
+                  {(selected.contacts?.memory?.facts?.length ?? 0) > 0 && (
+                    <ul className="text-muted mt-2 list-disc space-y-1 pl-5 text-xs">
+                      {selected.contacts?.memory?.facts?.map((fact) => (
+                        <li key={fact}>{fact}</li>
+                      ))}
+                    </ul>
+                  )}
+                </details>
+              )}
+              {selected.channel === "sms" && (
+                <details className="border-border border-b px-5 py-3 sm:px-6">
+                  <summary className="text-foreground cursor-pointer text-sm font-semibold">
+                    Follow-up settings ·{" "}
+                    {selected.follow_up_enabled ? "On" : "Off"}
+                    {selected.next_follow_up_at
+                      ? ` · Next ${formatMessageTime(selected.next_follow_up_at)}`
+                      : ""}
+                  </summary>
+                  <form
+                    action={updateConversationFollowUp}
+                    className="mt-4 grid gap-3 md:grid-cols-4"
+                  >
+                    <input
+                      type="hidden"
+                      name="conversationId"
+                      value={selected.id}
+                    />
+                    <label className="text-muted flex items-center gap-2 text-sm md:col-span-4">
+                      <input
+                        type="checkbox"
+                        name="enabled"
+                        defaultChecked={selected.follow_up_enabled}
+                        className="accent-violet size-4"
+                      />
+                      Enable automatic SMS follow-up
+                    </label>
+                    <label className="text-muted text-xs">
+                      First delay
+                      <select
+                        name="delayMinutes"
+                        defaultValue={selected.follow_up_delay_minutes}
+                        className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
+                      >
+                        <option value="60">1 hour</option>
+                        <option value="360">6 hours</option>
+                        <option value="1440">24 hours</option>
+                        <option value="2880">48 hours</option>
+                        <option value="10080">7 days</option>
+                      </select>
+                    </label>
+                    <label className="text-muted text-xs">
+                      Repeat interval
+                      <select
+                        name="intervalMinutes"
+                        defaultValue={selected.follow_up_interval_minutes}
+                        className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
+                      >
+                        <option value="360">6 hours</option>
+                        <option value="1440">24 hours</option>
+                        <option value="2880">48 hours</option>
+                        <option value="10080">7 days</option>
+                      </select>
+                    </label>
+                    <label className="text-muted text-xs">
+                      Maximum messages
+                      <select
+                        name="maxAttempts"
+                        defaultValue={selected.follow_up_max_attempts}
+                        className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
+                      >
+                        {[1, 2, 3, 4, 5].map((attempt) => (
+                          <option key={attempt} value={attempt}>
+                            {attempt}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button className="focus-ring bg-brand-gradient min-h-10 self-end rounded-xl px-4 text-sm font-semibold text-white">
+                      Save follow-up
+                    </button>
+                    <label className="text-muted text-xs md:col-span-4">
+                      Optional message
+                      <textarea
+                        name="followUpMessage"
+                        defaultValue={selected.follow_up_message || ""}
+                        maxLength={600}
+                        rows={2}
+                        placeholder="Hi! Just checking in—do you still need help planning your night? ✨"
+                        className="border-border bg-elevated text-foreground mt-1 w-full rounded-xl border px-3 py-2"
+                      />
+                    </label>
+                    <p className="text-muted text-xs md:col-span-4">
+                      Sent only to opted-in SMS guests. A guest reply resets the
+                      timer. Attempts sent: {selected.follow_up_attempts}/
+                      {selected.follow_up_max_attempts}.
+                    </p>
+                  </form>
+                </details>
+              )}
               <div className="bg-elevated/35 min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-5 sm:p-6">
                 {messages.map((message) => (
                   <article
@@ -347,6 +473,12 @@ export default async function ConversationsPage({
                           {message.delivery_status}
                         </p>
                       )}
+                      <time
+                        dateTime={message.created_at}
+                        className="mt-1 block text-[10px] opacity-55"
+                      >
+                        {formatMessageTime(message.created_at)}
+                      </time>
                     </div>
                   </article>
                 ))}
@@ -419,4 +551,12 @@ function conversationPhone(conversation: Conversation) {
   return conversation.contacts?.contact_channels.find(
     (contact) => contact.channel === "sms",
   )?.normalized_address;
+}
+
+function formatMessageTime(value: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "America/Toronto",
+  }).format(new Date(value));
 }

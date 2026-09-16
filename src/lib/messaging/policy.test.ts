@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  conversationAllowsBookingLink,
   latestMessageAllowsBookingLink,
   requiresStaffAttention,
 } from "@/lib/messaging/policy";
@@ -18,6 +19,28 @@ describe("SMS booking-link policy", () => {
       false,
     );
   });
+
+  it("does not repeat a recently shared booking form", () => {
+    expect(
+      conversationAllowsBookingLink([
+        { role: "user", content: "I want to book a party" },
+        {
+          role: "assistant",
+          content: "Booking inquiry: https://promotr.example/book",
+        },
+        { role: "user", content: "I want to reserve a table" },
+      ]),
+    ).toBe(false);
+    expect(
+      conversationAllowsBookingLink([
+        {
+          role: "assistant",
+          content: "Booking inquiry: https://promotr.example/book",
+        },
+        { role: "user", content: "Please send the booking link again" },
+      ]),
+    ).toBe(true);
+  });
 });
 
 describe("SMS staff-attention policy", () => {
@@ -28,9 +51,9 @@ describe("SMS staff-attention policy", () => {
     expect(requiresStaffAttention("This is urgent, please help now")).toBe(
       true,
     );
-    expect(requiresStaffAttention("I was charged twice and need a refund")).toBe(
-      true,
-    );
+    expect(
+      requiresStaffAttention("I was charged twice and need a refund"),
+    ).toBe(true);
   });
 
   it("does not escalate ordinary venue questions", () => {

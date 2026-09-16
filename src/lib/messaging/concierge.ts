@@ -1,27 +1,47 @@
 import "server-only";
 
+import {
+  conciergeIntelligenceSchema,
+  type ConciergeIntelligence,
+} from "@/lib/ai/concierge-intelligence";
 import { aiHostResponseSchema, type AiHostResponse } from "@/lib/ai/contract";
 import { deterministicHandoff, SAFE_AI_FALLBACK } from "@/lib/ai/orchestration";
-import { latestMessageAllowsBookingLink } from "@/lib/messaging/policy";
+import { conversationAllowsBookingLink } from "@/lib/messaging/policy";
 import { buildVeraSystemPrompt } from "@/prompts/vera";
 
 type ConciergeMessage = { role: "user" | "assistant"; content: string };
+export type ConciergeResult = AiHostResponse & ConciergeIntelligence;
+
+type ConciergeMemoryContext = {
+  summary?: string | null;
+  contactMemory?: Record<string, unknown> | null;
+  knownName?: string | null;
+  preferredLanguage?: string | null;
+};
 
 export async function generateConciergeReply(
   messages: ConciergeMessage[],
-): Promise<AiHostResponse> {
+  memoryContext: ConciergeMemoryContext = {},
+): Promise<ConciergeResult> {
   const recent = messages.slice(-8).map((message) => ({
     role: message.role,
     content: message.content.trim().slice(0, 600),
   }));
   const latest = recent.at(-1)?.content || "";
   const deterministic = deterministicHandoff(latest);
-  if (deterministic) return deterministic;
+  if (deterministic) return withFallbackIntelligence(deterministic, latest);
   const { systemPrompt } = buildVeraSystemPrompt(recent);
+  const intelligenceInstructions = `Operational output fields: detect the language of the latest guest message; translate that message and your reply faithfully into English; extract guestFirstName only when the guest explicitly supplied it; keep memoryFacts to durable guest preferences or personal details explicitly stated; and write a compact conversationSummary preserving names, preferences, current request, and unresolved questions. Never treat inferred or unconfirmed booking details as verified facts.`;
+  const suppliedMemory = JSON.stringify({
+    summary: memoryContext.summary || null,
+    contactMemory: memoryContext.contactMemory || {},
+    knownName: memoryContext.knownName || null,
+    preferredLanguage: memoryContext.preferredLanguage || null,
+  });
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     console.error("Concierge response unavailable: OPENAI_API_KEY is missing");
-    return SAFE_AI_FALLBACK;
+    return withFallbackIntelligence(SAFE_AI_FALLBACK, latest);
   }
 
   try {
@@ -36,11 +56,11 @@ export async function generateConciergeReply(
         input: [
           {
             role: "system",
-            content: systemPrompt,
+            content: `${systemPrompt}\n\n${intelligenceInstructions}\n\nStored conversation memory (may be empty):\n${suppliedMemory}`,
           },
           ...recent,
         ],
-        max_output_tokens: 300,
+        max_output_tokens: 500,
         text: {
           format: {
             type: "json_schema",
@@ -80,6 +100,16 @@ export async function generateConciergeReply(
                 shareBookingForm: { type: "boolean" },
                 handoffRequired: { type: "boolean" },
                 handoffReason: { type: ["string", "null"] },
+                detectedLanguage: { type: "string" },
+                latestGuestMessageEnglish: { type: "string" },
+                replyEnglish: { type: "string" },
+                guestFirstName: { type: ["string", "null"] },
+                memoryFacts: {
+                  type: "array",
+                  items: { type: "string" },
+                  maxItems: 8,
+                },
+                conversationSummary: { type: "string" },
               },
               required: [
                 "reply",
@@ -89,6 +119,12 @@ export async function generateConciergeReply(
                 "shareBookingForm",
                 "handoffRequired",
                 "handoffReason",
+                "detectedLanguage",
+                "latestGuestMessageEnglish",
+                "replyEnglish",
+                "guestFirstName",
+                "memoryFacts",
+                "conversationSummary",
               ],
             },
           },
@@ -101,7 +137,7 @@ export async function generateConciergeReply(
         status: response.status,
         requestId: response.headers.get("x-request-id"),
       });
-      return SAFE_AI_FALLBACK;
+      return withFallbackIntelligence(SAFE_AI_FALLBACK, latest);
     }
     const payload = (await response.json()) as {
       output?: Array<{
@@ -111,27 +147,44 @@ export async function generateConciergeReply(
     const outputText = payload.output
       ?.flatMap((item) => item.content || [])
       .find((item) => item.type === "output_text")?.text;
-    const parsed = aiHostResponseSchema.safeParse(
-      JSON.parse(outputText || "null"),
-    );
-    if (!parsed.success) {
+    const output = JSON.parse(outputText || "null");
+    const parsed = aiHostResponseSchema.safeParse(output);
+    const intelligence = conciergeIntelligenceSchema.safeParse(output);
+    if (!parsed.success || !intelligence.success) {
       console.error("Concierge response failed schema validation", {
         requestId: response.headers.get("x-request-id"),
       });
-      return SAFE_AI_FALLBACK;
+      return withFallbackIntelligence(SAFE_AI_FALLBACK, latest);
     }
     return {
       ...parsed.data,
+      ...intelligence.data,
       missingQualificationFields: [],
       shareBookingForm:
-        parsed.data.shareBookingForm && latestMessageAllowsBookingLink(latest),
+        parsed.data.shareBookingForm && conversationAllowsBookingLink(recent),
     };
   } catch (error) {
     console.error("Concierge response processing failed", {
       name: error instanceof Error ? error.name : "UnknownError",
     });
-    return SAFE_AI_FALLBACK;
+    return withFallbackIntelligence(SAFE_AI_FALLBACK, latest);
   }
+}
+
+function withFallbackIntelligence(
+  response: AiHostResponse,
+  latestGuestMessage: string,
+): ConciergeResult {
+  return {
+    ...response,
+    detectedLanguage: "Unknown",
+    latestGuestMessageEnglish: latestGuestMessage,
+    replyEnglish: response.reply,
+    guestFirstName: null,
+    memoryFacts: [],
+    conversationSummary:
+      latestGuestMessage.slice(0, 600) || "No conversation summary available.",
+  };
 }
 
 export function smsConciergeText(result: AiHostResponse) {

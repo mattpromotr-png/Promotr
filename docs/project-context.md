@@ -19,7 +19,7 @@ An inquiry is never a confirmed reservation. The newer client PDF `Vera — The 
 
 ## Explicitly deferred
 
-No full inbox, live availability, confirmed bookings, CRM, campaigns, analytics, payments, subscriptions, onboarding, other messaging channels, native apps, or automated follow-up. Keep `venue_id` ownership boundaries without building multi-tenant product machinery.
+No live availability, CRM, campaigns, subscriptions, or onboarding. The post-MVP system now includes payments, SMS conversations, a manager mobile companion, and configurable consent-aware SMS follow-up. Keep `venue_id` ownership boundaries without building multi-tenant product machinery.
 
 ## Stack
 

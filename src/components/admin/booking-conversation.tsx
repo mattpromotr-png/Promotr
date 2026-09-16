@@ -134,6 +134,12 @@ export function BookingConversation({
                         : message.sender_type === "human"
                           ? "Staff"
                           : "Guest"}
+                      {" · "}
+                      {new Intl.DateTimeFormat("en-CA", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                        timeZone: "America/Toronto",
+                      }).format(new Date(message.created_at))}
                     </p>
                   </div>
                   {message.sender_type !== "guest" && (

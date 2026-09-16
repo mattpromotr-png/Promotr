@@ -11,12 +11,15 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { conversationId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(conversationId))
-    return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid conversation" },
+      { status: 400 },
+    );
   const admin = createAdminClient();
   const conversation = await admin
     .from("conversations")
     .select(
-      "id,channel,status,human_takeover,last_message_at,contacts(display_name,contact_channels(channel,normalized_address))",
+      "id,channel,status,human_takeover,last_message_at,follow_up_enabled,follow_up_delay_minutes,follow_up_interval_minutes,follow_up_max_attempts,follow_up_attempts,next_follow_up_at,follow_up_message,contacts(display_name,preferred_language,contact_channels(channel,normalized_address))",
     )
     .eq("id", conversationId)
     .eq("venue_id", manager.venueId)
@@ -29,7 +32,9 @@ export async function GET(
     );
   const messages = await admin
     .from("messages")
-    .select("id,direction,sender_type,content,created_at,delivery_status")
+    .select(
+      "id,direction,sender_type,content,metadata,created_at,delivery_status",
+    )
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true })
     .limit(200);
@@ -56,6 +61,16 @@ export async function GET(
     unread: 0,
     needsFollowUp: conversation.data.status === "handoff_required",
     automationPaused: conversation.data.human_takeover,
+    preferredLanguage: contact?.preferred_language,
+    followUp: {
+      enabled: conversation.data.follow_up_enabled,
+      delayMinutes: conversation.data.follow_up_delay_minutes,
+      intervalMinutes: conversation.data.follow_up_interval_minutes,
+      maxAttempts: conversation.data.follow_up_max_attempts,
+      attempts: conversation.data.follow_up_attempts,
+      nextAt: conversation.data.next_follow_up_at,
+      message: conversation.data.follow_up_message,
+    },
     messages: (messages.data ?? []).map((message) => ({
       id: message.id,
       direction: message.direction,
@@ -66,8 +81,82 @@ export async function GET(
             ? "concierge"
             : "guest",
       body: message.content,
+      englishBody:
+        typeof message.metadata === "object" &&
+        message.metadata &&
+        "englishTranslation" in message.metadata
+          ? String(message.metadata.englishTranslation || "") || undefined
+          : undefined,
+      adminOriginalEnglish:
+        typeof message.metadata === "object" &&
+        message.metadata &&
+        "adminOriginalEnglish" in message.metadata
+          ? String(message.metadata.adminOriginalEnglish || "") || undefined
+          : undefined,
       createdAt: message.created_at,
       status: message.delivery_status,
     })),
   });
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ conversationId: string }> },
+) {
+  const manager = await authenticateMobileManager(request);
+  if (!manager)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { conversationId } = await params;
+  const body = (await request.json().catch(() => null)) as {
+    enabled?: unknown;
+    delayMinutes?: unknown;
+    intervalMinutes?: unknown;
+    maxAttempts?: unknown;
+    message?: unknown;
+  } | null;
+  const enabled = body?.enabled === true;
+  const delayMinutes = boundedNumber(body?.delayMinutes, 15, 43200);
+  const intervalMinutes = boundedNumber(body?.intervalMinutes, 60, 43200);
+  const maxAttempts = boundedNumber(body?.maxAttempts, 1, 5);
+  const message = typeof body?.message === "string" ? body.message.trim() : "";
+  if (
+    !/^[0-9a-f-]{36}$/i.test(conversationId) ||
+    delayMinutes === null ||
+    intervalMinutes === null ||
+    maxAttempts === null ||
+    message.length > 600
+  )
+    return NextResponse.json({ error: "Invalid settings" }, { status: 400 });
+  const { data, error } = await createAdminClient()
+    .from("conversations")
+    .update({
+      follow_up_enabled: enabled,
+      follow_up_delay_minutes: delayMinutes,
+      follow_up_interval_minutes: intervalMinutes,
+      follow_up_max_attempts: maxAttempts,
+      follow_up_attempts: 0,
+      next_follow_up_at: enabled
+        ? new Date(Date.now() + delayMinutes * 60_000).toISOString()
+        : null,
+      follow_up_message: message || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", conversationId)
+    .eq("venue_id", manager.venueId)
+    .eq("channel", "sms")
+    .select("id")
+    .maybeSingle();
+  if (error || !data)
+    return NextResponse.json(
+      { error: "Unable to update follow-up" },
+      { status: 500 },
+    );
+  return NextResponse.json({ updated: true });
+}
+
+function boundedNumber(value: unknown, minimum: number, maximum: number) {
+  const parsed = typeof value === "number" ? value : Number.NaN;
+  return Number.isInteger(parsed) && parsed >= minimum && parsed <= maximum
+    ? parsed
+    : null;
 }

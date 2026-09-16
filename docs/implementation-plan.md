@@ -178,3 +178,15 @@ rereading the full project prompt.
 - [x] Configure the mobile Supabase/API public environment values and complete user-verified live login, conversation read, SMS reply, Twilio receipt, and dashboard persistence tests.
 - [x] Connect Expo device registration to inbound-message and follow-up push delivery.
 - [ ] Create the EAS project/development build and complete a physical-device push notification test.
+
+## Vera conversation intelligence (2026-09-16)
+
+- [x] Add a client-approved basic bottle-service menu scenario without invented brands or individual bottle prices.
+- [x] Make booking-form sharing explicitly guest-driven and suppress recent duplicate links.
+- [x] Add visible message timestamps to web inquiry/conversation views and the manager mobile conversation.
+- [x] Store original-language content with English translation metadata for inbound SMS and concierge replies.
+- [x] Translate English staff replies into the guest's remembered language from both web and mobile.
+- [x] Add structured contact memory and compact rolling conversation summaries without a vector database.
+- [x] Add per-conversation SMS follow-up timing, interval, attempt limit, message, and on/off dashboard controls.
+- [x] Add a secured follow-up processor designed for Supabase Cron instead of frequent Vercel Hobby cron.
+- [ ] Apply `202609160002_conversation_intelligence_followups.sql` in staging/production and complete live multilingual and scheduled follow-up acceptance tests.

@@ -31,6 +31,17 @@ describe("Vera prompt routing", () => {
     expect(result.scenarioIds).toContain("safety_handoff");
   });
 
+  it("loads the approved bottle menu without unrelated facts", () => {
+    const result = buildVeraSystemPrompt([
+      { role: "user", content: "Can you send the bottle menu?" },
+    ]);
+
+    expect(result.scenarioIds).toContain("bottle_menu");
+    expect(result.systemPrompt).toContain("High Top: $500 CAD");
+    expect(result.systemPrompt).toContain("Booth: $1,500 CAD");
+    expect(result.systemPrompt).not.toContain("premium vodka $450");
+  });
+
   it("never loads more than three scenario modules", () => {
     const result = selectVeraScenarios([
       {

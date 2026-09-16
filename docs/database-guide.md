@@ -17,17 +17,17 @@ for clarity instead.
 | Table              | Purpose                                                                                                                  |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
 | `venues`           | Venue profile, configuration, facts, timezone, and booking URL.                                                          |
-| `contacts`         | One guest identity owned by a venue.                                                                                     |
+| `contacts`         | One guest identity owned by a venue, including preferred language and structured conversational memory.                  |
 | `contact_channels` | Phone number, Instagram identity, or web-preview identity belonging to a contact. SMS phone numbers are normalized here. |
 
 ## Conversations
 
-| Table                | Purpose                                                                                                      |
-| -------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `conversations`      | One guest thread per contact and channel, including open/follow-up state and the automatic-reply pause flag. |
-| `messages`           | Individual inbound guest, automatic concierge, and staff messages with delivery information.                 |
-| `lead_conversations` | Links one inquiry to one or more SMS, Instagram, or website conversations.                                   |
-| `webhook_events`     | Deduplicates and tracks incoming Meta webhook events.                                                        |
+| Table                | Purpose                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `conversations`      | One guest thread per contact and channel, including rolling summary, configurable follow-up timing, and automatic-reply pause state. |
+| `messages`           | Individual inbound guest, concierge, and staff messages. Translation and original-language information is stored in metadata.        |
+| `lead_conversations` | Links one inquiry to one or more SMS, Instagram, or website conversations.                                                           |
+| `webhook_events`     | Deduplicates and tracks incoming Meta webhook events.                                                                                |
 
 ## Booking operations
 

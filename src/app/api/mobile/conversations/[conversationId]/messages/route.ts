@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { translateStaffReply } from "@/lib/ai/translate-staff-reply";
+import { normalizeLanguageName } from "@/lib/ai/language";
 import { authenticateMobileManager } from "@/lib/auth/mobile-manager";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -19,7 +21,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid message" }, { status: 400 });
   const conversation = await createAdminClient()
     .from("conversations")
-    .select("channel")
+    .select("channel,contact_id")
     .eq("id", conversationId)
     .eq("venue_id", manager.venueId)
     .maybeSingle();
@@ -34,7 +36,24 @@ export async function POST(
       { status: 409 },
     );
   try {
-    await sendSmsConversationMessage({ conversationId, content: body });
+    const admin = createAdminClient();
+    const { data: contact } = await admin
+      .from("contacts")
+      .select("preferred_language")
+      .eq("id", conversation.data.contact_id)
+      .maybeSingle();
+    const targetLanguage = normalizeLanguageName(contact?.preferred_language);
+    const deliveredContent = await translateStaffReply(body, targetLanguage);
+    await sendSmsConversationMessage({
+      conversationId,
+      content: deliveredContent,
+      metadata: {
+        detectedLanguage: targetLanguage,
+        englishTranslation: body,
+        adminOriginalEnglish:
+          targetLanguage.toLowerCase() === "english" ? null : body,
+      },
+    });
     return NextResponse.json({ sent: true });
   } catch (error) {
     return NextResponse.json(

@@ -19,7 +19,9 @@ export async function GET(request: Request) {
     .eq("venue_id", manager.venueId)
     .in("channel", ["sms", "instagram"]);
   if (channel) query = query.eq("channel", channel);
-  const result = await query.order("last_message_at", { ascending: false }).limit(100);
+  const result = await query
+    .order("last_message_at", { ascending: false })
+    .limit(100);
   if (result.error)
     return NextResponse.json(
       { error: "Unable to load conversations" },
@@ -30,14 +32,22 @@ export async function GET(request: Request) {
   const latest = ids.length
     ? await admin
         .from("messages")
-        .select("conversation_id,content,created_at")
+        .select("conversation_id,content,metadata,created_at")
         .in("conversation_id", ids)
         .order("created_at", { ascending: false })
     : { data: [] };
-  const previews = new Map<string, string>();
+  const previews = new Map<string, { original: string; english?: string }>();
   for (const message of latest.data ?? [])
     if (!previews.has(message.conversation_id))
-      previews.set(message.conversation_id, message.content);
+      previews.set(message.conversation_id, {
+        original: message.content,
+        english:
+          typeof message.metadata === "object" &&
+          message.metadata &&
+          "englishTranslation" in message.metadata
+            ? String(message.metadata.englishTranslation || "") || undefined
+            : undefined,
+      });
 
   return NextResponse.json(
     (result.data ?? []).map((item) => {
@@ -54,7 +64,10 @@ export async function GET(request: Request) {
           (item.channel === "sms" ? "SMS guest" : "Instagram guest"),
         phone: sms?.normalized_address,
         channel: item.channel,
-        preview: previews.get(item.id) || "Open conversation",
+        preview:
+          previews.get(item.id)?.english ||
+          previews.get(item.id)?.original ||
+          "Open conversation",
         updatedAt: item.last_message_at,
         unread: 0,
         needsFollowUp: item.status === "handoff_required",

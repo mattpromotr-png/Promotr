@@ -93,19 +93,35 @@ export async function POST(request: NextRequest) {
       },
       { onConflict: "venue_id,contact_id,channel" },
     )
-    .select("id,human_takeover")
+    .select("id,human_takeover,follow_up_enabled,follow_up_delay_minutes")
     .single();
   if (!conversation) return twiml();
 
-  await admin.from("messages").insert({
-    conversation_id: conversation.id,
-    provider_message_id: messageSid,
-    direction: "inbound",
-    sender_type: "guest",
-    content,
-    delivery_status: "received",
-    metadata: { twilio: { from: params.From, to: params.To } },
-  });
+  const { data: inboundMessage } = await admin
+    .from("messages")
+    .insert({
+      conversation_id: conversation.id,
+      provider_message_id: messageSid,
+      direction: "inbound",
+      sender_type: "guest",
+      content,
+      delivery_status: "received",
+      metadata: { twilio: { from: params.From, to: params.To } },
+    })
+    .select("id")
+    .single();
+
+  if (conversation.follow_up_enabled) {
+    await admin
+      .from("conversations")
+      .update({
+        follow_up_attempts: 0,
+        next_follow_up_at: new Date(
+          Date.now() + conversation.follow_up_delay_minutes * 60_000,
+        ).toISOString(),
+      })
+      .eq("id", conversation.id);
+  }
 
   const optOutType = params.OptOutType?.toUpperCase();
   if (optOutType === "STOP" || optOutType === "START")
@@ -148,7 +164,9 @@ export async function POST(request: NextRequest) {
         venueId: venue.id,
         conversationId: conversation.id,
         channel: "sms",
-        title: needsStaff ? "Guest needs staff help" : `New SMS from ${lead?.name || phone}`,
+        title: needsStaff
+          ? "Guest needs staff help"
+          : `New SMS from ${lead?.name || phone}`,
         body: content,
         kind: needsStaff ? "follow_up" : "new_message",
       });
@@ -179,10 +197,10 @@ export async function POST(request: NextRequest) {
           console.error("Unable to send SMS handoff acknowledgement", error);
         }
       });
-  } else if (!conversation.human_takeover && !optOutType)
+  } else if (!optOutType)
     after(async () => {
       try {
-        await processSmsWithConcierge(conversation.id);
+        await processSmsWithConcierge(conversation.id, inboundMessage?.id);
       } catch (error) {
         console.error("Unable to process inbound SMS", error);
       }
@@ -190,17 +208,22 @@ export async function POST(request: NextRequest) {
   return twiml();
 }
 
-async function processSmsWithConcierge(conversationId: string) {
+async function processSmsWithConcierge(
+  conversationId: string,
+  inboundMessageId?: string,
+) {
   const admin = createAdminClient();
   const { data: conversation } = await admin
     .from("conversations")
-    .select("human_takeover,venue_id")
+    .select(
+      "human_takeover,venue_id,contact_id,rolling_summary,contacts(display_name,preferred_language,memory)",
+    )
     .eq("id", conversationId)
     .single();
-  if (!conversation || conversation.human_takeover) return;
+  if (!conversation) return;
   const { data } = await admin
     .from("messages")
-    .select("direction,content")
+    .select("id,direction,content,metadata")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: false })
     .limit(8);
@@ -212,7 +235,66 @@ async function processSmsWithConcierge(conversationId: string) {
     content: message.content,
   }));
   if (!recent.length) return;
-  const result = await generateConciergeReply(recent);
+  const contact = Array.isArray(conversation.contacts)
+    ? conversation.contacts[0]
+    : conversation.contacts;
+  const result = await generateConciergeReply(recent, {
+    summary: conversation.rolling_summary,
+    contactMemory: asRecord(contact?.memory),
+    knownName: contact?.display_name,
+    preferredLanguage: contact?.preferred_language,
+  });
+  const latestInbound = data?.find(
+    (message) =>
+      message.id === inboundMessageId || message.direction === "inbound",
+  );
+  if (latestInbound) {
+    await admin
+      .from("messages")
+      .update({
+        metadata: {
+          ...asRecord(latestInbound.metadata),
+          detectedLanguage: result.detectedLanguage,
+          englishTranslation: result.latestGuestMessageEnglish,
+        },
+      })
+      .eq("id", latestInbound.id);
+  }
+  const existingFacts = Array.isArray(asRecord(contact?.memory).facts)
+    ? (asRecord(contact?.memory).facts as unknown[]).filter(
+        (fact): fact is string => typeof fact === "string",
+      )
+    : [];
+  const memoryFacts = [
+    ...new Set([...existingFacts, ...result.memoryFacts]),
+  ].slice(-20);
+  await Promise.all([
+    admin
+      .from("contacts")
+      .update({
+        ...(result.guestFirstName && !contact?.display_name
+          ? { display_name: result.guestFirstName }
+          : {}),
+        preferred_language:
+          result.detectedLanguage === "Unknown"
+            ? contact?.preferred_language
+            : result.detectedLanguage,
+        memory: {
+          ...asRecord(contact?.memory),
+          facts: memoryFacts,
+          updatedAt: new Date().toISOString(),
+        },
+        memory_updated_at: new Date().toISOString(),
+      })
+      .eq("id", conversation.contact_id),
+    admin
+      .from("conversations")
+      .update({
+        rolling_summary: result.conversationSummary,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", conversationId),
+  ]);
   const { data: latestMode } = await admin
     .from("conversations")
     .select("human_takeover")
@@ -223,6 +305,10 @@ async function processSmsWithConcierge(conversationId: string) {
     conversationId,
     content: smsConciergeText(result),
     senderType: "ai",
+    metadata: {
+      detectedLanguage: result.detectedLanguage,
+      englishTranslation: result.replyEnglish,
+    },
   });
   if (result.handoffRequired) {
     await admin
@@ -239,13 +325,20 @@ async function processSmsWithConcierge(conversationId: string) {
         conversationId,
         channel: "sms",
         title: "Conversation needs review",
-        body: result.handoffReason || "A guest conversation needs staff attention.",
+        body:
+          result.handoffReason || "A guest conversation needs staff attention.",
         kind: "follow_up",
       });
     } catch (error) {
       console.error("Unable to notify managers about follow-up", error);
     }
   }
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
 }
 
 function twiml() {

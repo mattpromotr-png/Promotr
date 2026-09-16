@@ -15,7 +15,7 @@
   {
     "name": "hours faq",
     "output": {
-      "reply": "We’re open Friday and Saturday from 10 PM to 3 AM 🎉",
+      "reply": "We’re open Thursday, Friday, and Saturday from 10 PM to 3 AM 🎉",
       "intent": "faq",
       "bookingIntent": false,
       "missingQualificationFields": [],
@@ -23,12 +23,12 @@
       "handoffRequired": false,
       "handoffReason": null
     },
-    "contains": ["Friday", "Saturday", "10 PM", "3 AM"]
+    "contains": ["Thursday", "Friday", "Saturday", "10 PM", "3 AM"]
   },
   {
     "name": "cover faq",
     "output": {
-      "reply": "Cover is usually $20 before 11 PM and $30 after 11 PM. It can vary for special events 🎟️",
+      "reply": "General cover is $20 CAD per person. Guest-list cover is free when everyone in the party arrives before 11 PM 🎟️",
       "intent": "faq",
       "bookingIntent": false,
       "missingQualificationFields": [],
@@ -36,7 +36,7 @@
       "handoffRequired": false,
       "handoffReason": null
     },
-    "contains": ["$20", "before 11 PM", "$30", "special events"]
+    "contains": ["$20", "free", "before 11 PM"]
   },
   {
     "name": "dress code faq",

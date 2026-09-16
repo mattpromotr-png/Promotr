@@ -5,6 +5,26 @@ export function latestMessageAllowsBookingLink(message: string) {
   return bookingRequestPattern.test(message);
 }
 
+const bookingLinkRepeatPattern =
+  /\b(send|share|give)\b.{0,24}\b(again|another|link|form)\b|\b(link|form)\b.{0,24}\b(again|please)\b/i;
+
+export function conversationAllowsBookingLink(
+  messages: Array<{ role: "user" | "assistant"; content: string }>,
+) {
+  const latest = messages.at(-1);
+  if (!latest || latest.role !== "user") return false;
+  if (!latestMessageAllowsBookingLink(latest.content)) return false;
+  if (bookingLinkRepeatPattern.test(latest.content)) return true;
+  return !messages
+    .slice(-6, -1)
+    .some(
+      (message) =>
+        message.role === "assistant" &&
+        (/https?:\/\/\S+\/book\b/i.test(message.content) ||
+          /\bbooking inquiry\b/i.test(message.content)),
+    );
+}
+
 const directStaffRequestPattern =
   /\b(?:speak|talk|chat|connect|contact|transfer|pass me|put me through)\b.{0,40}\b(?:human|person|someone|staff|team|manager|admin|owner)\b|\b(?:human|staff|manager|admin)\b.{0,30}\b(?:please|now|directly|contact|help|reply|call)\b/iu;
 const urgentAttentionPattern =
