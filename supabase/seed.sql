@@ -1,9 +1,16 @@
 insert into public.venues (slug, name, timezone, booking_form_url, venue_facts, ai_configuration)
 values (
-  'promotr-nightclub', 'Promotr Nightclub', 'America/Toronto', 'http://localhost:3000/book',
-  '{"factsVersion":"promotr-venue-facts.v1","location":"Downtown Toronto","minimumAge":19,"capacityApproximate":500,"hours":{"friday":"10:00 PM–3:00 AM","saturday":"10:00 PM–3:00 AM"},"music":["Hip-hop","R&B","Afrobeats","Top 40","party anthems"],"entry":{"before11Pm":{"amount":20,"currency":"CAD"},"after11Pm":{"amount":30,"currency":"CAD"},"mayVaryForSpecialEvents":true,"admissionGuaranteed":false},"guestList":{"availability":"select nights","recommendedArrival":"before 11:00 PM","immediateEntryGuaranteed":false,"largeGroupsShouldArriveEarlier":true},"arrivalGuidance":[{"window":"10:30–11:30 PM","description":"easier entry and a good atmosphere"},{"window":"11:30 PM–12:30 AM","description":"busiest period and peak energy"},{"window":"after midnight","description":"packed, high-energy atmosphere"}],"dressCode":{"recommendation":"Dress to impress; upscale nightlife attire","notAllowed":["sweatpants","athletic wear","jerseys","beachwear","excessively baggy clothing","dirty or ripped clothing"],"cleanSneakers":"may be permitted depending on the night","finalDiscretion":"management and security"},"bottleService":{"currency":"CAD","startingPrices":{"standardVodka":350,"premiumVodka":450,"tequila":400,"premiumTequila":500,"champagne":400,"premiumChampagne":600},"generallyIncludes":["reserved table","dedicated server","bottle selection","mixers","priority entry"],"pricesMayVaryBy":["date","bottle selection","group size","special event"]},"unavailableFacts":["exact street address","live availability","special-event schedule"]}'::jsonb,
-  '{"promptVersion":"instagram-host.v1","maxRecentMessages":10,"maxOutputTokens":220,"maxQuestionsPerReply":1}'::jsonb
+  'promotr-nightclub',
+  'The Promotr Lounge',
+  'America/Toronto',
+  'http://localhost:3000/book',
+  '{"factsVersion":"promotr-venue-facts.v2","name":"The Promotr Lounge","address":"123 King Street West, Toronto, Ontario","minimumAge":19,"identification":"Valid government-issued photo ID is required. No exceptions.","hours":{"thursday":"10:00 PM-3:00 AM","friday":"10:00 PM-3:00 AM","saturday":"10:00 PM-3:00 AM","sundayToWednesday":"Closed unless a special event is confirmed"},"entry":{"generalCoverCad":20,"admissionGuaranteed":false},"guestList":{"coverCad":0,"condition":"Every guest in the party must arrive before 11:00 PM","admissionGuaranteed":false},"tables":{"highTop":{"minimumSpendCad":500,"includedEntryUpTo":5},"booth":{"minimumSpendCad":1500,"includedEntryUpTo":10},"liveAvailabilityKnown":false},"music":["Hip-hop","R&B","Afrobeats","house","Top 40","club hits","party anthems"],"dressCode":{"recommendation":"Upscale and stylish","cleanStylishSneakers":"May be accepted depending on the full outfit","hats":"Discouraged","notAllowed":["sports jerseys","sweatpants","baggy clothing","beachwear","work boots","dirty or worn sneakers"],"finalDiscretion":"Venue security and management"},"celebrations":{"cakesAllowed":true,"complimentaryExtrasGuaranteed":false},"service":{"bottleService":"Available through a table reservation","fullBar":true,"foodAvailable":true},"transport":{"dedicatedParkingClaimed":false,"guidance":["Nearby paid parking","TTC","Uber","Lyft","taxi","walking"]},"walkIns":"Allowed, subject to capacity and door policies","vipMeaning":"Table service"}'::jsonb,
+  '{"promptVersion":"vera.v2","maxRecentMessages":8,"maxOutputTokens":300,"maxQuestionsPerReply":1}'::jsonb
 )
-on conflict (slug) do update set name = excluded.name, timezone = excluded.timezone,
-booking_form_url = excluded.booking_form_url, venue_facts = excluded.venue_facts,
-ai_configuration = excluded.ai_configuration, updated_at = now();
+on conflict (slug) do update set
+  name = excluded.name,
+  timezone = excluded.timezone,
+  booking_form_url = excluded.booking_form_url,
+  venue_facts = excluded.venue_facts,
+  ai_configuration = excluded.ai_configuration,
+  updated_at = now();

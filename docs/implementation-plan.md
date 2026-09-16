@@ -40,6 +40,7 @@ Acceptance: verification succeeds; valid inbound text is processed once.
 - [x] OpenAI/n8n adapter and validated structured response contract.
 - [x] Bounded context, deterministic booking-link append, complaint/sensitive handoff rules, safe fallback, and usage metadata.
 - [x] Expand fixtures for every venue FAQ and multi-turn missing-field scenario.
+- [x] Replace the monolithic behavior context with the client-approved Vera v2 compact core, deterministic scenario routing, structured v2 facts, and regression tests (2026-09-16).
 
 Acceptance: accurate concise replies, no false confirmations, correct next action, safe handoff.
 

@@ -12,8 +12,8 @@ import { BookingForm } from "@/components/booking/booking-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const expectations = [
-  { icon: MapPin, label: "Downtown Toronto" },
-  { icon: CalendarDays, label: "Friday & Saturday · 10 PM–3 AM" },
+  { icon: MapPin, label: "123 King Street West, Toronto" },
+  { icon: CalendarDays, label: "Thursday-Saturday · 10 PM-3 AM" },
   { icon: ShieldCheck, label: "19+ · Valid government ID required" },
 ];
 

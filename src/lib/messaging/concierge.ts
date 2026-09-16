@@ -1,10 +1,9 @@
 import "server-only";
 
-import { promotrVenueFacts } from "@/config/venue-facts.v1";
 import { aiHostResponseSchema, type AiHostResponse } from "@/lib/ai/contract";
 import { deterministicHandoff, SAFE_AI_FALLBACK } from "@/lib/ai/orchestration";
 import { latestMessageAllowsBookingLink } from "@/lib/messaging/policy";
-import { guestConciergeBehavior } from "@/prompts/guest-concierge.v1";
+import { buildVeraSystemPrompt } from "@/prompts/vera";
 
 type ConciergeMessage = { role: "user" | "assistant"; content: string };
 
@@ -18,6 +17,7 @@ export async function generateConciergeReply(
   const latest = recent.at(-1)?.content || "";
   const deterministic = deterministicHandoff(latest);
   if (deterministic) return deterministic;
+  const { systemPrompt } = buildVeraSystemPrompt(recent);
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     console.error("Concierge response unavailable: OPENAI_API_KEY is missing");
@@ -36,7 +36,7 @@ export async function generateConciergeReply(
         input: [
           {
             role: "system",
-            content: `${guestConciergeBehavior}\n\nConfirmed venue facts:\n${JSON.stringify(promotrVenueFacts)}`,
+            content: systemPrompt,
           },
           ...recent,
         ],

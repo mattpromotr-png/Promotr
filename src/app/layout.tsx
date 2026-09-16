@@ -8,10 +8,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Promotr Nightclub",
+    default: "The Promotr Lounge",
     template: "%s | Promotr",
   },
-  description: "Booking inquiries for Promotr Nightclub in Downtown Toronto.",
+  description:
+    "Booking inquiries for The Promotr Lounge at 123 King Street West, Toronto.",
 };
 
 export default function RootLayout({

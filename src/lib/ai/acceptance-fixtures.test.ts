@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { promotrVenueFacts } from "@/config/venue-facts.v1";
+import { promotrVenueFacts } from "@/config/venue-facts.v2";
 import { instagramHostBehavior } from "@/prompts/instagram-host.v1";
 import fixtureData from "../../../tests/fixtures/ai-host-cases.json";
 import { aiHostResponseSchema, finalizeAiReply } from "./contract";
@@ -34,42 +34,44 @@ describe("AI host acceptance fixtures", () => {
     expect(reply).not.toContain("confirmed booking");
   });
 
-  it("keeps every contract-critical venue fact in structured configuration", () => {
+  it("keeps every PDF-critical venue fact in structured configuration", () => {
     expect(promotrVenueFacts).toMatchObject({
-      location: "Downtown Toronto",
+      name: "The Promotr Lounge",
+      address: "123 King Street West, Toronto, Ontario",
       minimumAge: 19,
-      hours: { friday: "10:00 PM–3:00 AM", saturday: "10:00 PM–3:00 AM" },
-      entry: {
-        before11Pm: { amount: 20 },
-        after11Pm: { amount: 30 },
-        admissionGuaranteed: false,
+      hours: {
+        thursday: "10:00 PM-3:00 AM",
+        friday: "10:00 PM-3:00 AM",
+        saturday: "10:00 PM-3:00 AM",
       },
-      guestList: {
-        recommendedArrival: "before 11:00 PM",
-        immediateEntryGuaranteed: false,
-      },
-      bottleService: {
-        startingPrices: { standardVodka: 350, premiumChampagne: 600 },
+      entry: { generalCoverCad: 20, admissionGuaranteed: false },
+      guestList: { coverCad: 0, admissionGuaranteed: false },
+      tables: {
+        highTop: { minimumSpendCad: 500, includedEntryUpTo: 5 },
+        booth: { minimumSpendCad: 1500, includedEntryUpTo: 10 },
       },
     });
-    expect(promotrVenueFacts.dressCode.notAllowed).toContain("athletic wear");
-    expect(promotrVenueFacts.unavailableFacts).toContain("live availability");
+    expect(promotrVenueFacts.dressCode.notAllowed).toContain("sports jerseys");
+    expect(promotrVenueFacts.neverInvent).toContain("live availability");
   });
 
-  it("requires guest-language replies without weakening safety", () => {
+  it("requires guest-language replies without weakening accuracy", () => {
     expect(instagramHostBehavior).toContain(
       "language of the guest's latest message",
     );
     expect(instagramHostBehavior).toContain(
-      "Apply every accuracy, safety, privacy, qualification, and handoff rule equally",
+      "Never invent facts, availability, events, DJs, prices",
     );
   });
 
   it.each([
-    ["French", "Nous sommes ouverts le vendredi et le samedi, de 22 h à 3 h."],
-    ["Spanish", "Abrimos los viernes y sábados de 10 p. m. a 3 a. m."],
-    ["German", "Wir haben freitags und samstags von 22 bis 3 Uhr geöffnet."],
-    ["Portuguese", "Abrimos às sextas e aos sábados, das 22h às 3h."],
+    [
+      "French",
+      "Nous sommes ouverts le jeudi, vendredi et samedi, de 22 h à 3 h.",
+    ],
+    ["Spanish", "Abrimos jueves, viernes y sábado de 10 p. m. a 3 a. m."],
+    ["German", "Wir haben donnerstags bis samstags von 22 bis 3 Uhr geöffnet."],
+    ["Portuguese", "Abrimos de quinta a sábado, das 22h às 3h."],
   ])("accepts a safe %s guest-facing reply", (_language, reply) => {
     expect(
       aiHostResponseSchema.parse({

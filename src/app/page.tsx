@@ -40,13 +40,13 @@ const experiences = [
   {
     icon: Users,
     title: "Guest list",
-    text: "Make your arrival easier on selected nights. Early arrival is recommended.",
+    text: "Free cover when everyone in your party arrives before 11 PM. Entry remains subject to door policies.",
     image: "/media/promotr-arrival.webp.jpeg",
   },
   {
     icon: Crown,
     title: "VIP tables",
-    text: "Your own space, dedicated service, mixers, and priority entry for the group.",
+    text: "High tops for up to 5 or booths for up to 10, with table minimums and dedicated service.",
     image: "/media/promotr-vip-experience.webp.jpeg",
   },
   {
@@ -102,7 +102,7 @@ export default function LandingPage() {
             data-reveal
           >
             <div className="mb-5 flex items-center gap-3 text-xs font-semibold tracking-[.22em] text-fuchsia-300 uppercase">
-              <span className="h-px bg-fuchsia-400" /> Downtown Toronto
+              <span className="h-px bg-fuchsia-400" /> 123 King Street West
             </div>
             <h1 className="text-5xl leading-[.92] font-black tracking-[-.065em] sm:text-7xl lg:text-[6.8rem]">
               Own the night.
@@ -131,7 +131,7 @@ export default function LandingPage() {
             <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-xs text-white/62">
               <span className="flex items-center gap-2">
                 <Clock3 size={15} className="text-violet-300" />
-                Fri & Sat · 10 PM–3 AM
+                Thu-Sat · 10 PM-3 AM
               </span>
               <span className="flex items-center gap-2">
                 <ShieldCheck size={15} className="text-violet-300" />
@@ -348,8 +348,12 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
           <div className="absolute inset-x-0 bottom-0 grid gap-2 p-5 sm:grid-cols-3 lg:grid-cols-1">
             {[
-              { icon: MapPin, label: "Location", value: "Downtown Toronto" },
-              { icon: CalendarDays, label: "Open", value: "Friday & Saturday" },
+              {
+                icon: MapPin,
+                label: "Location",
+                value: "123 King Street West",
+              },
+              { icon: CalendarDays, label: "Open", value: "Thursday-Saturday" },
               { icon: Clock3, label: "Hours", value: "10 PM — 3 AM" },
             ].map(({ icon: Icon, label, value }) => (
               <div
@@ -381,8 +385,8 @@ export default function LandingPage() {
           <div>
             <Brand />
             <p className="mt-5 max-w-sm text-sm leading-6 text-white/50">
-              Downtown Toronto nightlife, elevated tables, and unforgettable
-              weekends—all in one room.
+              Toronto nightlife, elevated tables, and unforgettable weekends—all
+              in one room.
             </p>
             <Link
               href="/book"
@@ -412,10 +416,10 @@ export default function LandingPage() {
               Venue
             </p>
             <div className="mt-4 space-y-3 text-sm text-white/65">
-              <p>Friday &amp; Saturday</p>
+              <p>Thursday-Saturday</p>
               <p>10 PM—3 AM</p>
               <p>19+ · Valid ID required</p>
-              <p>Downtown Toronto</p>
+              <p>123 King Street West, Toronto</p>
             </div>
           </div>
         </div>

@@ -7,7 +7,7 @@ export type ConversationMessage = {
 
 export const SAFE_AI_FALLBACK: AiHostResponse = {
   reply:
-    "I want to make sure you get the right answer. I’m passing this to the team so they can help you out.",
+    "I want to make sure you get the right answer. I’m sending this to our venue team so they can help.",
   intent: "other",
   bookingIntent: false,
   missingQualificationFields: [],
@@ -27,7 +27,7 @@ export function deterministicHandoff(text: string): AiHostResponse | null {
   if (complaintPattern.test(text)) {
     return {
       reply:
-        "Ahh, I’m sorry that happened 😕 I understand why you’d be frustrated. I’m passing this to the team so they can look into it.",
+        "I’m sorry that happened. I understand why you’d be frustrated, and I’m sending this to our venue team to review.",
       intent: "complaint",
       bookingIntent: false,
       missingQualificationFields: [],
@@ -40,7 +40,7 @@ export function deterministicHandoff(text: string): AiHostResponse | null {
     return {
       ...SAFE_AI_FALLBACK,
       reply:
-        "Please don’t send sensitive or payment information here. I’m passing this to the team so they can help safely.",
+        "Please don’t send sensitive or payment information here. I’m sending this to our venue team so they can help safely.",
       handoffReason: "Sensitive information request or disclosure",
     };
   }
@@ -48,7 +48,7 @@ export function deterministicHandoff(text: string): AiHostResponse | null {
     return {
       ...SAFE_AI_FALLBACK,
       reply:
-        "I have flagged this conversation for the Promotr team. A staff member can review your message and reply here.",
+        "Thanks for letting me know. I’ve sent this to our venue team for priority review, and a staff member can reply here.",
       handoffReason: "Guest requested direct contact with venue staff",
     };
   return null;

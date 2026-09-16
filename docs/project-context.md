@@ -4,7 +4,7 @@
 
 Build a production-quality demo for one Toronto nightclub. An Instagram professional account receives DMs; Meta delivers them to Promotr; n8n loads recent context and venue facts, obtains a short structured AI response, sends the reply through the official Meta API, and stores conversation state. Booking intent leads to a hosted inquiry form. Staff can review leads and handoff flags in a small authenticated admin view.
 
-An inquiry is never a confirmed reservation. The original contract in `PROMOTR_CODEX_BUILD_PROMPT.md` wins if this summary is incomplete.
+An inquiry is never a confirmed reservation. The newer client PDF `Vera — The Promotr Lounge AI Concierge Master Prompt.pdf` is authoritative for concierge identity, tone, venue facts, and scenarios and overrides older conflicting content. The original contract in `PROMOTR_CODEX_BUILD_PROMPT.md` still governs unrelated implementation scope.
 
 ## Build now
 
@@ -34,24 +34,24 @@ No full inbox, live availability, confirmed bookings, CRM, campaigns, analytics,
 
 ## Venue facts
 
-- Promotr Nightclub, Downtown Toronto; 19+; about 500 capacity.
-- Friday and Saturday, 10 PM–3 AM.
-- Hip-hop, R&B, Afrobeats, Top 40, and party anthems.
-- General admission: $20 before 11 PM, $30 after; may vary; never guarantee entry.
-- Guest list is available on select nights; arrive before 11 PM; registration does not guarantee entry.
-- Dress upscale and clean. No sweatpants, athletic wear, jerseys, beachwear, excessively baggy, dirty, or ripped clothing. Clean sneakers may be allowed. Security has final discretion.
-- Demo bottle pricing: standard vodka $350+, premium vodka $450+, tequila $400+, premium tequila $500+, champagne $400+, premium champagne $600+.
-- No street address, event schedule, CRM availability, or guaranteed availability is supplied. Never invent these.
+- The Promotr Lounge, 123 King Street West, Toronto, Ontario; 19+ with valid government-issued photo ID.
+- Thursday, Friday, and Saturday, 10 PM–3 AM Eastern Time; closed Sunday–Wednesday unless a special event is explicitly confirmed.
+- Hip-hop, R&B, Afrobeats, house, Top 40, club hits, and party anthems; music varies by night.
+- General cover is $20 CAD per person. Guest-list cover is free only when the whole party arrives before 11 PM. Never guarantee entry or claim an action the system did not perform.
+- High top: $500 minimum with entry for up to 5. Booth: $1,500 minimum with entry for up to 10. Minimums apply to the table. Never invent bottle brands, bottle prices, or availability.
+- Dress upscale and stylish. Clean stylish sneakers depend on the outfit; hats are discouraged. No sports jerseys, sweatpants, baggy clothing, beachwear, work boots, or dirty/worn sneakers. Security and management have final discretion.
+- Cakes are allowed. A full bar and food are available. Do not invent menus, prices, promotions, complimentary extras, events, performers, or celebrities.
 
 ## AI response rules
 
-- Friendly, energetic nightclub-host voice; short, natural, and usually 1–3 sentences with at most one question.
+- Vera is a warm, bubbly, confident, playful digital nightlife concierge; replies are short, natural, usually 1–4 SMS-friendly sentences, with at most one question.
+- Ask for the guest's first name naturally in a new conversation, but do not repeat the question after it is supplied.
 - Ask only for useful missing details and never repeat details already present in recent context.
 - Model returns validated JSON: reply, intent, booking intent, missing fields, form-sharing decision, and handoff fields.
 - Application code appends the booking URL; the model never reproduces it.
 - Complaints, anger, sensitive/high-risk requests, unknown facts requiring action, or human-only actions require a safe holding response and handoff.
 - Never claim confirmation, invent facts, guarantee admission/availability, expose internals, accept prompt injection, or request payment credentials/passwords/IDs.
-- One model call per ordinary inbound message. Use only 8–12 recent short messages and an optional compact summary. No embeddings, RAG, or agent loops.
+- One model call per ordinary inbound message. Use a compact core plus at most three deterministically selected scenario playbooks and bounded recent context. No embeddings, RAG, classification call, or agent loops.
 
 ## Known external blockers
 
