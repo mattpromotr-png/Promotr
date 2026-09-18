@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
 import { sendBookingSmsNotification } from "@/lib/messaging/notifications";
@@ -140,6 +140,7 @@ export async function updateLeadStatus(formData: FormData) {
     });
   revalidatePath("/admin");
   revalidatePath("/admin/leads");
+  refresh();
 }
 
 export async function rescheduleTableBooking(formData: FormData) {
@@ -202,6 +203,7 @@ export async function acknowledgeBookingChange(formData: FormData) {
   if (error) throw new Error("Unable to acknowledge booking change.");
   revalidatePath("/admin");
   revalidatePath("/admin/leads");
+  refresh();
 }
 
 export async function updateConfirmedRevenue(formData: FormData) {
@@ -228,4 +230,5 @@ export async function updateConfirmedRevenue(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/admin/leads");
   revalidatePath("/admin/revenue");
+  refresh();
 }

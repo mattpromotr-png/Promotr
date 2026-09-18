@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth/admin";
@@ -51,6 +51,7 @@ export async function addFoundItem(formData: FormData) {
   });
   if (error) throw new Error("Unable to add the found item.");
   revalidatePath("/admin/lost-found");
+  refresh();
 }
 
 export async function updateFoundItemStatus(formData: FormData) {
@@ -65,6 +66,7 @@ export async function updateFoundItemStatus(formData: FormData) {
     .eq("id", id);
   if (error) throw new Error("Unable to update the found item.");
   revalidatePath("/admin/lost-found");
+  refresh();
 }
 
 export async function updateLostReportStatus(formData: FormData) {
@@ -79,4 +81,5 @@ export async function updateLostReportStatus(formData: FormData) {
     .eq("id", id);
   if (error) throw new Error("Unable to update the lost-item report.");
   revalidatePath("/admin/lost-found");
+  refresh();
 }

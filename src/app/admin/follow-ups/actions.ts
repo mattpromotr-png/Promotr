@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,4 +20,5 @@ export async function resolveFollowUp(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/admin/follow-ups");
   revalidatePath("/admin/leads");
+  refresh();
 }

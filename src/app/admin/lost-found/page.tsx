@@ -180,7 +180,7 @@ export default async function LostFoundAdminPage() {
               <p className="text-muted p-6 text-sm">No found items recorded.</p>
             ) : (
               items.map((item) => (
-                <article key={item.id} className="p-4">
+                <article key={`${item.id}:${item.status}`} className="p-4">
                   <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                     <div>
                       <div className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export default async function LostFoundAdminPage() {
           ) : (
             reports.map((report) => (
               <article
-                key={report.id}
+                key={`${report.id}:${report.status}`}
                 className="border-border bg-elevated rounded-2xl border p-4"
               >
                 <div className="flex items-start justify-between gap-3">

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin";
 import { translateStaffReply } from "@/lib/ai/translate-staff-reply";
 import { normalizeLanguageName } from "@/lib/ai/language";
@@ -45,6 +45,7 @@ export async function sendConversationReply(formData: FormData) {
     });
     revalidatePath("/admin/conversations");
     revalidatePath("/admin/leads");
+    refresh();
     return;
   }
   if (conversation.channel !== "web_preview")
@@ -88,6 +89,7 @@ export async function sendConversationReply(formData: FormData) {
     .eq("id", conversationId);
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");
+  refresh();
 }
 
 export async function updateConversationFollowUp(formData: FormData) {
@@ -129,6 +131,7 @@ export async function updateConversationFollowUp(formData: FormData) {
     .eq("channel", "sms");
   if (error) throw new Error("Unable to update follow-up settings.");
   revalidatePath("/admin/conversations");
+  refresh();
 }
 
 export async function pauseConversationAutomation(formData: FormData) {
@@ -146,6 +149,7 @@ export async function pauseConversationAutomation(formData: FormData) {
   if (error) throw new Error("Unable to pause automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");
+  refresh();
 }
 
 export async function resumeConversationAutomation(formData: FormData) {
@@ -163,6 +167,7 @@ export async function resumeConversationAutomation(formData: FormData) {
   if (error) throw new Error("Unable to resume automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");
+  refresh();
 }
 
 function boundedInteger(
