@@ -4,7 +4,7 @@ Promotr is a single-venue Instagram concierge demo for Promotr Nightclub. It ans
 
 An inquiry is never a confirmed reservation. This MVP does not provide live availability, guaranteed entry, payments, CRM integration, or multi-venue onboarding.
 
-## Local development
+## Local development 
 
 Requirements: Node.js 20.9 or newer and npm.
 
