@@ -3,6 +3,7 @@ import {
   buildBoundedContext,
   conversationalFallback,
   deterministicHandoff,
+  deterministicNearbyRecommendation,
   deterministicStaffPrivacy,
   parseAiHostResponse,
   SAFE_AI_FALLBACK,
@@ -52,6 +53,18 @@ describe("AI orchestration rules", () => {
       deterministicStaffPrivacy("Is bartender Gucci working tonight?")?.reply,
     ).not.toContain("check with");
     expect(deterministicStaffPrivacy("No, the bartender Gucci")).not.toBeNull();
+  });
+  it("keeps nearby recommendations focused on Promotr", () => {
+    const result = deterministicNearbyRecommendation(
+      "Can you recommend a hotel within walking distance?",
+    );
+
+    expect(result).toMatchObject({
+      handoffRequired: false,
+      shareBookingForm: false,
+      bookingIntent: false,
+    });
+    expect(result?.reply).toContain("once you arrive");
   });
   it("rejects invalid model output with a safe handoff", () => {
     expect(parseAiHostResponse("not json")).toEqual(SAFE_AI_FALLBACK);
