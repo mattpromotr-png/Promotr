@@ -16,6 +16,26 @@ export const SAFE_AI_FALLBACK: AiHostResponse = {
   handoffReason: "AI response could not be safely validated",
 };
 
+const harmlessNightlifeSlangPattern =
+  /\b(?:tryna|finna)\b.{0,60}\b(?:party|club|turn up|after it|meet|vibe|dance)\b|\b(?:mandem|the boys|the mandem)\b.{0,60}\b(?:party|club|turn up|after it|meet|vibe|dance)\b|\b(?:get\s+(?:\w+\s+){0,2}after it|turnt)\b/i;
+
+export function conversationalFallback(text: string): AiHostResponse {
+  if (harmlessNightlifeSlangPattern.test(text)) {
+    return {
+      reply:
+        "Sounds like you and your crew are after a high-energy, social night 😎 What kind of music and vibe are you looking for?",
+      intent: "faq",
+      bookingIntent: false,
+      missingQualificationFields: [],
+      shareBookingForm: false,
+      handoffRequired: false,
+      handoffReason: null,
+    };
+  }
+
+  return SAFE_AI_FALLBACK;
+}
+
 const complaintPattern =
   /\b(angry|complain|complaint|refund|scam|rude|terrible|awful|security hurt|charged twice)\b/i;
 const sensitivePattern =

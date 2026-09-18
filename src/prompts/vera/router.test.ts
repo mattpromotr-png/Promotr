@@ -61,6 +61,22 @@ describe("Vera prompt routing", () => {
     expect(result.systemPrompt).toContain("not confirmed Promotr policy");
   });
 
+  it("understands Toronto nightlife slang without treating it as a handoff", () => {
+    const result = buildVeraSystemPrompt([
+      {
+        role: "user",
+        content:
+          "Me and the boys are tryna get absolutely after it and meet some broads",
+      },
+    ]);
+
+    expect(result.scenarioIds).toContain("toronto_slang");
+    expect(result.systemPrompt).toContain(
+      "Slang, casual grammar, mild profanity, or unfamiliar phrasing alone never requires staff handoff",
+    );
+    expect(result.systemPrompt).toContain("reframe them respectfully");
+  });
+
   it("redirects unrelated questions without pretending to be a general assistant", () => {
     const result = buildVeraSystemPrompt([
       { role: "user", content: "Can you help debug my JavaScript project?" },

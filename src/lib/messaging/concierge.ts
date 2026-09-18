@@ -5,7 +5,10 @@ import {
   type ConciergeIntelligence,
 } from "@/lib/ai/concierge-intelligence";
 import { aiHostResponseSchema, type AiHostResponse } from "@/lib/ai/contract";
-import { deterministicHandoff, SAFE_AI_FALLBACK } from "@/lib/ai/orchestration";
+import {
+  conversationalFallback,
+  deterministicHandoff,
+} from "@/lib/ai/orchestration";
 import { conversationAllowsBookingLink } from "@/lib/messaging/policy";
 import { buildVeraSystemPrompt } from "@/prompts/vera";
 
@@ -49,7 +52,7 @@ export async function generateConciergeReply(
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     console.error("Concierge response unavailable: OPENAI_API_KEY is missing");
-    return withFallbackIntelligence(SAFE_AI_FALLBACK, latest);
+    return withFallbackIntelligence(conversationalFallback(latest), latest);
   }
 
   try {
@@ -145,7 +148,7 @@ export async function generateConciergeReply(
         status: response.status,
         requestId: response.headers.get("x-request-id"),
       });
-      return withFallbackIntelligence(SAFE_AI_FALLBACK, latest);
+      return withFallbackIntelligence(conversationalFallback(latest), latest);
     }
     const payload = (await response.json()) as {
       output?: Array<{
@@ -162,7 +165,7 @@ export async function generateConciergeReply(
       console.error("Concierge response failed schema validation", {
         requestId: response.headers.get("x-request-id"),
       });
-      return withFallbackIntelligence(SAFE_AI_FALLBACK, latest);
+      return withFallbackIntelligence(conversationalFallback(latest), latest);
     }
     return {
       ...parsed.data,
@@ -175,7 +178,7 @@ export async function generateConciergeReply(
     console.error("Concierge response processing failed", {
       name: error instanceof Error ? error.name : "UnknownError",
     });
-    return withFallbackIntelligence(SAFE_AI_FALLBACK, latest);
+    return withFallbackIntelligence(conversationalFallback(latest), latest);
   }
 }
 

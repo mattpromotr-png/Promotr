@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildBoundedContext,
+  conversationalFallback,
   deterministicHandoff,
   parseAiHostResponse,
   SAFE_AI_FALLBACK,
@@ -25,6 +26,18 @@ describe("AI orchestration rules", () => {
       handoffRequired: true,
       shareBookingForm: false,
     });
+  });
+  it("does not escalate harmless nightlife slang when the model is unavailable", () => {
+    const text =
+      "Me and the boys are tryna get absolutely after it and meet some broads";
+
+    expect(deterministicHandoff(text)).toBeNull();
+    expect(conversationalFallback(text)).toMatchObject({
+      handoffRequired: false,
+      shareBookingForm: false,
+      bookingIntent: false,
+    });
+    expect(conversationalFallback(text).reply).not.toContain("broads");
   });
   it("rejects invalid model output with a safe handoff", () => {
     expect(parseAiHostResponse("not json")).toEqual(SAFE_AI_FALLBACK);
