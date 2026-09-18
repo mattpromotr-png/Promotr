@@ -10,7 +10,11 @@ const scenarioPatterns: Array<[VeraScenarioId, RegExp]> = [
   ],
   [
     "toronto_slang",
-    /\b(?:tryna|finna|mandem|the boys|the mandem|get after it|turnt|lit|bare|ahlie|wagwan|yute|gyal|tings?|say less|pull up)\b/i,
+    /\b(?:tryna|finna|mans|mandem|the boys|the mandem|get after it|turnt|lit|bare|ahlie|wallahi|nize it|wasteyute|bucktee|cheesed|fam|styll|yute|gyal|tings?|say less|reach|pull up)\b/i,
+  ],
+  [
+    "staff_privacy",
+    /\b(?:who|which|is|are|will|when)\b.{0,50}\b(?:bartender|server|waiter|waitress|host|hostess|security|bouncer|manager|staff|employee|worker|dj)\b.{0,60}\b(?:working|on shift|scheduled|there|tonight|today|weekend|schedule|roster|contact)|\b(?:bartender|server|waiter|waitress|host|hostess|security|bouncer|manager|staff|employee|worker|dj)\b.{0,50}\b(?:working|on shift|scheduled|there|tonight|today|weekend|schedule|roster|contact)\b|\b(?:bartender|server|waiter|waitress|host|hostess|bouncer)\s+(?:named\s+)?(?!(?:recommend|help|service|menu|drink|working|schedule|there|tonight)\b)[a-z][a-z'-]{1,}\b/i,
   ],
   [
     "safety_handoff",

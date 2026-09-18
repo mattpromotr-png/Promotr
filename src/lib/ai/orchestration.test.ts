@@ -3,6 +3,7 @@ import {
   buildBoundedContext,
   conversationalFallback,
   deterministicHandoff,
+  deterministicStaffPrivacy,
   parseAiHostResponse,
   SAFE_AI_FALLBACK,
 } from "./orchestration";
@@ -38,6 +39,19 @@ describe("AI orchestration rules", () => {
       bookingIntent: false,
     });
     expect(conversationalFallback(text).reply).not.toContain("broads");
+  });
+  it("protects staff schedules without creating an unnecessary handoff", () => {
+    expect(
+      deterministicStaffPrivacy("Is bartender Gucci working tonight?"),
+    ).toMatchObject({
+      handoffRequired: false,
+      shareBookingForm: false,
+      bookingIntent: false,
+    });
+    expect(
+      deterministicStaffPrivacy("Is bartender Gucci working tonight?")?.reply,
+    ).not.toContain("check with");
+    expect(deterministicStaffPrivacy("No, the bartender Gucci")).not.toBeNull();
   });
   it("rejects invalid model output with a safe handoff", () => {
     expect(parseAiHostResponse("not json")).toEqual(SAFE_AI_FALLBACK);

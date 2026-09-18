@@ -8,6 +8,7 @@ import { aiHostResponseSchema, type AiHostResponse } from "@/lib/ai/contract";
 import {
   conversationalFallback,
   deterministicHandoff,
+  deterministicStaffPrivacy,
 } from "@/lib/ai/orchestration";
 import { conversationAllowsBookingLink } from "@/lib/messaging/policy";
 import { buildVeraSystemPrompt } from "@/prompts/vera";
@@ -40,6 +41,8 @@ export async function generateConciergeReply(
   const latest = recent.at(-1)?.content || "";
   const deterministic = deterministicHandoff(latest);
   if (deterministic) return withFallbackIntelligence(deterministic, latest);
+  const staffPrivacy = deterministicStaffPrivacy(latest);
+  if (staffPrivacy) return withFallbackIntelligence(staffPrivacy, latest);
   const { systemPrompt } = buildVeraSystemPrompt(recent);
   const intelligenceInstructions = `Operational output fields: detect the language of the latest guest message; translate that message and your reply faithfully into English; extract guestFirstName only when the guest explicitly supplied it; keep memoryFacts to durable guest preferences or personal details explicitly stated; and write a compact conversationSummary preserving names, preferences, current request, and unresolved questions. Never treat inferred or unconfirmed booking details as verified facts.`;
   const suppliedMemory = JSON.stringify({

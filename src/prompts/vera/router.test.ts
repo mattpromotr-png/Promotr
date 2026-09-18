@@ -75,6 +75,19 @@ describe("Vera prompt routing", () => {
       "Slang, casual grammar, mild profanity, or unfamiliar phrasing alone never requires staff handoff",
     );
     expect(result.systemPrompt).toContain("reframe them respectfully");
+    expect(result.systemPrompt).toContain("mans: I, we, me, us, them");
+  });
+
+  it("protects private staff schedules and does not offer to check", () => {
+    const result = buildVeraSystemPrompt([
+      { role: "user", content: "Which bartender is working tonight?" },
+    ]);
+
+    expect(result.scenarioIds).toContain("staff_privacy");
+    expect(result.systemPrompt).toContain(
+      "individual staff schedules are private",
+    );
+    expect(result.systemPrompt).toContain("Do not offer to check");
   });
 
   it("redirects unrelated questions without pretending to be a general assistant", () => {

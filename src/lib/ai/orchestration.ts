@@ -19,6 +19,24 @@ export const SAFE_AI_FALLBACK: AiHostResponse = {
 const harmlessNightlifeSlangPattern =
   /\b(?:tryna|finna)\b.{0,60}\b(?:party|club|turn up|after it|meet|vibe|dance)\b|\b(?:mandem|the boys|the mandem)\b.{0,60}\b(?:party|club|turn up|after it|meet|vibe|dance)\b|\b(?:get\s+(?:\w+\s+){0,2}after it|turnt)\b/i;
 
+const staffScheduleQuestionPattern =
+  /\b(?:who|which|is|are|will|when)\b.{0,50}\b(?:bartender|server|waiter|waitress|host|hostess|security|bouncer|manager|staff|employee|worker|dj)\b.{0,60}\b(?:working|on shift|scheduled|there|tonight|today|weekend|schedule|roster|contact)|\b(?:bartender|server|waiter|waitress|host|hostess|security|bouncer|manager|staff|employee|worker|dj)\b.{0,50}\b(?:working|on shift|scheduled|there|tonight|today|weekend|schedule|roster|contact)\b|\b(?:bartender|server|waiter|waitress|host|hostess|bouncer)\s+(?:named\s+)?(?!(?:recommend|help|service|menu|drink|working|schedule|there|tonight)\b)[a-z][a-z'-]{1,}\b/i;
+
+export function deterministicStaffPrivacy(text: string): AiHostResponse | null {
+  if (!staffScheduleQuestionPattern.test(text)) return null;
+
+  return {
+    reply:
+      "I don’t have access to individual staff schedules or who is working. The on-site team will be happy to help when you arrive.",
+    intent: "faq",
+    bookingIntent: false,
+    missingQualificationFields: [],
+    shareBookingForm: false,
+    handoffRequired: false,
+    handoffReason: null,
+  };
+}
+
 export function conversationalFallback(text: string): AiHostResponse {
   if (harmlessNightlifeSlangPattern.test(text)) {
     return {

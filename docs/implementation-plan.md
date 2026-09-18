@@ -42,6 +42,7 @@ Acceptance: verification succeeds; valid inbound text is processed once.
 - [x] Expand fixtures for every venue FAQ and multi-turn missing-field scenario.
 - [x] Replace the monolithic behavior context with the client-approved Vera v2 compact core, deterministic scenario routing, structured v2 facts, and regression tests (2026-09-16).
 - [x] Add controlled Canadian/Toronto nightlife-slang interpretation, respectful tone matching, and a non-escalating fallback for harmless slang (2026-09-18).
+- [x] Expand the curated Toronto-slang interpretation guide and deterministically protect private employee schedules, presence, and contact information (2026-09-18).
 
 Acceptance: accurate concise replies, no false confirmations, correct next action, safe handoff.
 
