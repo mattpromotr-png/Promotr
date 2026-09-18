@@ -57,6 +57,10 @@ const scenarioPatterns: Array<[VeraScenarioId, RegExp]> = [
     /\b(parking|park|ttc|uber|lyft|taxi|walk|transit|subway|directions?)\b/i,
   ],
   [
+    "nearby_recommendations",
+    /\b(?:where (?:can|should|could) (?:i|we).{0,35}(?:stay|sleep|eat|drink|go)|recommend(?:ation|ations)?(?: for| of)?\s+(?:a |an |some )?(?:hotel|motel|hostel|airbnb|restaurant|bar|club|nightclub|place|spot)|(?:hotel|motel|hostel|airbnb|restaurant|bar|club|nightclub|place|spot)s?\b.{0,40}\b(?:nearby|near you|near the club|walking distance|recommend|afterwards?|beforehand)|other\s+(?:bars?|clubs?|nightclubs?|venues?|spots?|places?)|places? to stay)\b/i,
+  ],
+  [
     "identity_social",
     /\b(first time|never been|are you (?:an? )?ai|are you real|are you there|who are you|vera)\b/i,
   ],

@@ -90,6 +90,21 @@ describe("Vera prompt routing", () => {
     expect(result.systemPrompt).toContain("Do not offer to check");
   });
 
+  it("redirects nearby-business requests without advertising competitors", () => {
+    const result = buildVeraSystemPrompt([
+      {
+        role: "user",
+        content: "Can you recommend a hotel within walking distance?",
+      },
+    ]);
+
+    expect(result.scenarioIds).toContain("nearby_recommendations");
+    expect(result.systemPrompt).toContain(
+      "do not name or recommend external businesses",
+    );
+    expect(result.systemPrompt).toContain("once the guest arrives");
+  });
+
   it("redirects unrelated questions without pretending to be a general assistant", () => {
     const result = buildVeraSystemPrompt([
       { role: "user", content: "Can you help debug my JavaScript project?" },
