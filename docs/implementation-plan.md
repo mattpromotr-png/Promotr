@@ -224,3 +224,15 @@ rereading the full project prompt.
 - [x] Compact overview metrics, follow-up cards, revenue summaries and rows, table controls, and Lost & Found panels.
 - [x] Keep tablet navigation horizontally scrollable instead of squeezing the full desktop navigation into the header.
 - [ ] Complete signed-in desktop visual acceptance at common laptop and large-desktop viewport sizes.
+
+## Promotr Manager iOS distribution (2026-09-20)
+
+- [x] Confirm that the client's Apple Developer Program membership is Individual and document why invited Admin access cannot create Apple signing resources.
+- [x] Record the fixed Bundle ID, EAS identity, roles, signing, APNs, TestFlight, and App Store continuation steps in `docs/apple-ios-release-checklist.md`.
+- [ ] Client: register the business as a legal entity, obtain/confirm its D-U-N-S Number, and complete Apple's Organization-membership conversion.
+- [ ] Client: accept any updated agreement and confirm the Organization membership from Membership details.
+- [ ] Restore Admin access to Certificates, Identifiers & Profiles and verify the correct Apple team.
+- [ ] Register or reuse the explicit `com.promotr.manager` App ID with Push Notifications and create/reuse the matching App Store Connect record.
+- [ ] Configure EAS iOS distribution, provisioning, APNs, and submission credentials without committing secrets.
+- [ ] Build and submit the production iOS binary, then complete real-device TestFlight acceptance.
+- [ ] Complete App Store metadata, privacy disclosures, review access, App Review, and client-controlled release.
