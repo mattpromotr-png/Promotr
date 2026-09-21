@@ -18,17 +18,32 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const rawBody = Buffer.from(await request.arrayBuffer());
-  const appSecret = process.env.META_APP_SECRET;
+  const configuredSecrets = [
+    { source: "instagram", value: process.env.META_INSTAGRAM_APP_SECRET },
+    { source: "meta_basic", value: process.env.META_BASIC_APP_SECRET },
+    { source: "legacy", value: process.env.META_APP_SECRET },
+  ].filter((entry): entry is { source: string; value: string } =>
+    Boolean(entry.value),
+  );
+  const usableSecrets = configuredSecrets.filter(
+    (entry) => entry.value === entry.value.trim(),
+  );
   const signature = request.headers.get("x-hub-signature-256");
-  const rejectionReason = !appSecret
+  const validSignatureFormat = /^sha256=[a-fA-F0-9]{64}$/.test(signature || "");
+  const matchedSecret = validSignatureFormat
+    ? usableSecrets.find((entry) =>
+        verifyMetaSignature(rawBody, signature, entry.value),
+      )
+    : undefined;
+  const rejectionReason = !configuredSecrets.length
     ? "missing_app_secret"
-    : appSecret !== appSecret.trim()
+    : !usableSecrets.length
       ? "app_secret_has_whitespace"
       : !signature
         ? "missing_signature_header"
-        : !/^sha256=[a-f0-9]{64}$/i.test(signature)
+        : !validSignatureFormat
           ? "malformed_signature_header"
-          : !verifyMetaSignature(rawBody, signature, appSecret)
+          : !matchedSecret
             ? "signature_mismatch"
             : null;
   if (rejectionReason) {
@@ -37,6 +52,9 @@ export async function POST(request: NextRequest) {
     });
     return new NextResponse("Unauthorized", { status: 401 });
   }
+  console.info("Meta webhook authenticated", {
+    secretSource: matchedSecret?.source,
+  });
   let payload: unknown;
   try {
     payload = JSON.parse(rawBody.toString("utf8"));
@@ -44,6 +62,12 @@ export async function POST(request: NextRequest) {
     return new NextResponse("Bad request", { status: 400 });
   }
   const events = normalizeInstagramEvents(payload);
+  if (!events.length) {
+    console.info("Meta webhook ignored", {
+      reason: "no_supported_text_events",
+    });
+    return NextResponse.json({ received: true });
+  }
   const accountId = process.env.META_INSTAGRAM_ACCOUNT_ID;
   if (!accountId)
     return new NextResponse("Integration unavailable", { status: 503 });
@@ -54,7 +78,12 @@ export async function POST(request: NextRequest) {
   const supabase = createAdminClient();
 
   for (const event of events) {
-    if (event.recipientId !== accountId) continue;
+    if (event.recipientId !== accountId) {
+      console.info("Meta webhook ignored", {
+        reason: "recipient_not_configured",
+      });
+      continue;
+    }
     const { error } = await supabase.from("webhook_events").insert({
       provider_message_id: event.providerMessageId,
       normalized_event: event,
@@ -83,6 +112,7 @@ export async function POST(request: NextRequest) {
         signal: AbortSignal.timeout(18_000),
       });
       if (!response.ok) throw new Error("n8n rejected event");
+      console.info("Meta webhook forwarded to n8n");
       await supabase
         .from("webhook_events")
         .update({ status: "forwarded", forwarded_at: new Date().toISOString() })

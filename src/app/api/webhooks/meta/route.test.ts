@@ -61,6 +61,8 @@ function request(signatureOverride?: string | null) {
 describe("Meta webhook route", () => {
   beforeEach(() => {
     records.clear();
+    delete process.env.META_INSTAGRAM_APP_SECRET;
+    delete process.env.META_BASIC_APP_SECRET;
     process.env.META_APP_SECRET = secret;
     process.env.META_VERIFY_TOKEN = "verify-me";
     process.env.META_INSTAGRAM_ACCOUNT_ID = "venue";
@@ -100,9 +102,45 @@ describe("Meta webhook route", () => {
     expect(records.size).toBe(0);
   });
 
+  it.each(["META_INSTAGRAM_APP_SECRET", "META_BASIC_APP_SECRET"])(
+    "authenticates with explicitly configured %s",
+    async (key) => {
+      process.env.META_APP_SECRET = "different-legacy-secret";
+      process.env[key] = secret;
+      expect((await POST(request())).status).toBe(200);
+      expect(fetch).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("rejects signatures that match none of the configured app secrets", async () => {
+    process.env.META_INSTAGRAM_APP_SECRET = "instagram-secret";
+    process.env.META_BASIC_APP_SECRET = "basic-secret";
+    expect((await POST(request(`sha256=${"0".repeat(64)}`))).status).toBe(401);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(records.size).toBe(0);
+  });
+
+  it("accepts a signed empty test without database or n8n processing", async () => {
+    delete process.env.N8N_INSTAGRAM_WEBHOOK_URL;
+    const body = '{"object":"instagram","entry":[]}';
+    const signature = createHmac("sha256", secret).update(body).digest("hex");
+    const response = await POST(
+      new NextRequest("http://localhost/api/webhooks/meta", {
+        method: "POST",
+        body,
+        headers: { "x-hub-signature-256": `sha256=${signature}` },
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(records.size).toBe(0);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("verifies the original bytes before decoding the payload", async () => {
     const rawBody = Buffer.concat([Buffer.from(payload), Buffer.from([0xff])]);
-    const signature = createHmac("sha256", secret).update(rawBody).digest("hex");
+    const signature = createHmac("sha256", secret)
+      .update(rawBody)
+      .digest("hex");
     const response = await POST(
       new NextRequest("http://localhost/api/webhooks/meta", {
         method: "POST",
@@ -129,10 +167,9 @@ describe("Meta webhook route", () => {
         request(setup === "missing_header" ? null : header),
       );
       expect(response.status).toBe(401);
-      expect(log).toHaveBeenCalledWith(
-        "Meta webhook authentication rejected",
-        { reason },
-      );
+      expect(log).toHaveBeenCalledWith("Meta webhook authentication rejected", {
+        reason,
+      });
       expect(fetch).not.toHaveBeenCalled();
     } finally {
       log.mockRestore();

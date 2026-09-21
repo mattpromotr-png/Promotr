@@ -249,3 +249,5 @@ See `docs/instagram-integration-plan.md` for the architecture and activation che
 - [ ] Complete real inbound/outbound, concurrency, multilingual, handoff, staff-reply, and notification acceptance tests; do not describe the channel as live before these pass.
 - [x] Verify the webhook signature against the original request bytes and cover non-text-safe payloads in a route test.
 - [ ] Resolve the production Meta Test `signature_mismatch` (POST 401) and, separately, the missing webhook delivery for real Instagram DMs. Neither live issue is resolved by local tests alone.
+- [x] Add explicit same-app Instagram/Meta signing-key support, fail-closed tests, and safe authentication/filter/forward logs.
+- [x] Run live diagnostic reads: the local Instagram token identifies the configured Promotr account and its account-level subscription includes `messages`; production internal authentication accepts the local n8n shared secret. The local Meta signing secret is rejected by production. The active domain points to the current commit; Vercel marks Meta credentials sensitive, so their deployed values cannot be read back.

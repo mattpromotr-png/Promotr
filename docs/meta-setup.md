@@ -37,7 +37,7 @@ Standard Access is sufficient while the app serves an account owned/managed by t
    `https://YOUR_DOMAIN/api/webhooks/meta`
 3. Set the same random verify token in Meta and Vercel as `META_VERIFY_TOKEN`.
 4. Subscribe to the `messages` field. `messaging_postbacks`, `messaging_optins`, and `messaging_referral` are not required by the current text-DM MVP.
-5. For this Instagram Login integration, put the **Instagram App Secret** shown under **Instagram > API setup with Instagram login** in Vercel's `META_APP_SECRET`. The variable name is historical; do not substitute the separate secret under **App settings > Basic**. It validates `X-Hub-Signature-256` over the original request bytes.
+5. Store the Instagram secret from **Instagram > API setup with Instagram login** as `META_INSTAGRAM_APP_SECRET`. If testing the parent Meta app's webhook configuration too, store that same app's **App settings > Basic** secret as `META_BASIC_APP_SECRET`. These are explicit allowed signing keys: the route requires a valid `X-Hub-Signature-256` over the original request bytes and logs only which source matched. The old `META_APP_SECRET` remains a compatibility fallback. Never disable signature verification to get a successful test.
 6. Complete the dashboard verification challenge. A correct request receives the raw `hub.challenge` value.
 
 The application ignores echoes, non-text events, malformed events, and repeated provider message IDs before AI work.
@@ -45,7 +45,9 @@ The application ignores echoes, non-text events, malformed events, and repeated 
 ## Token and identifier mapping
 
 - `META_APP_ID`: Meta app identifier; Vercel configuration/reference only.
-- `META_APP_SECRET`: Instagram Login app secret for signature validation in Vercel; never expose to n8n/browser.
+- `META_INSTAGRAM_APP_SECRET`: Instagram Login app signing secret; server-only.
+- `META_BASIC_APP_SECRET`: optional parent Meta app signing secret, belonging to the same configured app; server-only.
+- `META_APP_SECRET`: legacy signing-secret fallback; server-only.
 - `META_VERIFY_TOKEN`: shared only between Meta webhook setup and Vercel.
 - `META_ACCESS_TOKEN`: Promotr Instagram user/system-user access token stored server-side in Vercel for the application's Send API adapter.
 - `META_INSTAGRAM_ACCOUNT_ID`: professional account ID used by the Send API.
@@ -70,3 +72,13 @@ The recipient is the Instagram-scoped sender ID received in the `messages` webho
 6. Test a complaint and confirm `/admin/leads` displays it under **Human follow-up** even without a lead submission.
 
 Do not describe the integration as customer-ready until required access level, app review/business verification, rate limits, messaging window, privacy disclosures, and data deletion obligations are confirmed for the final owner.
+
+## Diagnostic checks
+
+`scripts/diagnose-instagram.mjs` reads the ignored local `.env`. It outputs secret presence and comparison results, never secret values or guest messages.
+
+- `node scripts/diagnose-instagram.mjs --live --origin https://YOUR_DOMAIN` sends an empty signed webhook and invalid empty internal/n8n events, then reads the Instagram token's identity and account subscriptions. The internal endpoint should return **400 Invalid event** when authentication succeeds; **401** means the shared secret was rejected. An n8n 500 for this intentionally invalid payload is not evidence that real messages fail.
+- `node scripts/diagnose-instagram.mjs --vercel --origin https://YOUR_DOMAIN` uses a temporary local `VERCEL_TOKEN` to inspect the domain's actual deployment and production configuration. Vercel sensitive variables cannot be decrypted; the tool reports this rather than claiming their values match.
+- Adding `--sync-signing` to the Vercel command explicitly writes only the two named app signing secrets from local `.env` into Production. Redeploy afterward. This flag is a configuration change, not a read-only check.
+
+After deployment, `Meta webhook authenticated` proves a signature match. `Meta webhook ignored` identifies unsupported test payloads or another recipient account; these do not run n8n. `Meta webhook forwarded to n8n` proves a successful handoff response. Complete a real guest DM and verify its reply separately.
