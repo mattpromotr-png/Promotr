@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, LoaderCircle } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -206,6 +207,13 @@ export function LostFoundForm({ conversationId }: { conversationId?: string }) {
         </span>
       </label>
       <FieldError message={errors.consent?.message} />
+      <p className="text-muted text-xs leading-5">
+        See our{" "}
+        <Link href="/privacy" className="underline underline-offset-4">
+          privacy policy
+        </Link>{" "}
+        for how we handle your information.
+      </p>
       {serverError && (
         <p className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
           {serverError}

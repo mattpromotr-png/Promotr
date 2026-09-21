@@ -8,6 +8,7 @@ import {
   LoaderCircle,
   LockKeyhole,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -420,6 +421,13 @@ export function BookingForm({ conversationId }: { conversationId?: string }) {
             inquiry, payment, and booking changes. Message rates may apply.
           </label>
           <FieldError message={errors.consent?.message} />
+          <p className="text-muted text-xs leading-5">
+            See our{" "}
+            <Link href="/privacy" className="underline underline-offset-4">
+              privacy policy
+            </Link>{" "}
+            for how we handle your information.
+          </p>
           {validationError && (
             <p
               role="alert"

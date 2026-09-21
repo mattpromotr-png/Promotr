@@ -426,7 +426,15 @@ export default function LandingPage() {
         <div className="border-t border-white/10">
           <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
             <p>© {new Date().getFullYear()} Promotr. All rights reserved.</p>
-            <p>19+ only · Please enjoy responsibly.</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              <Link href="/privacy" className="hover:text-white">
+                Privacy policy
+              </Link>
+              <Link href="/data-deletion" className="hover:text-white">
+                Data deletion
+              </Link>
+              <p>19+ only · Please enjoy responsibly.</p>
+            </div>
           </div>
         </div>
       </footer>
