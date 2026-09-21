@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const rawBody = await request.text();
+  const rawBody = Buffer.from(await request.arrayBuffer());
   const appSecret = process.env.META_APP_SECRET;
   const signature = request.headers.get("x-hub-signature-256");
   const rejectionReason = !appSecret
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   }
   let payload: unknown;
   try {
-    payload = JSON.parse(rawBody);
+    payload = JSON.parse(rawBody.toString("utf8"));
   } catch {
     return new NextResponse("Bad request", { status: 400 });
   }

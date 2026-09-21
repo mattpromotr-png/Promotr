@@ -37,7 +37,7 @@ Standard Access is sufficient while the app serves an account owned/managed by t
    `https://YOUR_DOMAIN/api/webhooks/meta`
 3. Set the same random verify token in Meta and Vercel as `META_VERIFY_TOKEN`.
 4. Subscribe to the `messages` field. `messaging_postbacks`, `messaging_optins`, and `messaging_referral` are not required by the current text-DM MVP.
-5. Keep `META_APP_SECRET` in Vercel. It validates `X-Hub-Signature-256` over the raw request body.
+5. For this Instagram Login integration, put the **Instagram App Secret** shown under **Instagram > API setup with Instagram login** in Vercel's `META_APP_SECRET`. The variable name is historical; do not substitute the separate secret under **App settings > Basic**. It validates `X-Hub-Signature-256` over the original request bytes.
 6. Complete the dashboard verification challenge. A correct request receives the raw `hub.challenge` value.
 
 The application ignores echoes, non-text events, malformed events, and repeated provider message IDs before AI work.
@@ -45,7 +45,7 @@ The application ignores echoes, non-text events, malformed events, and repeated 
 ## Token and identifier mapping
 
 - `META_APP_ID`: Meta app identifier; Vercel configuration/reference only.
-- `META_APP_SECRET`: signature validation in Vercel; never expose to n8n/browser.
+- `META_APP_SECRET`: Instagram Login app secret for signature validation in Vercel; never expose to n8n/browser.
 - `META_VERIFY_TOKEN`: shared only between Meta webhook setup and Vercel.
 - `META_ACCESS_TOKEN`: Promotr Instagram user/system-user access token stored server-side in Vercel for the application's Send API adapter.
 - `META_INSTAGRAM_ACCOUNT_ID`: professional account ID used by the Send API.

@@ -7,8 +7,8 @@ describe("Meta webhook boundary", () => {
     const body = '{"object":"instagram"}';
     const secret = "secret";
     const signature = `sha256=${createHmac("sha256", secret).update(body).digest("hex")}`;
-    expect(verifyMetaSignature(body, signature, secret)).toBe(true);
-    expect(verifyMetaSignature(body + "x", signature, secret)).toBe(false);
+    expect(verifyMetaSignature(Buffer.from(body), signature, secret)).toBe(true);
+    expect(verifyMetaSignature(Buffer.from(body + "x"), signature, secret)).toBe(false);
   });
   it("normalizes text and ignores echoes", () => {
     const payload = {

@@ -247,3 +247,5 @@ See `docs/instagram-integration-plan.md` for the architecture and activation che
 - [ ] Apply the prerequisite queue migration and new Instagram migration to the target Supabase database after backup and migration-ledger review.
 - [ ] Deploy the application, re-import/activate the new n8n workflow, and configure Meta/Vercel credentials for the client-owned Instagram account.
 - [ ] Complete real inbound/outbound, concurrency, multilingual, handoff, staff-reply, and notification acceptance tests; do not describe the channel as live before these pass.
+- [x] Verify the webhook signature against the original request bytes and cover non-text-safe payloads in a route test.
+- [ ] Resolve the production Meta Test `signature_mismatch` (POST 401) and, separately, the missing webhook delivery for real Instagram DMs. Neither live issue is resolved by local tests alone.

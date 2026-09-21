@@ -14,7 +14,7 @@ export type NormalizedInstagramEvent = z.infer<
 >;
 
 export function verifyMetaSignature(
-  rawBody: string,
+  rawBody: Buffer,
   signature: string | null,
   appSecret: string,
 ) {

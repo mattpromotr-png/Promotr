@@ -100,6 +100,20 @@ describe("Meta webhook route", () => {
     expect(records.size).toBe(0);
   });
 
+  it("verifies the original bytes before decoding the payload", async () => {
+    const rawBody = Buffer.concat([Buffer.from(payload), Buffer.from([0xff])]);
+    const signature = createHmac("sha256", secret).update(rawBody).digest("hex");
+    const response = await POST(
+      new NextRequest("http://localhost/api/webhooks/meta", {
+        method: "POST",
+        body: rawBody,
+        headers: { "x-hub-signature-256": `sha256=${signature}` },
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["missing_app_secret", null, "missing_secret"],
     ["app_secret_has_whitespace", null, "whitespace"],
