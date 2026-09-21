@@ -46,12 +46,15 @@ const payload = JSON.stringify({
   ],
 });
 
-function request() {
+function request(signatureOverride?: string | null) {
   const signature = createHmac("sha256", secret).update(payload).digest("hex");
   return new NextRequest("http://localhost/api/webhooks/meta", {
     method: "POST",
     body: payload,
-    headers: { "x-hub-signature-256": `sha256=${signature}` },
+    headers:
+      signatureOverride === null
+        ? {}
+        : { "x-hub-signature-256": signatureOverride ?? `sha256=${signature}` },
   });
 }
 
@@ -95,5 +98,30 @@ describe("Meta webhook route", () => {
     expect((await POST(request())).status).toBe(200);
     expect(fetch).not.toHaveBeenCalled();
     expect(records.size).toBe(0);
+  });
+
+  it.each([
+    ["missing_app_secret", null, "missing_secret"],
+    ["app_secret_has_whitespace", null, "whitespace"],
+    ["missing_signature_header", null, "missing_header"],
+    ["malformed_signature_header", "sha256=invalid", "malformed"],
+    ["signature_mismatch", `sha256=${"0".repeat(64)}`, "mismatch"],
+  ])("logs a safe reason for %s", async (reason, header, setup) => {
+    if (setup === "missing_secret") delete process.env.META_APP_SECRET;
+    if (setup === "whitespace") process.env.META_APP_SECRET = `${secret} `;
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const response = await POST(
+        request(setup === "missing_header" ? null : header),
+      );
+      expect(response.status).toBe(401);
+      expect(log).toHaveBeenCalledWith(
+        "Meta webhook authentication rejected",
+        { reason },
+      );
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      log.mockRestore();
+    }
   });
 });

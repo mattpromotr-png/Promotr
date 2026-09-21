@@ -19,15 +19,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
   const appSecret = process.env.META_APP_SECRET;
-  if (
-    !appSecret ||
-    !verifyMetaSignature(
-      rawBody,
-      request.headers.get("x-hub-signature-256"),
-      appSecret,
-    )
-  )
+  const signature = request.headers.get("x-hub-signature-256");
+  const rejectionReason = !appSecret
+    ? "missing_app_secret"
+    : appSecret !== appSecret.trim()
+      ? "app_secret_has_whitespace"
+      : !signature
+        ? "missing_signature_header"
+        : !/^sha256=[a-f0-9]{64}$/i.test(signature)
+          ? "malformed_signature_header"
+          : !verifyMetaSignature(rawBody, signature, appSecret)
+            ? "signature_mismatch"
+            : null;
+  if (rejectionReason) {
+    console.error("Meta webhook authentication rejected", {
+      reason: rejectionReason,
+    });
     return new NextResponse("Unauthorized", { status: 401 });
+  }
   let payload: unknown;
   try {
     payload = JSON.parse(rawBody);
