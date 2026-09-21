@@ -236,3 +236,14 @@ rereading the full project prompt.
 - [ ] Configure EAS iOS distribution, provisioning, APNs, and submission credentials without committing secrets.
 - [ ] Build and submit the production iOS binary, then complete real-device TestFlight acceptance.
 - [ ] Complete App Store metadata, privacy disclosures, review access, App Review, and client-controlled release.
+
+## Instagram shared concierge rollout (2026-09-21)
+
+See `docs/instagram-integration-plan.md` for the architecture and activation checklist.
+
+- [x] Implement a single handoff-only n8n Instagram workflow and reuse the application-side Vera prompt/scenario engine.
+- [x] Implement direct Instagram Send API delivery, inbound conversation persistence, rapid-message claim, translations, memory, handoff, and manager notifications.
+- [x] Enable web and mobile API staff replies; leave automatic replies on by default and expose explicit pause/resume.
+- [ ] Apply the prerequisite queue migration and new Instagram migration to the target Supabase database after backup and migration-ledger review.
+- [ ] Deploy the application, re-import/activate the new n8n workflow, and configure Meta/Vercel credentials for the client-owned Instagram account.
+- [ ] Complete real inbound/outbound, concurrency, multilingual, handoff, staff-reply, and notification acceptance tests; do not describe the channel as live before these pass.

@@ -2,7 +2,6 @@ import {
   Bot,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   MessageCircle,
   PauseCircle,
   PlayCircle,
@@ -309,17 +308,7 @@ export default async function ConversationsPage({
                     </div>
                   )}
                 </div>
-                {selected.channel === "instagram" ? (
-                  <a
-                    href="https://business.facebook.com/latest/inbox/instagram"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="focus-ring border-border bg-elevated inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm"
-                  >
-                    <ExternalLink size={15} />
-                    Open Instagram inbox
-                  </a>
-                ) : selected.human_takeover ? (
+                {selected.human_takeover ? (
                   <form action={resumeConversationAutomation}>
                     <input
                       type="hidden"
@@ -501,7 +490,8 @@ export default async function ConversationsPage({
                 ))}
               </div>
               {(selected.channel === "web_preview" ||
-                selected.channel === "sms") && (
+                selected.channel === "sms" ||
+                selected.channel === "instagram") && (
                 <form
                   action={sendConversationReply}
                   className="border-border flex gap-3 border-t p-4 sm:p-5"

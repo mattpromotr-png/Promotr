@@ -37,8 +37,11 @@ export function normalizeInstagramEvents(
   if (!Array.isArray(entries)) return [];
   const results: NormalizedInstagramEvent[] = [];
   for (const entry of entries) {
+    if (!entry || typeof entry !== "object") continue;
     const record = entry as { time?: number; messaging?: unknown[] };
-    for (const item of record.messaging ?? []) {
+    if (!Array.isArray(record.messaging)) continue;
+    for (const item of record.messaging) {
+      if (!item || typeof item !== "object") continue;
       const event = item as {
         sender?: { id?: string };
         recipient?: { id?: string };

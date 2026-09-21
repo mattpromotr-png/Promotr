@@ -60,6 +60,7 @@ describe("Meta webhook route", () => {
     records.clear();
     process.env.META_APP_SECRET = secret;
     process.env.META_VERIFY_TOKEN = "verify-me";
+    process.env.META_INSTAGRAM_ACCOUNT_ID = "venue";
     process.env.N8N_INSTAGRAM_WEBHOOK_URL = "https://n8n.example/webhook";
     process.env.N8N_SHARED_SECRET = "x".repeat(32);
     process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3000";
@@ -87,5 +88,12 @@ describe("Meta webhook route", () => {
     expect((await POST(request())).status).toBe(200);
     expect((await POST(request())).status).toBe(200);
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores messages for a different Instagram account", async () => {
+    process.env.META_INSTAGRAM_ACCOUNT_ID = "another-venue";
+    expect((await POST(request())).status).toBe(200);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(records.size).toBe(0);
   });
 });

@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { translateStaffReply } from "@/lib/ai/translate-staff-reply";
 import { normalizeLanguageName } from "@/lib/ai/language";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
+import { sendInstagramConversationMessage } from "@/lib/messaging/instagram-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function sendConversationReply(formData: FormData) {
@@ -25,7 +26,7 @@ export async function sendConversationReply(formData: FormData) {
     .single();
   if (loadError || !conversation)
     throw new Error("Unable to load this conversation.");
-  if (conversation.channel === "sms") {
+  if (conversation.channel === "sms" || conversation.channel === "instagram") {
     const { data: contact } = await admin
       .from("contacts")
       .select("preferred_language")
@@ -33,7 +34,11 @@ export async function sendConversationReply(formData: FormData) {
       .maybeSingle();
     const targetLanguage = normalizeLanguageName(contact?.preferred_language);
     const deliveredContent = await translateStaffReply(content, targetLanguage);
-    await sendSmsConversationMessage({
+    const sendMessage =
+      conversation.channel === "sms"
+        ? sendSmsConversationMessage
+        : sendInstagramConversationMessage;
+    await sendMessage({
       conversationId,
       content: deliveredContent,
       metadata: {
@@ -49,9 +54,7 @@ export async function sendConversationReply(formData: FormData) {
     return;
   }
   if (conversation.channel !== "web_preview")
-    throw new Error(
-      "Instagram replies must be sent through Meta Business Suite until Meta messaging is connected.",
-    );
+    throw new Error("Unsupported conversation channel.");
   const { data: latestGuest } = await admin
     .from("messages")
     .select("metadata")
@@ -145,7 +148,7 @@ export async function pauseConversationAutomation(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
-    .in("channel", ["web_preview", "sms"]);
+    .in("channel", ["web_preview", "sms", "instagram"]);
   if (error) throw new Error("Unable to pause automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");
@@ -163,7 +166,7 @@ export async function resumeConversationAutomation(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
-    .in("channel", ["web_preview", "sms"]);
+    .in("channel", ["web_preview", "sms", "instagram"]);
   if (error) throw new Error("Unable to resume automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");

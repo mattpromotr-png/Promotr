@@ -47,26 +47,18 @@ Public/anonymous users have no table-read policy. Lead creation goes through the
 
 ## n8n import
 
-Import `n8n/promotr-instagram-host.workflow.json`, then select or create these credentials:
+Import `n8n/promotr-instagram-host.workflow.json`. This production workflow is now a minimal verified-event handoff; Promotr's Next.js server runs the shared Vera concierge. Select or create one n8n Header Auth credential:
 
 - `Promotr n8n shared secret`: header name `X-Promotr-Secret`, value matching `N8N_SHARED_SECRET` in Vercel.
-- `Promotr Supabase service role`: use n8n's **Supabase API** credential. Set Host to the project URL (without `/rest/v1`) and Secret Key to the Supabase service-role key.
-- `Promotr OpenAI bearer token`: use n8n's **OpenAI API** credential and enter the API key directly in n8n.
-- `Promotr Meta bearer token`: `Authorization: Bearer META_ACCESS_TOKEN`.
+- Use it for both the inbound webhook and outbound HTTP Request nodes.
+- In the HTTP Request node, replace `YOUR_PROMOTR_DOMAIN` with the canonical deployed domain.
+- Store Supabase, OpenAI, and Meta credentials in **Vercel server-side settings**, not this n8n workflow.
 
-Open **Runtime Configuration** and replace the placeholders for:
-
-- `supabaseUrl`
-- `openaiModel`
-- `metaGraphApiVersion` using the currently supported version selected for the Meta app
-
-Optional n8n Variables `OPENAI_INPUT_COST_PER_M` and `OPENAI_OUTPUT_COST_PER_M` support cost observability and default to zero when omitted.
-
-Activate the workflow and copy its production webhook URL into `N8N_INSTAGRAM_WEBHOOK_URL`. Do not commit an exported workflow after credentials have been embedded.
+Apply the database migration before activation. Activate only this Instagram workflow and copy its production webhook URL into `N8N_INSTAGRAM_WEBHOOK_URL`. Follow [the rollout checklist](docs/instagram-integration-plan.md). Do not commit an exported workflow after credentials have been embedded.
 
 ### Testing without Meta
 
-Import `n8n/promotr-instagram-host.mock-test.workflow.json` as a separate, inactive test workflow. It replaces only Meta delivery with a generated `mock-<providerMessageId>` value, then executes the real outbound-storage RPC. Configure its Webhook Header Auth, Supabase API, OpenAI API, and Runtime Configuration exactly as in the production workflow. Use its test webhook URL with unique provider message IDs, verify inbound/outbound rows and admin handoffs, and never use or activate this mock workflow for production traffic.
+The historical `n8n/promotr-instagram-host.mock-test.workflow.json` is retained as a legacy fixture only. It does not exercise the new application-side concierge path. Keep it inactive; validate the current integration with the route tests and a permitted live Instagram DM instead.
 
 ## Meta Instagram configuration
 

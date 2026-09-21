@@ -35,6 +35,9 @@ export async function POST(request: NextRequest) {
     return new NextResponse("Bad request", { status: 400 });
   }
   const events = normalizeInstagramEvents(payload);
+  const accountId = process.env.META_INSTAGRAM_ACCOUNT_ID;
+  if (!accountId)
+    return new NextResponse("Integration unavailable", { status: 503 });
   const n8nUrl = process.env.N8N_INSTAGRAM_WEBHOOK_URL;
   const n8nSecret = process.env.N8N_SHARED_SECRET;
   if (!n8nUrl || !n8nSecret)
@@ -42,6 +45,7 @@ export async function POST(request: NextRequest) {
   const supabase = createAdminClient();
 
   for (const event of events) {
+    if (event.recipientId !== accountId) continue;
     const { error } = await supabase.from("webhook_events").insert({
       provider_message_id: event.providerMessageId,
       normalized_event: event,
@@ -67,7 +71,7 @@ export async function POST(request: NextRequest) {
           "X-Promotr-Secret": n8nSecret,
         },
         body: JSON.stringify(event),
-        signal: AbortSignal.timeout(8_000),
+        signal: AbortSignal.timeout(18_000),
       });
       if (!response.ok) throw new Error("n8n rejected event");
       await supabase

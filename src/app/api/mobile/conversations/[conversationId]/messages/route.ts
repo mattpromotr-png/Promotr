@@ -3,6 +3,7 @@ import { translateStaffReply } from "@/lib/ai/translate-staff-reply";
 import { normalizeLanguageName } from "@/lib/ai/language";
 import { authenticateMobileManager } from "@/lib/auth/mobile-manager";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
+import { sendInstagramConversationMessage } from "@/lib/messaging/instagram-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(
@@ -30,9 +31,9 @@ export async function POST(
       { error: "Conversation not found" },
       { status: 404 },
     );
-  if (conversation.data.channel !== "sms")
+  if (!["sms", "instagram"].includes(conversation.data.channel))
     return NextResponse.json(
-      { error: "Instagram replies require the Meta messaging connection" },
+      { error: "This channel does not support direct replies" },
       { status: 409 },
     );
   try {
@@ -44,7 +45,11 @@ export async function POST(
       .maybeSingle();
     const targetLanguage = normalizeLanguageName(contact?.preferred_language);
     const deliveredContent = await translateStaffReply(body, targetLanguage);
-    await sendSmsConversationMessage({
+    const sendMessage =
+      conversation.data.channel === "sms"
+        ? sendSmsConversationMessage
+        : sendInstagramConversationMessage;
+    await sendMessage({
       conversationId,
       content: deliveredContent,
       metadata: {

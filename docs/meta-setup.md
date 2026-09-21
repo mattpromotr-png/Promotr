@@ -47,12 +47,12 @@ The application ignores echoes, non-text events, malformed events, and repeated 
 - `META_APP_ID`: Meta app identifier; Vercel configuration/reference only.
 - `META_APP_SECRET`: signature validation in Vercel; never expose to n8n/browser.
 - `META_VERIFY_TOKEN`: shared only between Meta webhook setup and Vercel.
-- `META_ACCESS_TOKEN`: Instagram user/system-user access token selected in the n8n Meta bearer credential.
+- `META_ACCESS_TOKEN`: Promotr Instagram user/system-user access token stored server-side in Vercel for the application's Send API adapter.
 - `META_INSTAGRAM_ACCOUNT_ID`: professional account ID used by the Send API.
 - `META_PAGE_ID`: unused for Instagram Login; retained as an optional placeholder only if the owner deliberately selects the Facebook Login path later.
-- `META_GRAPH_API_VERSION`: currently supported version selected for the app, entered in the workflow's **Runtime Configuration** node.
+- `META_GRAPH_API_VERSION`: currently supported version selected for the app, stored server-side in Vercel (for example `v24.0`; verify the version available to the app).
 
-The outbound endpoint used by the workflow is:
+The outbound endpoint used by the Next.js application is:
 
 ```text
 POST https://graph.instagram.com/{api-version}/{ig-account-id}/messages
@@ -63,7 +63,7 @@ The recipient is the Instagram-scoped sender ID received in the `messages` webho
 ## Development-mode live test
 
 1. Add the test account and tester roles in the Meta app/account setup.
-2. Activate the imported n8n workflow and configure its production webhook URL in Vercel.
+2. Import and activate the handoff-only n8n workflow, configure its production webhook URL in Vercel, and put `META_ACCESS_TOKEN` in Vercel rather than n8n. Follow `docs/instagram-integration-plan.md` for the full rollout order.
 3. Send a new DM from the permitted tester to the professional account.
 4. Confirm one `webhook_events` record, one inbound `messages` record, and one outbound record.
 5. Repeat the exact webhook fixture/message ID and confirm it is not forwarded twice.
