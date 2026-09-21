@@ -68,6 +68,61 @@ if (process.argv.includes("--meta-app")) {
   }
   process.exit(0);
 }
+if (process.argv.includes("--delivery-check")) {
+  const version = env.META_GRAPH_API_VERSION;
+  if (
+    !/^v\d+\.\d+$/.test(version) ||
+    !/^\d+$/.test(env.META_INSTAGRAM_ACCOUNT_ID)
+  )
+    throw new Error("Invalid Instagram version or account ID.");
+  for (const account of ["me", env.META_INSTAGRAM_ACCOUNT_ID]) {
+    await check(
+      `instagram_recent_conversations_${account === "me" ? "me" : "configured_account"}`,
+      `https://graph.instagram.com/${version}/${account}/conversations?fields=id,updated_time&limit=10`,
+      { headers: { Authorization: `Bearer ${env.META_ACCESS_TOKEN}` } },
+      (data) => ({
+        count: Array.isArray(data?.data) ? data.data.length : undefined,
+        updatedTimes: Array.isArray(data?.data)
+          ? data.data.map((conversation) => conversation.updated_time)
+          : undefined,
+      }),
+    );
+  }
+  const accountSubscription = await check(
+    "instagram_subscription_app_ids",
+    `https://graph.instagram.com/${version}/${env.META_INSTAGRAM_ACCOUNT_ID}/subscribed_apps`,
+    { headers: { Authorization: `Bearer ${env.META_ACCESS_TOKEN}` } },
+    (data) => ({
+      apps: Array.isArray(data?.data)
+        ? data.data.map((item) => item.id)
+        : undefined,
+    }),
+  );
+  if (accountSubscription?.status !== 200) process.exitCode = 1;
+  const databaseUrl = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+  if (databaseUrl && env.SUPABASE_SERVICE_ROLE_KEY) {
+    const dbUrl = new URL("/rest/v1/webhook_events", databaseUrl);
+    dbUrl.searchParams.set("select", "status,received_at,forwarded_at");
+    dbUrl.searchParams.set(
+      "received_at",
+      `gte.${new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()}`,
+    );
+    dbUrl.searchParams.set("order", "received_at.desc");
+    dbUrl.searchParams.set("limit", "20");
+    await check(
+      "recent_webhook_event_states",
+      dbUrl,
+      {
+        headers: {
+          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      },
+      (data) => ({ events: Array.isArray(data) ? data : undefined }),
+    );
+  }
+  process.exit(0);
+}
 if (!process.argv.includes("--live")) process.exit(0);
 
 async function inspectVercel() {
