@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
+  describeInstagramWebhookShape,
   normalizeInstagramEvents,
   verifyMetaSignature,
 } from "@/lib/meta/webhook";
@@ -65,6 +66,7 @@ export async function POST(request: NextRequest) {
   if (!events.length) {
     console.info("Meta webhook ignored", {
       reason: "no_supported_text_events",
+      shape: describeInstagramWebhookShape(payload),
     });
     return NextResponse.json({ received: true });
   }

@@ -1,14 +1,22 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { normalizeInstagramEvents, verifyMetaSignature } from "./webhook";
+import {
+  describeInstagramWebhookShape,
+  normalizeInstagramEvents,
+  verifyMetaSignature,
+} from "./webhook";
 
 describe("Meta webhook boundary", () => {
   it("validates sha256 signatures", () => {
     const body = '{"object":"instagram"}';
     const secret = "secret";
     const signature = `sha256=${createHmac("sha256", secret).update(body).digest("hex")}`;
-    expect(verifyMetaSignature(Buffer.from(body), signature, secret)).toBe(true);
-    expect(verifyMetaSignature(Buffer.from(body + "x"), signature, secret)).toBe(false);
+    expect(verifyMetaSignature(Buffer.from(body), signature, secret)).toBe(
+      true,
+    );
+    expect(
+      verifyMetaSignature(Buffer.from(body + "x"), signature, secret),
+    ).toBe(false);
   });
   it("normalizes text and ignores echoes", () => {
     const payload = {
@@ -40,5 +48,40 @@ describe("Meta webhook boundary", () => {
         channel: "instagram",
       },
     ]);
+  });
+  it("describes unsupported events without logging guest content or IDs", () => {
+    const description = describeInstagramWebhookShape({
+      object: "instagram",
+      entry: [
+        {
+          id: "private-account-id",
+          messaging: [
+            {
+              sender: { id: "private-sender-id" },
+              recipient: { id: "private-recipient-id" },
+              message: {
+                mid: "private-mid",
+                text: "private guest message",
+                is_echo: true,
+              },
+            },
+          ],
+          changes: [
+            { field: "messages", value: { text: "private changed message" } },
+          ],
+        },
+      ],
+    });
+    expect(description).toMatchObject({
+      object: "instagram",
+      entryCount: 1,
+      messagingCount: 1,
+      changesCount: 1,
+      changeFields: ["messages"],
+      messaging: [
+        { hasSender: true, hasRecipient: true, hasText: true, isEcho: true },
+      ],
+    });
+    expect(JSON.stringify(description)).not.toMatch(/private/);
   });
 });
