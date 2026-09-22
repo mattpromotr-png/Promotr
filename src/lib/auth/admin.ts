@@ -9,6 +9,7 @@ export async function requireAdmin() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const userVerifiedAt = performance.now();
   if (!user) redirect("/admin/login");
   if (
     user.email?.toLowerCase() !==
@@ -23,6 +24,7 @@ export async function requireAdmin() {
     .eq("active", true)
     .limit(1)
     .maybeSingle();
+  const membershipCheckedAt = performance.now();
   if (!existing.data) {
     const venue = await admin
       .from("venues")
@@ -42,7 +44,14 @@ export async function requireAdmin() {
   }
   const durationMs = Math.round(performance.now() - startedAt);
   if (durationMs >= 500) {
-    console.info("Slow admin authorization", { durationMs });
+    console.info("Slow admin authorization", {
+      userVerificationMs: Math.round(userVerifiedAt - startedAt),
+      membershipCheckMs: Math.round(membershipCheckedAt - userVerifiedAt),
+      membershipProvisionMs: Math.round(
+        performance.now() - membershipCheckedAt,
+      ),
+      durationMs,
+    });
   }
   return user;
 }

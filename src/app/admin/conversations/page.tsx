@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
+import { after } from "next/server";
 
 import { ConversationLiveRefresh } from "@/components/admin/conversation-live-refresh";
 import { ConversationComposer } from "@/components/admin/conversation-composer";
@@ -164,12 +165,6 @@ export default async function ConversationsPage({
         ? requestedMessages.then((result) => result ?? loadMessages(selectedId))
         : loadMessages(selectedId)
       : Promise.resolve({ data: [], error: null }),
-    membership.data && selectedId
-      ? admin.rpc("mark_manager_conversation_read", {
-          p_staff_membership_id: membership.data.id,
-          p_conversation_id: selectedId,
-        })
-      : Promise.resolve(),
   ]);
   const unreadCounts = new Map(
     (
@@ -179,9 +174,21 @@ export default async function ConversationsPage({
       }>
     ).map((row) => [row.conversation_id, Number(row.unread_count) || 0]),
   );
-  if (membership.data && selectedId) unreadCounts.set(selectedId, 0);
   if (messageResult.error)
     throw new Error("Unable to load conversation messages.");
+  if (membership.data && selectedId) {
+    if ((unreadCounts.get(selectedId) ?? 0) > 0) {
+      const membershipId = membership.data.id;
+      after(async () => {
+        const { error } = await admin.rpc("mark_manager_conversation_read", {
+          p_staff_membership_id: membershipId,
+          p_conversation_id: selectedId,
+        });
+        if (error) console.error("Unable to mark admin conversation read");
+      });
+    }
+    unreadCounts.set(selectedId, 0);
+  }
   const messages = ((messageResult.data ?? []) as Message[])
     .reverse()
     .filter((message) => !message.metadata?.adminGroupedInto);
