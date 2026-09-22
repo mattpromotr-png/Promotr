@@ -80,7 +80,12 @@ export function AdminShell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="relative min-h-svh overflow-x-clip">
+    <main
+      className={cn(
+        "relative min-h-svh overflow-x-clip",
+        active === "conversations" && "h-dvh min-h-0 overflow-hidden",
+      )}
+    >
       <div className="admin-orb admin-orb-one" aria-hidden="true" />
       <div className="admin-orb admin-orb-two" aria-hidden="true" />
 
@@ -197,7 +202,13 @@ export function AdminShell({
         </div>
       </header>
 
-      <div className="relative mx-auto max-w-[1800px] px-4 pt-32 pb-8 sm:px-6 lg:px-8 xl:ml-56 xl:px-6 xl:pt-6">
+      <div
+        className={cn(
+          "relative mx-auto max-w-[1800px] px-4 pt-32 pb-8 sm:px-6 lg:px-8 xl:ml-56 xl:px-6 xl:pt-6",
+          active === "conversations" &&
+            "flex h-dvh min-h-0 flex-col overflow-hidden px-2 pt-30 pb-2 sm:px-4 lg:px-6 xl:px-3 xl:pt-3 xl:pb-3",
+        )}
+      >
         {children}
       </div>
     </main>

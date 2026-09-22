@@ -18,7 +18,6 @@ import { ConversationLiveRefresh } from "@/components/admin/conversation-live-re
 import { ConversationComposer } from "@/components/admin/conversation-composer";
 import { ConversationTranscript } from "@/components/admin/conversation-transcript";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { PageHeading } from "@/components/admin/page-heading";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -180,89 +179,33 @@ export default async function ConversationsPage({
 
   return (
     <AdminShell active="conversations">
-      <PageHeading
-        eyebrow="LIVE GUEST SUPPORT"
-        title="Conversations"
-        description="Review SMS and Instagram conversations, take over when a guest needs help, and reply from one workspace."
-        action={
-          <div className="flex flex-wrap items-center gap-2">
-            <ConversationLiveRefresh />
-            {[
-              ["all", "All"],
-              ["sms", "SMS"],
-              ["instagram", "Instagram"],
-            ].map(([value, label]) => (
-              <Link
-                key={value}
-                href={`/admin/conversations?channel=${value}&view=${view}`}
-                className={`focus-ring inline-flex min-h-9 items-center rounded-xl border px-3 text-xs font-medium ${channel === value ? "border-violet bg-violet/15 text-foreground" : "border-border bg-elevated text-muted"}`}
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        }
-      />
-      {selected && (
-        <div className="border-border bg-surface/70 mt-4 grid gap-3 rounded-xl border px-4 py-3 text-xs sm:grid-cols-3">
-          <div className="flex items-center gap-3">
-            {selected.channel === "instagram" ? (
-              <Camera
-                size={18}
-                className="text-violet shrink-0"
-                aria-hidden="true"
-              />
-            ) : selected.channel === "sms" ? (
-              <Smartphone
-                size={18}
-                className="text-violet shrink-0"
-                aria-hidden="true"
-              />
-            ) : (
-              <Globe2
-                size={18}
-                className="text-violet shrink-0"
-                aria-hidden="true"
-              />
-            )}
-            <div>
-              <p className="text-muted">Channel</p>
-              <p className="text-foreground mt-0.5 font-medium capitalize">
-                {selected.channel.replace("_", " ")}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <UserRound
-              size={18}
-              className="text-violet shrink-0"
-              aria-hidden="true"
-            />
-            <div className="min-w-0">
-              <p className="text-muted">Guest</p>
-              <p className="text-foreground mt-0.5 truncate font-medium">
-                {conversationGuestName(selected)}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Clock3
-              size={18}
-              className="text-violet shrink-0"
-              aria-hidden="true"
-            />
-            <div>
-              <p className="text-muted">Last activity · Toronto time</p>
-              <p className="text-foreground mt-0.5 font-medium">
-                {formatMessageTime(selected.last_message_at)}
-              </p>
-            </div>
-          </div>
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 pb-2">
+        <div>
+          <p className="eyebrow hidden sm:block">LIVE GUEST SUPPORT</p>
+          <h1 className="text-foreground text-xl font-semibold tracking-tight sm:text-2xl">
+            Conversations
+          </h1>
         </div>
-      )}
-      <div className="surface-card mt-4 grid min-h-[680px] overflow-hidden lg:h-[calc(100svh-220px)] lg:min-h-[620px] lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)] xl:grid-cols-[minmax(240px,280px)_minmax(380px,1fr)_minmax(245px,290px)]">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <ConversationLiveRefresh />
+          {[
+            ["all", "All"],
+            ["sms", "SMS"],
+            ["instagram", "Instagram"],
+          ].map(([value, label]) => (
+            <Link
+              key={value}
+              href={`/admin/conversations?channel=${value}&view=${view}`}
+              className={`focus-ring inline-flex min-h-8 items-center rounded-lg border px-2.5 text-xs font-medium ${channel === value ? "border-violet bg-violet/15 text-foreground" : "border-border bg-elevated text-muted"}`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+      </div>
+      <div className="surface-card grid min-h-0 flex-1 grid-rows-[minmax(0,11rem)_minmax(0,1fr)] overflow-hidden lg:grid-cols-[minmax(210px,250px)_minmax(0,1fr)] lg:grid-rows-1 xl:grid-cols-[minmax(210px,250px)_minmax(0,1fr)_minmax(220px,270px)]">
         <aside className="border-border flex min-h-0 flex-col border-b lg:border-r lg:border-b-0">
-          <div className="border-border border-b px-4 py-4">
+          <div className="border-border shrink-0 border-b px-3 py-2 lg:px-4 lg:py-4">
             <div className="flex items-baseline justify-between gap-2">
               <h2 className="text-foreground text-sm font-semibold">
                 Conversations
@@ -271,11 +214,11 @@ export default async function ConversationsPage({
                 {total}
               </span>
             </div>
-            <p className="text-muted mt-1 text-xs">
+            <p className="text-muted mt-1 hidden text-xs lg:block">
               {conversations.length} on this page
             </p>
             <nav
-              className="mt-4 flex gap-1 overflow-x-auto"
+              className="mt-1 flex gap-1 overflow-x-auto lg:mt-4"
               aria-label="Conversation status"
             >
               {[
@@ -294,7 +237,7 @@ export default async function ConversationsPage({
               ))}
             </nav>
           </div>
-          <div className="max-h-72 flex-1 overflow-y-auto p-2 lg:max-h-none">
+          <div className="flex min-h-0 flex-1 gap-1 overflow-x-auto p-2 lg:block lg:overflow-x-hidden lg:overflow-y-auto">
             {conversations.length === 0 ? (
               <p className="text-muted p-6 text-sm">No conversations yet.</p>
             ) : (
@@ -305,7 +248,7 @@ export default async function ConversationsPage({
                     key={item.id}
                     href={`/admin/conversations?conversation=${item.id}&page=${page}&channel=${channel}&view=${view}`}
                     aria-current={item.id === selectedId ? "true" : undefined}
-                    className={`mb-1 block rounded-xl border px-3 py-3 transition-colors ${item.id === selectedId ? "border-violet bg-violet/10" : "hover:bg-elevated border-transparent"}`}
+                    className={`mb-1 block min-w-44 shrink-0 rounded-xl border px-3 py-2 transition-colors lg:min-w-0 lg:py-3 ${item.id === selectedId ? "border-violet bg-violet/10" : "hover:bg-elevated border-transparent"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-foreground flex min-w-0 items-center gap-2 truncate text-sm font-medium">
@@ -348,7 +291,7 @@ export default async function ConversationsPage({
           </div>
           {totalPages > 1 && (
             <nav
-              className="border-border flex items-center justify-between gap-2 border-t px-4 py-3"
+              className="border-border flex shrink-0 items-center justify-between gap-2 border-t px-3 py-1 lg:px-4 lg:py-3"
               aria-label="Conversation pages"
             >
               <Link
@@ -374,7 +317,10 @@ export default async function ConversationsPage({
           )}
         </aside>
 
-        <section className="flex min-h-[560px] min-w-0 flex-col overflow-hidden lg:min-h-0">
+        <section
+          id="conversation-chat"
+          className="flex min-h-0 min-w-0 flex-col overflow-hidden"
+        >
           {!selected ? (
             <div className="text-muted grid flex-1 place-items-center p-8 text-sm">
               Select a conversation.
@@ -403,167 +349,13 @@ export default async function ConversationsPage({
                       : "Concierge active"}
                   </p>
                 </div>
-              </header>
-              <div className="border-border order-2 grid gap-2 border-t p-3 sm:grid-cols-3 sm:p-4">
-                <div className="border-border bg-elevated/50 rounded-xl border p-3">
-                  <p className="text-foreground text-xs font-semibold">
-                    AI Initiate
-                  </p>
-                  <p className="text-muted mt-1 text-xs">
-                    Not enabled · consent setup required
-                  </p>
-                </div>
-                <div className="border-border bg-elevated/50 rounded-xl border p-3">
-                  <p className="text-foreground text-xs font-semibold">
-                    AI Respond
-                  </p>
-                  <p className="text-muted mt-1 text-xs">
-                    {selected.human_takeover
-                      ? "Off · staff in control"
-                      : "On · answers incoming messages"}
-                  </p>
-                  <form
-                    action={
-                      selected.human_takeover
-                        ? resumeConversationAutomation
-                        : pauseConversationAutomation
-                    }
-                    className="mt-2"
-                  >
-                    <input
-                      type="hidden"
-                      name="conversationId"
-                      value={selected.id}
-                    />
-                    <SubmitButton
-                      pendingLabel="Saving..."
-                      className="border-border bg-surface min-h-8 rounded-lg border px-2.5 text-xs"
-                    >
-                      {selected.human_takeover ? (
-                        <PlayCircle size={13} />
-                      ) : (
-                        <PauseCircle size={13} />
-                      )}
-                      {selected.human_takeover ? "Enable" : "Pause"}
-                    </SubmitButton>
-                  </form>
-                </div>
-                <div className="border-border bg-elevated/50 rounded-xl border p-3">
-                  <p className="text-foreground text-xs font-semibold">
-                    AI Follow Up
-                  </p>
-                  <p className="text-muted mt-1 text-xs">
-                    {selected.channel === "sms"
-                      ? selected.follow_up_enabled
-                        ? selected.human_takeover
-                          ? "Paused by staff"
-                          : "On · scheduled SMS"
-                        : "Off · SMS only"
-                      : "Not available on this channel"}
-                  </p>
-                  {selected.channel === "sms" && (
-                    <a
-                      href="#follow-up-settings"
-                      className="focus-ring text-violet mt-2 inline-block text-xs font-medium"
-                    >
-                      Configure timing
-                    </a>
-                  )}
-                </div>
-              </div>
-              {selected.channel === "sms" && (
-                <details
-                  id="follow-up-settings"
-                  className="border-border order-3 border-t px-4 py-3 sm:px-5"
+                <Link
+                  href="#guest-details"
+                  className="focus-ring border-border text-muted ml-auto shrink-0 rounded-lg border px-2.5 py-2 text-xs xl:hidden"
                 >
-                  <summary className="text-foreground cursor-pointer text-sm font-semibold">
-                    Follow-up settings ·{" "}
-                    {selected.follow_up_enabled ? "On" : "Off"}
-                    {selected.next_follow_up_at
-                      ? ` · Next ${formatMessageTime(selected.next_follow_up_at)}`
-                      : ""}
-                  </summary>
-                  <form
-                    action={updateConversationFollowUp}
-                    className="mt-4 grid gap-3 md:grid-cols-4"
-                  >
-                    <input
-                      type="hidden"
-                      name="conversationId"
-                      value={selected.id}
-                    />
-                    <label className="text-muted flex items-center gap-2 text-sm md:col-span-4">
-                      <input
-                        type="checkbox"
-                        name="enabled"
-                        defaultChecked={selected.follow_up_enabled}
-                        className="accent-violet size-4"
-                      />
-                      Enable automatic SMS follow-up
-                    </label>
-                    <label className="text-muted text-xs">
-                      First delay
-                      <select
-                        name="delayMinutes"
-                        defaultValue={selected.follow_up_delay_minutes}
-                        className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
-                      >
-                        <option value="60">1 hour</option>
-                        <option value="360">6 hours</option>
-                        <option value="1440">24 hours</option>
-                        <option value="2880">48 hours</option>
-                        <option value="10080">7 days</option>
-                      </select>
-                    </label>
-                    <label className="text-muted text-xs">
-                      Repeat interval
-                      <select
-                        name="intervalMinutes"
-                        defaultValue={selected.follow_up_interval_minutes}
-                        className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
-                      >
-                        <option value="360">6 hours</option>
-                        <option value="1440">24 hours</option>
-                        <option value="2880">48 hours</option>
-                        <option value="10080">7 days</option>
-                      </select>
-                    </label>
-                    <label className="text-muted text-xs">
-                      Maximum messages
-                      <select
-                        name="maxAttempts"
-                        defaultValue={selected.follow_up_max_attempts}
-                        className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
-                      >
-                        {[1, 2, 3, 4, 5].map((attempt) => (
-                          <option key={attempt} value={attempt}>
-                            {attempt}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <button className="focus-ring bg-brand-gradient min-h-10 self-end rounded-xl px-4 text-sm font-semibold text-white">
-                      Save follow-up
-                    </button>
-                    <label className="text-muted text-xs md:col-span-4">
-                      Optional message
-                      <textarea
-                        name="followUpMessage"
-                        defaultValue={selected.follow_up_message || ""}
-                        maxLength={600}
-                        rows={2}
-                        placeholder="Hi! Just checking in—do you still need help planning your night? ✨"
-                        className="border-border bg-elevated text-foreground mt-1 w-full rounded-xl border px-3 py-2"
-                      />
-                    </label>
-                    <p className="text-muted text-xs md:col-span-4">
-                      Sent only to opted-in SMS guests. A guest reply resets the
-                      timer. Attempts sent: {selected.follow_up_attempts}/
-                      {selected.follow_up_max_attempts}.
-                    </p>
-                  </form>
-                </details>
-              )}
+                  Details & controls
+                </Link>
+              </header>
               <ConversationTranscript
                 conversationId={selected.id}
                 lastMessageId={messages.at(-1)?.id ?? null}
@@ -620,7 +412,7 @@ export default async function ConversationsPage({
               {(selected.channel === "web_preview" ||
                 selected.channel === "sms" ||
                 selected.channel === "instagram") && (
-                <div className="order-4">
+                <div className="shrink-0">
                   <ConversationComposer
                     key={selected.id}
                     conversationId={selected.id}
@@ -633,9 +425,21 @@ export default async function ConversationsPage({
         </section>
         {selected && (
           <aside
-            className="border-border bg-elevated/25 min-w-0 space-y-3 border-t p-3 lg:hidden xl:block xl:overflow-y-auto xl:border-t-0 xl:border-l"
+            id="guest-details"
+            className="border-border bg-canvas xl:bg-elevated/25 fixed inset-x-2 top-32 bottom-2 z-50 hidden min-w-0 space-y-3 overflow-y-auto rounded-xl border p-3 shadow-2xl target:block lg:inset-x-6 xl:static xl:z-auto xl:block xl:min-h-0 xl:rounded-none xl:border-t-0 xl:border-r-0 xl:border-b-0 xl:border-l xl:shadow-none"
             aria-label="Guest details"
           >
+            <div className="mb-3 flex items-center justify-between xl:hidden">
+              <h2 className="text-foreground text-sm font-semibold">
+                Guest details & controls
+              </h2>
+              <Link
+                href="#conversation-chat"
+                className="focus-ring border-border text-foreground rounded-lg border px-3 py-2 text-xs"
+              >
+                Close
+              </Link>
+            </div>
             <div className="border-border bg-surface/70 rounded-xl border p-4">
               <h2 className="text-foreground text-sm font-semibold">
                 Guest information
@@ -724,36 +528,7 @@ export default async function ConversationsPage({
                 )}
               </div>
             )}
-            <div className="border-border bg-surface/70 rounded-xl border p-4">
-              <h2 className="text-foreground flex items-center gap-2 text-sm font-semibold">
-                <Clock3 size={15} className="text-violet" aria-hidden="true" />
-                Automations
-              </h2>
-              <dl className="mt-3 space-y-3 text-xs">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted">AI Initiate</dt>
-                  <dd className="text-foreground">Not enabled</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted">AI Respond</dt>
-                  <dd className="text-foreground">
-                    {selected.human_takeover ? "Paused" : "On"}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted">AI Follow Up</dt>
-                  <dd className="text-foreground">
-                    {selected.channel !== "sms"
-                      ? "SMS only"
-                      : selected.follow_up_enabled
-                        ? selected.human_takeover
-                          ? "Paused"
-                          : "On"
-                        : "Off"}
-                  </dd>
-                </div>
-              </dl>
-            </div>
+            <AutomationControls selected={selected} />
             {selected.handoff_reason && (
               <div className="border-border bg-surface/70 rounded-xl border p-4">
                 <h2 className="text-foreground text-sm font-semibold">
@@ -768,6 +543,152 @@ export default async function ConversationsPage({
         )}
       </div>
     </AdminShell>
+  );
+}
+
+function AutomationControls({ selected }: { selected: Conversation }) {
+  return (
+    <section
+      className="border-border bg-surface/70 rounded-xl border p-4"
+      aria-label="Conversation automations"
+    >
+      <h2 className="text-foreground flex items-center gap-2 text-sm font-semibold">
+        <Clock3 size={15} className="text-violet" aria-hidden="true" />
+        Automations
+      </h2>
+      <div className="border-border mt-3 border-t pt-3">
+        <p className="text-foreground text-xs font-semibold">AI Initiate</p>
+        <p className="text-muted mt-1 text-xs">
+          Not enabled · consent setup required
+        </p>
+      </div>
+      <div className="border-border mt-3 border-t pt-3">
+        <p className="text-foreground text-xs font-semibold">AI Respond</p>
+        <p className="text-muted mt-1 text-xs">
+          {selected.human_takeover
+            ? "Off · staff in control"
+            : "On · answers incoming messages"}
+        </p>
+        <form
+          action={
+            selected.human_takeover
+              ? resumeConversationAutomation
+              : pauseConversationAutomation
+          }
+          className="mt-2"
+        >
+          <input type="hidden" name="conversationId" value={selected.id} />
+          <SubmitButton
+            pendingLabel="Saving..."
+            className="border-border bg-elevated min-h-9 rounded-lg border px-3 text-xs"
+          >
+            {selected.human_takeover ? (
+              <PlayCircle size={14} />
+            ) : (
+              <PauseCircle size={14} />
+            )}
+            {selected.human_takeover ? "Enable" : "Pause"}
+          </SubmitButton>
+        </form>
+      </div>
+      <div className="border-border mt-3 border-t pt-3">
+        <p className="text-foreground text-xs font-semibold">AI Follow Up</p>
+        <p className="text-muted mt-1 text-xs">
+          {selected.channel === "sms"
+            ? selected.follow_up_enabled
+              ? selected.human_takeover
+                ? "Paused by staff"
+                : "On · scheduled SMS"
+              : "Off · SMS only"
+            : "Not available on this channel"}
+        </p>
+        {selected.channel === "sms" && (
+          <details id="follow-up-settings" className="mt-3">
+            <summary className="focus-ring text-violet cursor-pointer rounded-lg text-xs font-medium">
+              Follow-up settings · {selected.follow_up_enabled ? "On" : "Off"}
+              {selected.next_follow_up_at
+                ? ` · Next ${formatMessageTime(selected.next_follow_up_at)}`
+                : ""}
+            </summary>
+            <form
+              action={updateConversationFollowUp}
+              className="mt-3 grid gap-3"
+            >
+              <input type="hidden" name="conversationId" value={selected.id} />
+              <label className="text-muted flex items-start gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  name="enabled"
+                  defaultChecked={selected.follow_up_enabled}
+                  className="accent-violet mt-0.5 size-4 shrink-0"
+                />
+                Enable automatic SMS follow-up
+              </label>
+              <label className="text-muted text-xs">
+                First delay
+                <select
+                  name="delayMinutes"
+                  defaultValue={selected.follow_up_delay_minutes}
+                  className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
+                >
+                  <option value="60">1 hour</option>
+                  <option value="360">6 hours</option>
+                  <option value="1440">24 hours</option>
+                  <option value="2880">48 hours</option>
+                  <option value="10080">7 days</option>
+                </select>
+              </label>
+              <label className="text-muted text-xs">
+                Repeat interval
+                <select
+                  name="intervalMinutes"
+                  defaultValue={selected.follow_up_interval_minutes}
+                  className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
+                >
+                  <option value="360">6 hours</option>
+                  <option value="1440">24 hours</option>
+                  <option value="2880">48 hours</option>
+                  <option value="10080">7 days</option>
+                </select>
+              </label>
+              <label className="text-muted text-xs">
+                Maximum messages
+                <select
+                  name="maxAttempts"
+                  defaultValue={selected.follow_up_max_attempts}
+                  className="border-border bg-elevated text-foreground mt-1 min-h-10 w-full rounded-xl border px-3"
+                >
+                  {[1, 2, 3, 4, 5].map((attempt) => (
+                    <option key={attempt} value={attempt}>
+                      {attempt}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-muted text-xs">
+                Optional message
+                <textarea
+                  name="followUpMessage"
+                  defaultValue={selected.follow_up_message || ""}
+                  maxLength={600}
+                  rows={2}
+                  placeholder="Hi! Just checking in—do you still need help planning your night? ✨"
+                  className="border-border bg-elevated text-foreground mt-1 w-full rounded-xl border px-3 py-2"
+                />
+              </label>
+              <p className="text-muted text-xs">
+                Sent only to opted-in SMS guests. A guest reply resets the
+                timer. Attempts sent: {selected.follow_up_attempts}/
+                {selected.follow_up_max_attempts}.
+              </p>
+              <button className="focus-ring bg-brand-gradient min-h-10 rounded-xl px-4 text-sm font-semibold text-white">
+                Save follow-up
+              </button>
+            </form>
+          </details>
+        )}
+      </div>
+    </section>
   );
 }
 

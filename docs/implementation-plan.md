@@ -275,6 +275,7 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [x] Remove redundant conversation-action refresh calls, parallelize independent inbox reads, add pause/resume pending feedback, reduce fallback full-page polling, and prevent scheduled SMS follow-ups from running while staff has paused automation.
 - [x] Add an Open/Needs review/All side-panel filter and accurate status cards for AI Initiate (unavailable), AI Respond, and SMS-only AI Follow Up.
 - [x] Display English alongside original/delivered text in the main transcript when translated.
+- [x] Keep the Conversations workspace within the viewport, independently scroll the conversation list/transcript/guest details, and move existing automation controls into the details panel so the message composer remains visible. No messaging actions or data logic changed.
 - [ ] Complete signed-in desktop/mobile visual QA and real provider-send/translation/timing acceptance; the browser connection was unavailable in this workspace session.
 - [ ] Confirm the “Open” reference and full-size redesign image with the client.
 - [ ] Specify, build, and separately approve consent-aware AI initiation, tags, and SMS broadcasts; do not activate open-ended outreach or cold Instagram DMs.
