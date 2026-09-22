@@ -1,10 +1,15 @@
 import {
   Bot,
+  Camera,
   ChevronLeft,
   ChevronRight,
+  Clock3,
+  Globe2,
   MessageCircle,
+  MessageSquareText,
   PauseCircle,
   PlayCircle,
+  Smartphone,
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
@@ -198,17 +203,79 @@ export default async function ConversationsPage({
           </div>
         }
       />
-      <div className="surface-card mt-4 grid h-[min(820px,calc(100svh-180px))] min-h-[540px] overflow-hidden lg:grid-cols-[310px_1fr]">
+      {selected && (
+        <div className="border-border bg-surface/70 mt-4 grid gap-3 rounded-xl border px-4 py-3 text-xs sm:grid-cols-3">
+          <div className="flex items-center gap-3">
+            {selected.channel === "instagram" ? (
+              <Camera
+                size={18}
+                className="text-violet shrink-0"
+                aria-hidden="true"
+              />
+            ) : selected.channel === "sms" ? (
+              <Smartphone
+                size={18}
+                className="text-violet shrink-0"
+                aria-hidden="true"
+              />
+            ) : (
+              <Globe2
+                size={18}
+                className="text-violet shrink-0"
+                aria-hidden="true"
+              />
+            )}
+            <div>
+              <p className="text-muted">Channel</p>
+              <p className="text-foreground mt-0.5 font-medium capitalize">
+                {selected.channel.replace("_", " ")}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <UserRound
+              size={18}
+              className="text-violet shrink-0"
+              aria-hidden="true"
+            />
+            <div className="min-w-0">
+              <p className="text-muted">Guest</p>
+              <p className="text-foreground mt-0.5 truncate font-medium">
+                {conversationGuestName(selected)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Clock3
+              size={18}
+              className="text-violet shrink-0"
+              aria-hidden="true"
+            />
+            <div>
+              <p className="text-muted">Last activity · Toronto time</p>
+              <p className="text-foreground mt-0.5 font-medium">
+                {formatMessageTime(selected.last_message_at)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="surface-card mt-4 grid min-h-[680px] overflow-hidden lg:h-[calc(100svh-220px)] lg:min-h-[620px] lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)] xl:grid-cols-[minmax(240px,280px)_minmax(380px,1fr)_minmax(245px,290px)]">
         <aside className="border-border flex min-h-0 flex-col border-b lg:border-r lg:border-b-0">
-          <div className="border-border border-b px-4 py-3">
-            <h2 className="text-foreground font-semibold">
-              Recent conversations
-            </h2>
+          <div className="border-border border-b px-4 py-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 className="text-foreground text-sm font-semibold">
+                Conversations
+              </h2>
+              <span className="bg-violet/20 text-violet rounded-full px-2 py-0.5 text-xs font-semibold">
+                {total}
+              </span>
+            </div>
             <p className="text-muted mt-1 text-xs">
-              {conversations.length} most recent
+              {conversations.length} on this page
             </p>
             <nav
-              className="mt-3 flex flex-wrap gap-1.5"
+              className="mt-4 flex gap-1 overflow-x-auto"
               aria-label="Conversation status"
             >
               {[
@@ -220,14 +287,14 @@ export default async function ConversationsPage({
                   key={value}
                   href={`/admin/conversations?view=${value}&channel=${channel}`}
                   aria-current={view === value ? "page" : undefined}
-                  className={`focus-ring rounded-lg px-2.5 py-1.5 text-xs ${view === value ? "bg-violet/15 text-foreground" : "bg-elevated text-muted hover:text-foreground"}`}
+                  className={`focus-ring shrink-0 rounded-lg px-2.5 py-1.5 text-xs ${view === value ? "bg-violet/20 text-foreground" : "text-muted hover:bg-elevated hover:text-foreground"}`}
                 >
                   {label}
                 </Link>
               ))}
             </nav>
           </div>
-          <div className="max-h-72 flex-1 overflow-y-auto lg:max-h-none">
+          <div className="max-h-72 flex-1 overflow-y-auto p-2 lg:max-h-none">
             {conversations.length === 0 ? (
               <p className="text-muted p-6 text-sm">No conversations yet.</p>
             ) : (
@@ -237,11 +304,15 @@ export default async function ConversationsPage({
                   <Link
                     key={item.id}
                     href={`/admin/conversations?conversation=${item.id}&page=${page}&channel=${channel}&view=${view}`}
-                    className={`border-border block border-b px-4 py-3 transition-colors ${item.id === selectedId ? "bg-violet/10" : "hover:bg-elevated"}`}
+                    aria-current={item.id === selectedId ? "true" : undefined}
+                    className={`mb-1 block rounded-xl border px-3 py-3 transition-colors ${item.id === selectedId ? "border-violet bg-violet/10" : "hover:bg-elevated border-transparent"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-foreground truncate text-sm font-medium">
-                        {guest}
+                      <p className="text-foreground flex min-w-0 items-center gap-2 truncate text-sm font-medium">
+                        <span className="bg-elevated border-border grid size-8 shrink-0 place-items-center rounded-full border text-xs font-semibold">
+                          {guest.slice(0, 1).toUpperCase()}
+                        </span>
+                        <span className="truncate">{guest}</span>
                       </p>
                       {item.human_takeover ? (
                         <span className="text-violet text-[10px] font-semibold">
@@ -257,7 +328,14 @@ export default async function ConversationsPage({
                         </span>
                       ) : null}
                     </div>
-                    <p className="text-muted mt-1 text-xs capitalize">
+                    <p className="text-muted mt-1 flex items-center gap-1.5 pl-10 text-xs capitalize">
+                      {item.channel === "instagram" ? (
+                        <Camera size={12} aria-hidden="true" />
+                      ) : item.channel === "sms" ? (
+                        <Smartphone size={12} aria-hidden="true" />
+                      ) : (
+                        <Globe2 size={12} aria-hidden="true" />
+                      )}
                       {item.channel.replace("_", " ")} ·{" "}
                       {new Intl.DateTimeFormat("en-CA", {
                         dateStyle: "medium",
@@ -296,52 +374,37 @@ export default async function ConversationsPage({
           )}
         </aside>
 
-        <section className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+        <section className="flex min-h-[560px] min-w-0 flex-col overflow-hidden lg:min-h-0">
           {!selected ? (
             <div className="text-muted grid flex-1 place-items-center p-8 text-sm">
               Select a conversation.
             </div>
           ) : (
             <>
-              <header className="border-border flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
-                <div>
-                  <h2 className="text-foreground font-semibold">
+              <header className="border-border flex items-center gap-3 border-b px-4 py-3 sm:px-5">
+                <span className="bg-elevated border-border grid size-10 shrink-0 place-items-center rounded-full border text-sm font-semibold">
+                  {conversationGuestName(selected).slice(0, 1).toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-foreground truncate font-semibold">
                     {conversationGuestName(selected)}
                   </h2>
-                  <p className="text-muted mt-1 text-xs capitalize">
+                  <p className="text-muted mt-0.5 flex items-center gap-1 text-xs capitalize">
+                    {selected.channel === "instagram" ? (
+                      <Camera size={12} aria-hidden="true" />
+                    ) : selected.channel === "sms" ? (
+                      <Smartphone size={12} aria-hidden="true" />
+                    ) : (
+                      <Globe2 size={12} aria-hidden="true" />
+                    )}
                     {selected.channel.replace("_", " ")} ·{" "}
                     {selected.human_takeover
-                      ? "Automatic replies paused"
+                      ? "Staff in control"
                       : "Concierge active"}
                   </p>
-                  {selected.channel === "sms" &&
-                    conversationPhone(selected) && (
-                      <p className="text-muted mt-1 text-xs">
-                        {conversationPhone(selected)} · Primary SMS identity
-                      </p>
-                    )}
-                  {selected.contacts?.preferred_language && (
-                    <p className="text-muted mt-1 text-xs">
-                      Guest language: {selected.contacts.preferred_language}
-                    </p>
-                  )}
-                  {conversationLeads(selected).length > 0 && (
-                    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
-                      <span className="text-muted">Linked inquiries:</span>
-                      {conversationLeads(selected).map((lead) => (
-                        <Link
-                          key={lead.id}
-                          href={`/admin/leads?lead=${lead.id}`}
-                          className="border-border bg-elevated text-foreground rounded-full border px-2 py-1"
-                        >
-                          {lead.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </header>
-              <div className="border-border grid gap-2 border-b p-3 sm:grid-cols-3 sm:p-4">
+              <div className="border-border order-2 grid gap-2 border-t p-3 sm:grid-cols-3 sm:p-4">
                 <div className="border-border bg-elevated/50 rounded-xl border p-3">
                   <p className="text-foreground text-xs font-semibold">
                     AI Initiate
@@ -408,30 +471,10 @@ export default async function ConversationsPage({
                   )}
                 </div>
               </div>
-              {(selected.rolling_summary ||
-                (selected.contacts?.memory?.facts?.length ?? 0) > 0) && (
-                <details className="border-border border-b px-5 py-3 sm:px-6">
-                  <summary className="text-foreground cursor-pointer text-sm font-semibold">
-                    Remembered guest details
-                  </summary>
-                  {selected.rolling_summary && (
-                    <p className="text-muted mt-3 text-sm leading-6">
-                      {selected.rolling_summary}
-                    </p>
-                  )}
-                  {(selected.contacts?.memory?.facts?.length ?? 0) > 0 && (
-                    <ul className="text-muted mt-2 list-disc space-y-1 pl-5 text-xs">
-                      {selected.contacts?.memory?.facts?.map((fact) => (
-                        <li key={fact}>{fact}</li>
-                      ))}
-                    </ul>
-                  )}
-                </details>
-              )}
               {selected.channel === "sms" && (
                 <details
                   id="follow-up-settings"
-                  className="border-border border-b px-5 py-3 sm:px-6"
+                  className="border-border order-3 border-t px-4 py-3 sm:px-5"
                 >
                   <summary className="text-foreground cursor-pointer text-sm font-semibold">
                     Follow-up settings ·{" "}
@@ -577,15 +620,152 @@ export default async function ConversationsPage({
               {(selected.channel === "web_preview" ||
                 selected.channel === "sms" ||
                 selected.channel === "instagram") && (
-                <ConversationComposer
-                  key={selected.id}
-                  conversationId={selected.id}
-                  channel={selected.channel}
-                />
+                <div className="order-4">
+                  <ConversationComposer
+                    key={selected.id}
+                    conversationId={selected.id}
+                    channel={selected.channel}
+                  />
+                </div>
               )}
             </>
           )}
         </section>
+        {selected && (
+          <aside
+            className="border-border bg-elevated/25 min-w-0 space-y-3 border-t p-3 lg:hidden xl:block xl:overflow-y-auto xl:border-t-0 xl:border-l"
+            aria-label="Guest details"
+          >
+            <div className="border-border bg-surface/70 rounded-xl border p-4">
+              <h2 className="text-foreground text-sm font-semibold">
+                Guest information
+              </h2>
+              <dl className="mt-4 space-y-3 text-xs">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted">Name</dt>
+                  <dd className="text-foreground text-right">
+                    {conversationGuestName(selected)}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted">Channel</dt>
+                  <dd className="text-foreground text-right capitalize">
+                    {selected.channel.replace("_", " ")}
+                  </dd>
+                </div>
+                {conversationPhone(selected) && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted">Phone</dt>
+                    <dd className="text-foreground text-right break-all">
+                      {conversationPhone(selected)}
+                    </dd>
+                  </div>
+                )}
+                {selected.contacts?.preferred_language && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted">Language</dt>
+                    <dd className="text-foreground text-right">
+                      {selected.contacts.preferred_language}
+                    </dd>
+                  </div>
+                )}
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted">Status</dt>
+                  <dd className="text-foreground text-right capitalize">
+                    {selected.status.replaceAll("_", " ")}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted">Last activity</dt>
+                  <dd className="text-foreground text-right">
+                    {formatMessageTime(selected.last_message_at)}
+                  </dd>
+                </div>
+              </dl>
+              {conversationLeads(selected).length > 0 && (
+                <div className="border-border mt-4 border-t pt-3">
+                  <p className="text-muted mb-2 text-xs">Linked inquiries</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {conversationLeads(selected).map((lead) => (
+                      <Link
+                        key={lead.id}
+                        href={`/admin/leads?lead=${lead.id}`}
+                        className="focus-ring border-border bg-elevated text-foreground hover:border-violet rounded-lg border px-2 py-1 text-xs"
+                      >
+                        {lead.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            {(selected.rolling_summary ||
+              (selected.contacts?.memory?.facts?.length ?? 0) > 0) && (
+              <div className="border-border bg-surface/70 rounded-xl border p-4">
+                <h2 className="text-foreground flex items-center gap-2 text-sm font-semibold">
+                  <MessageSquareText
+                    size={15}
+                    className="text-violet"
+                    aria-hidden="true"
+                  />
+                  Conversation summary
+                </h2>
+                {selected.rolling_summary && (
+                  <p className="text-muted mt-3 text-xs leading-5">
+                    {selected.rolling_summary}
+                  </p>
+                )}
+                {(selected.contacts?.memory?.facts?.length ?? 0) > 0 && (
+                  <ul className="text-muted mt-3 list-disc space-y-1 pl-4 text-xs leading-5">
+                    {selected.contacts?.memory?.facts?.map((fact) => (
+                      <li key={fact}>{fact}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            <div className="border-border bg-surface/70 rounded-xl border p-4">
+              <h2 className="text-foreground flex items-center gap-2 text-sm font-semibold">
+                <Clock3 size={15} className="text-violet" aria-hidden="true" />
+                Automations
+              </h2>
+              <dl className="mt-3 space-y-3 text-xs">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted">AI Initiate</dt>
+                  <dd className="text-foreground">Not enabled</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted">AI Respond</dt>
+                  <dd className="text-foreground">
+                    {selected.human_takeover ? "Paused" : "On"}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted">AI Follow Up</dt>
+                  <dd className="text-foreground">
+                    {selected.channel !== "sms"
+                      ? "SMS only"
+                      : selected.follow_up_enabled
+                        ? selected.human_takeover
+                          ? "Paused"
+                          : "On"
+                        : "Off"}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            {selected.handoff_reason && (
+              <div className="border-border bg-surface/70 rounded-xl border p-4">
+                <h2 className="text-foreground text-sm font-semibold">
+                  Needs review
+                </h2>
+                <p className="text-muted mt-2 text-xs leading-5">
+                  {selected.handoff_reason}
+                </p>
+              </div>
+            )}
+          </aside>
+        )}
       </div>
     </AdminShell>
   );

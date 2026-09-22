@@ -278,3 +278,9 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [ ] Complete signed-in desktop/mobile visual QA and real provider-send/translation/timing acceptance; the browser connection was unavailable in this workspace session.
 - [ ] Confirm the “Open” reference and full-size redesign image with the client.
 - [ ] Specify, build, and separately approve consent-aware AI initiation, tags, and SMS broadcasts; do not activate open-ended outreach or cold Instagram DMs.
+
+## Owner-meeting navigation views (2026-09-22)
+
+- [x] Add Settings as a protected hub for existing controls and public links, without exposing secrets or adding pretend configuration switches.
+- [x] Add date-filtered Guest List and Reservations views backed by existing venue-scoped leads and table-booking records. A guest-list request is not confirmed until its inquiry is Booked; held, cancelled, expired, and refunded table bookings are not displayed as reservations.
+- [ ] Verify these new views with real signed-in data at desktop and mobile sizes, including a cancelled/refunded table booking and an unconfirmed guest-list request, before the client demo.
