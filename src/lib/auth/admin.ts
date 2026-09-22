@@ -4,6 +4,7 @@ import { createUserClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function requireAdmin() {
+  const startedAt = performance.now();
   const supabase = await createUserClient();
   const {
     data: { user },
@@ -38,6 +39,10 @@ export async function requireAdmin() {
         },
         { onConflict: "venue_id,user_id" },
       );
+  }
+  const durationMs = Math.round(performance.now() - startedAt);
+  if (durationMs >= 500) {
+    console.info("Slow admin authorization", { durationMs });
   }
   return user;
 }

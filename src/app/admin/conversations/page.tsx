@@ -108,7 +108,21 @@ export default async function ConversationsPage({
   const requestedPage = Number.parseInt(pageValue ?? "1", 10);
   const page =
     Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
-  const admin = createAdminClient();
+  const admin = createAdminClient({ logSlowQueries: true });
+  const loadMessages = (conversationId: string) =>
+    admin
+      .from("messages")
+      .select(
+        "id,conversation_id,sender_type,content,metadata,created_at,delivery_status",
+      )
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: false })
+      .limit(200);
+  // The selected conversation ID is known from the URL. Start its messages
+  // while the list loads; only use them if that ID belongs to the current page.
+  const requestedMessages = requested
+    ? Promise.resolve(loadMessages(requested)).catch(() => null)
+    : null;
   const membershipQuery = admin
     .from("staff_memberships")
     .select("id")
@@ -146,14 +160,9 @@ export default async function ConversationsPage({
         })
       : Promise.resolve({ data: [] }),
     selectedId
-      ? admin
-          .from("messages")
-          .select(
-            "id,conversation_id,sender_type,content,metadata,created_at,delivery_status",
-          )
-          .eq("conversation_id", selectedId)
-          .order("created_at", { ascending: false })
-          .limit(200)
+      ? selectedId === requested && requestedMessages
+        ? requestedMessages.then((result) => result ?? loadMessages(selectedId))
+        : loadMessages(selectedId)
       : Promise.resolve({ data: [], error: null }),
     membership.data && selectedId
       ? admin.rpc("mark_manager_conversation_read", {

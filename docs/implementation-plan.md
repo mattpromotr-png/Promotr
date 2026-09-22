@@ -285,3 +285,13 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [x] Add Settings as a protected hub for existing controls and public links, without exposing secrets or adding pretend configuration switches.
 - [x] Add date-filtered Guest List and Reservations views backed by existing venue-scoped leads and table-booking records. A guest-list request is not confirmed until its inquiry is Booked; held, cancelled, expired, and refunded table bookings are not displayed as reservations.
 - [ ] Verify these new views with real signed-in data at desktop and mobile sizes, including a cancelled/refunded table booking and an unconfirmed guest-list request, before the client demo.
+
+## Admin navigation performance (2026-09-22)
+
+- [x] Keep live user and membership authorization, but use verified claims in the SSR session-refresh proxy to avoid an extra Auth-server user lookup when local JWT verification is available.
+- [x] Start loading a requested chat's messages alongside the conversation list, using the result only when that chat belongs to the active list page.
+- [x] Log slow admin session refreshes, authorization checks, and conversation database requests with durations only; exclude guest content, query parameters, and credentials.
+- [x] Pass typecheck, lint, 127 tests with two Vitest workers, and a production build. The initial unrestricted test run hit local worker-start timeouts, not assertion failures.
+- [x] Record a public production baseline from this workspace: homepage first-byte times 2.03s, then 0.58/0.55/0.55s; unauthenticated admin-login first-byte times 1.71/0.60/0.55s. These are small-sample network observations, not signed-in admin or browser-render measurements.
+- [ ] Deploy and measure signed-in production navigation: compare browser request wait time with `Slow admin session refresh`, `Slow admin authorization`, and `Slow admin database request` logs for a sidebar click and a chat switch. Local verification does not establish a production speed improvement.
+- [ ] Use the measured bottleneck to decide whether to split chat-detail loading from the list, reduce exact counts, optimize query plans, or align hosting/database regions. Preserve messaging behavior and authorization.
