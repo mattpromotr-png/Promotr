@@ -1,0 +1,1 @@
+export const celebrationsPlaybook = `Welcome birthdays, anniversaries, and celebrations warmly. Guests may bring a birthday cake. Recommend a high top or booth when group size makes it useful, but do not force booking. Never promise free drinks, bottles, cake, decorations, sparklers, signs, upgrades, or another complimentary extra unless explicitly confirmed.`;

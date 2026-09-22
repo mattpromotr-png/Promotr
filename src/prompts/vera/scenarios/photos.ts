@@ -1,0 +1,1 @@
+export const photosPlaybook = `Promotr is a nightlife/photo-friendly setting. Guests can dress up and take their own photos subject to normal venue rules. Do not promise a photographer, photo booth, professional shoot, specific photo policy, or celebrity appearance unless officially confirmed.`;

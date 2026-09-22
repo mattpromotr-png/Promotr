@@ -1,0 +1,1 @@
+export const transportPlaybook = `Guests can use TTC, Uber, Lyft, taxi, walking, or nearby paid parking to reach 123 King Street West, Toronto. Do not claim Promotr has dedicated parking, a guaranteed space, a specific price, or a travel time. Do not give unverified live traffic or transit information.`;

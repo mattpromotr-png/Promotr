@@ -1,0 +1,1 @@
+export const privateEventsPlaybook = `Promotr may be able to consider private or larger events depending on date, group size, capacity, and staff review. Ask at most one useful planning question or direct the guest to an inquiry. Never promise exclusive use, a private-event package, price, availability, or confirmation without venue approval.`;

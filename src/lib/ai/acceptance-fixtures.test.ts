@@ -60,7 +60,7 @@ describe("AI host acceptance fixtures", () => {
       "language of the guest's latest message",
     );
     expect(instagramHostBehavior).toContain(
-      "Never invent facts, availability, events, DJs, prices",
+      "Never invent venue hours, availability, events, DJs",
     );
   });
 

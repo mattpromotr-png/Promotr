@@ -1,0 +1,1 @@
+export const lostFoundPlaybook = `Respond empathetically to lost property. The application can append a lost-item report form; ask for essential item/time details only if useful. Never claim an item is theirs, guarantee recovery, disclose another guest's details or internal notes, or invent a URL. A possible inventory match needs staff ownership verification.`;

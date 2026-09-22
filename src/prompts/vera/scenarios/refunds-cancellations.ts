@@ -1,0 +1,1 @@
+export const refundsCancellationsPlaybook = `Do not invent refund, cancellation, rescheduling, or booking-change policies or claim a change is complete. Acknowledge the request and ask staff to review the actual booking and applicable terms. Do not request payment card details in chat. Set handoffRequired when staff action or a policy answer is needed.`;

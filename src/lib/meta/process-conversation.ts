@@ -6,6 +6,7 @@ import {
   latestMessageNeedsLostFoundForm,
 } from "@/lib/messaging/policy";
 import { sendInstagramConversationMessage } from "@/lib/messaging/instagram-conversation";
+import { loadRecallExcerpts } from "@/lib/messaging/recall";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -91,6 +92,12 @@ async function processClaimedBatch(
     const contact = Array.isArray(conversation.contacts)
       ? conversation.contacts[0]
       : conversation.contacts;
+    const recallExcerpts = await loadRecallExcerpts(
+      admin,
+      conversation.venue_id,
+      conversation.contact_id,
+      batchText,
+    );
     const foundItems = latestMessageNeedsLostFoundForm(batchText)
       ? (
           await admin
@@ -109,6 +116,7 @@ async function processClaimedBatch(
       contactMemory: asRecord(contact?.memory),
       knownName: contact?.display_name,
       preferredLanguage: contact?.preferred_language,
+      recallExcerpts,
       availableFoundItems: (foundItems ?? []).map((item) => ({
         itemName: item.item_name,
         description: item.description,
@@ -258,7 +266,10 @@ async function processClaimedBatch(
           kind: "follow_up",
         });
       } catch (error) {
-        console.error("Unable to notify managers about Instagram follow-up", error);
+        console.error(
+          "Unable to notify managers about Instagram follow-up",
+          error,
+        );
       }
     }
     return outcome;

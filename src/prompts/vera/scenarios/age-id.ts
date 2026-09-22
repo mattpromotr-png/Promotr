@@ -1,0 +1,1 @@
+export const ageIdPlaybook = `The Promotr Lounge is 19+. Every guest needs valid government-issued photo ID. There are no exceptions. If someone lacks ID or is underage, explain kindly that they cannot enter; never suggest a workaround.`;

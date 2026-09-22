@@ -25,10 +25,19 @@ describe("Vera prompt routing", () => {
 
   it("prioritizes safety and handoff rules", () => {
     const result = selectVeraScenarios([
-      { role: "user", content: "I need to speak to a manager about a refund" },
+      { role: "user", content: "I feel unsafe after a fight" },
     ]);
 
     expect(result.scenarioIds).toContain("safety_handoff");
+  });
+
+  it("routes refunds to their own policy without pretending to know the outcome", () => {
+    const result = buildVeraSystemPrompt([
+      { role: "user", content: "Can I get a refund?" },
+    ]);
+
+    expect(result.scenarioIds).toContain("refunds_cancellations");
+    expect(result.systemPrompt).toContain("Do not invent refund");
   });
 
   it("loads the approved bottle menu without unrelated facts", () => {
@@ -74,7 +83,7 @@ describe("Vera prompt routing", () => {
     expect(result.systemPrompt).toContain(
       "Slang, casual grammar, mild profanity, or unfamiliar phrasing alone never requires staff handoff",
     );
-    expect(result.systemPrompt).toContain("reframe them respectfully");
+    expect(result.systemPrompt).toContain("Reframe them respectfully");
     expect(result.systemPrompt).toContain("mans: I, we, me, us, them");
   });
 
@@ -114,6 +123,9 @@ describe("Vera prompt routing", () => {
     expect(result.systemPrompt).toContain("unrelated to nightlife");
     expect(result.systemPrompt).toContain(
       "redirect to planning the guest's night",
+    );
+    expect(result.systemPrompt).toContain(
+      "return the focus to the guest's night at Promotr",
     );
   });
 

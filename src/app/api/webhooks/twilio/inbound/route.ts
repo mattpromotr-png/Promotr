@@ -13,6 +13,7 @@ import {
   requiresStaffAttention,
 } from "@/lib/messaging/policy";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
+import { loadRecallExcerpts } from "@/lib/messaging/recall";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -285,6 +286,12 @@ async function processClaimedSmsBatch(
     const contact = Array.isArray(conversation.contacts)
       ? conversation.contacts[0]
       : conversation.contacts;
+    const recallExcerpts = await loadRecallExcerpts(
+      admin,
+      conversation.venue_id,
+      conversation.contact_id,
+      batchText,
+    );
     const lostItemTurn = latestMessageNeedsLostFoundForm(batchText);
     const foundItems = lostItemTurn
       ? (
@@ -304,6 +311,7 @@ async function processClaimedSmsBatch(
       contactMemory: asRecord(contact?.memory),
       knownName: contact?.display_name,
       preferredLanguage: contact?.preferred_language,
+      recallExcerpts,
       availableFoundItems: (foundItems ?? []).map((item) => ({
         itemName: item.item_name,
         description: item.description,

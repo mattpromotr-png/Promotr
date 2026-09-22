@@ -12,6 +12,12 @@ import {
   deterministicStaffPrivacy,
 } from "@/lib/ai/orchestration";
 import { conversationAllowsBookingLink } from "@/lib/messaging/policy";
+import type { RecallExcerpt } from "@/lib/messaging/recall";
+import {
+  getDirectTorontoDateAnswer,
+  getTorontoCalendarContext,
+  getTomorrowBookingGuidance,
+} from "@/lib/messaging/toronto-calendar";
 import { buildVeraSystemPrompt } from "@/prompts/vera";
 
 type ConciergeMessage = { role: "user" | "assistant"; content: string };
@@ -22,6 +28,7 @@ type ConciergeMemoryContext = {
   contactMemory?: Record<string, unknown> | null;
   knownName?: string | null;
   preferredLanguage?: string | null;
+  recallExcerpts?: RecallExcerpt[];
   availableFoundItems?: Array<{
     itemName: string;
     description: string;
@@ -41,21 +48,71 @@ export async function generateConciergeReply(
   }));
   const latest = recent.at(-1)?.content || "";
   const deterministic = deterministicHandoff(latest);
-  if (deterministic) return withFallbackIntelligence(deterministic, latest);
+  if (deterministic)
+    return withFallbackIntelligence(
+      deterministic,
+      latest,
+      false,
+      memoryContext.summary,
+    );
   const staffPrivacy = deterministicStaffPrivacy(latest);
-  if (staffPrivacy) return withFallbackIntelligence(staffPrivacy, latest);
+  if (staffPrivacy)
+    return withFallbackIntelligence(
+      staffPrivacy,
+      latest,
+      false,
+      memoryContext.summary,
+    );
   const nearbyRecommendation = deterministicNearbyRecommendation(latest);
   if (nearbyRecommendation)
-    return withFallbackIntelligence(nearbyRecommendation, latest);
+    return withFallbackIntelligence(
+      nearbyRecommendation,
+      latest,
+      false,
+      memoryContext.summary,
+    );
+  const directDateAnswer = getDirectTorontoDateAnswer(latest);
+  if (directDateAnswer)
+    return withFallbackIntelligence(
+      {
+        reply: directDateAnswer,
+        intent: "faq",
+        bookingIntent: false,
+        missingQualificationFields: [],
+        shareBookingForm: false,
+        handoffRequired: false,
+        handoffReason: null,
+      },
+      latest,
+      false,
+      memoryContext.summary,
+    );
+  const tomorrowBooking = getTomorrowBookingGuidance(latest);
+  if (tomorrowBooking)
+    return withFallbackIntelligence(
+      {
+        reply: tomorrowBooking.reply,
+        intent: "booking",
+        bookingIntent: true,
+        missingQualificationFields: [],
+        shareBookingForm: tomorrowBooking.shareBookingForm,
+        handoffRequired: false,
+        handoffReason: null,
+      },
+      latest,
+      tomorrowBooking.shareBookingForm,
+      memoryContext.summary,
+    );
   const shareBookingForm = conversationAllowsBookingLink(recent);
   const { systemPrompt } = buildVeraSystemPrompt(recent);
-  const intelligenceInstructions = `Operational output fields: detect the language of the latest guest message; translate that message and your reply faithfully into English; extract guestFirstName only when the guest explicitly supplied it; keep memoryFacts to durable guest preferences or personal details explicitly stated; and write a compact conversationSummary preserving names, preferences, current request, and unresolved questions. Never treat inferred or unconfirmed booking details as verified facts.`;
+  const intelligenceInstructions = `Operational output fields: detect the language of the latest guest message; translate that message and your reply faithfully into English; extract guestFirstName only when the guest explicitly supplied it; keep memoryFacts to durable guest preferences or personal details explicitly stated; and write a compact conversationSummary that carries forward relevant verified details from the prior summary while adding the current request and unresolved questions. Do not discard prior verified details merely because they are absent from the last few messages. Never treat inferred or unconfirmed booking details as verified facts.`;
   const suppliedMemory = JSON.stringify({
     summary: memoryContext.summary || null,
     contactMemory: memoryContext.contactMemory || {},
     knownName: memoryContext.knownName || null,
     preferredLanguage: memoryContext.preferredLanguage || null,
     availableFoundItems: memoryContext.availableFoundItems?.slice(0, 20) || [],
+    recallExcerpts: memoryContext.recallExcerpts?.slice(-24) || [],
   });
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -64,6 +121,7 @@ export async function generateConciergeReply(
       conversationalFallback(latest),
       latest,
       shareBookingForm,
+      memoryContext.summary,
     );
   }
 
@@ -79,11 +137,11 @@ export async function generateConciergeReply(
         input: [
           {
             role: "system",
-            content: `${systemPrompt}\n\n${intelligenceInstructions}\n\nStored conversation memory (may be empty):\n${suppliedMemory}`,
+            content: `${systemPrompt}\n\n${getTorontoCalendarContext()}\n\n${intelligenceInstructions}\n\nStored conversation memory (may be empty):\n${suppliedMemory}`,
           },
           ...recent,
         ],
-        max_output_tokens: 500,
+        max_output_tokens: 900,
         text: {
           format: {
             type: "json_schema",
@@ -164,6 +222,7 @@ export async function generateConciergeReply(
         conversationalFallback(latest),
         latest,
         shareBookingForm,
+        memoryContext.summary,
       );
     }
     const payload = (await response.json()) as {
@@ -185,6 +244,7 @@ export async function generateConciergeReply(
         conversationalFallback(latest),
         latest,
         shareBookingForm,
+        memoryContext.summary,
       );
     }
     return {
@@ -203,6 +263,7 @@ export async function generateConciergeReply(
       conversationalFallback(latest),
       latest,
       shareBookingForm,
+      memoryContext.summary,
     );
   }
 }
@@ -211,6 +272,7 @@ function withFallbackIntelligence(
   response: AiHostResponse,
   latestGuestMessage: string,
   shareBookingForm = response.shareBookingForm,
+  priorSummary?: string | null,
 ): ConciergeResult {
   return {
     ...response,
@@ -221,7 +283,9 @@ function withFallbackIntelligence(
     guestFirstName: null,
     memoryFacts: [],
     conversationSummary:
-      latestGuestMessage.slice(0, 600) || "No conversation summary available.",
+      priorSummary?.trim().slice(0, 600) ||
+      latestGuestMessage.slice(0, 600) ||
+      "No conversation summary available.",
   };
 }
 

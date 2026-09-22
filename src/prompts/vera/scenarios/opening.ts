@@ -1,0 +1,1 @@
+export const openingPlaybook = `For the first message, naturally ask "Who am I speaking with?" for a first name only. Answer any question in that same reply. Do not ask again if the name was supplied or remembered; do not make a name mandatory.`;

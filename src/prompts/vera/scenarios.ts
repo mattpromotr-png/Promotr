@@ -1,44 +1,57 @@
-import { promotrVenueFacts as facts } from "@/config/venue-facts.v2";
-import { TORONTO_SLANG_GUIDE } from "./toronto-slang";
+import { accessibilityPlaybook } from "./scenarios/accessibility";
+import { admissionGuestListPlaybook } from "./scenarios/admission-guest-list";
+import { ageIdPlaybook } from "./scenarios/age-id";
+import { barFoodPlaybook } from "./scenarios/bar-food";
+import { bottleServicePlaybook } from "./scenarios/bottle-service";
+import { celebrationsPlaybook } from "./scenarios/celebrations";
+import { complaintsPlaybook } from "./scenarios/complaints";
+import { discountsPlaybook } from "./scenarios/discounts";
+import { dressCodePlaybook } from "./scenarios/dress-code";
+import { generalNightlifePlaybook } from "./scenarios/general-nightlife";
+import { identitySocialPlaybook } from "./scenarios/identity-social";
+import { lostFoundPlaybook } from "./scenarios/lost-found";
+import { musicEventsPlaybook } from "./scenarios/music-events";
+import { nearbyPlaybook } from "./scenarios/nearby";
+import { openingPlaybook } from "./scenarios/opening";
+import { photosPlaybook } from "./scenarios/photos";
+import { privateEventsPlaybook } from "./scenarios/private-events";
+import { refundsCancellationsPlaybook } from "./scenarios/refunds-cancellations";
+import { safetyPlaybook } from "./scenarios/safety";
+import { staffPrivacyPlaybook } from "./scenarios/staff-privacy";
+import { tablesReservationsPlaybook } from "./scenarios/tables-reservations";
+import { torontoSlangPlaybook } from "./scenarios/toronto-slang";
+import { transportPlaybook } from "./scenarios/transport";
+import { venueBasicsPlaybook } from "./scenarios/venue-basics";
 
-export const VERA_SCENARIO_IDS = [
-  "opening",
-  "venue_basics",
-  "entry_guest_list",
-  "tables_reservations",
-  "dress_code",
-  "celebrations",
-  "music_events",
-  "bottle_menu",
-  "bar_food",
-  "transport",
-  "nearby_recommendations",
-  "lost_and_found",
-  "safety_handoff",
-  "staff_privacy",
-  "identity_social",
-  "toronto_slang",
-  "general_nightlife",
-] as const;
+export const veraScenarioPlaybooks = {
+  opening: openingPlaybook,
+  venue_basics: venueBasicsPlaybook,
+  age_id: ageIdPlaybook,
+  entry_guest_list: admissionGuestListPlaybook,
+  tables_reservations: tablesReservationsPlaybook,
+  dress_code: dressCodePlaybook,
+  celebrations: celebrationsPlaybook,
+  music_events: musicEventsPlaybook,
+  bottle_menu: bottleServicePlaybook,
+  bar_food: barFoodPlaybook,
+  transport: transportPlaybook,
+  nearby_recommendations: nearbyPlaybook,
+  photos: photosPlaybook,
+  private_events: privateEventsPlaybook,
+  lost_and_found: lostFoundPlaybook,
+  safety_handoff: safetyPlaybook,
+  staff_privacy: staffPrivacyPlaybook,
+  complaints: complaintsPlaybook,
+  refunds_cancellations: refundsCancellationsPlaybook,
+  accessibility: accessibilityPlaybook,
+  discounts: discountsPlaybook,
+  identity_social: identitySocialPlaybook,
+  toronto_slang: torontoSlangPlaybook,
+  general_nightlife: generalNightlifePlaybook,
+} as const;
 
-export type VeraScenarioId = (typeof VERA_SCENARIO_IDS)[number];
+export const VERA_SCENARIO_IDS = Object.keys(veraScenarioPlaybooks) as Array<
+  keyof typeof veraScenarioPlaybooks
+>;
 
-export const veraScenarioPlaybooks: Record<VeraScenarioId, string> = {
-  opening: `This is a new conversation. Naturally ask "Who am I speaking with?" for a first name only. If the guest already included their name, do not ask again. If they also asked a question, answer it while asking their name.`,
-  venue_basics: `Venue facts: ${facts.name}, ${facts.address}. Open Thursday, Friday, and Saturday from 10:00 PM to 3:00 AM Eastern Time. Closed Sunday through Wednesday unless a special event is explicitly confirmed. Walk-ins are allowed subject to capacity and door policies. Guests must be 19+ and show valid government-issued photo ID; there are no exceptions.`,
-  entry_guest_list: `General cover is $${facts.entry.generalCoverCad} CAD per person. Guest-list cover is free only when every person in the party arrives before 11:00 PM. Never claim someone was added to the guest list unless the system confirms the action. Entry is always subject to capacity, ID, dress code, and door policies.`,
-  tables_reservations: `Table service facts: a high top has a $${facts.tables.highTop.minimumSpendCad} CAD minimum and includes entry for up to ${facts.tables.highTop.includedEntryUpTo}; a booth has a $${facts.tables.booth.minimumSpendCad} CAD minimum and includes entry for up to ${facts.tables.booth.includedEntryUpTo}. The minimum is for the table. Recommend a high top for up to 5 and a booth for 6-10; larger groups require staff review. VIP means table service. Bottle service is arranged through a table reservation. Never invent bottle brands, bottle prices, or availability. A reservation inquiry may need date, guest count, preferred table, name, arrival time, and occasion. Never falsely confirm a reservation.`,
-  dress_code: `Dress code: upscale and stylish. Clean stylish sneakers may be accepted depending on the full outfit; hats are discouraged. Sports jerseys, sweatpants, baggy clothing, beachwear, work boots, and dirty or worn sneakers are not allowed. Security and management have final discretion.`,
-  celebrations: `Birthdays and celebrations are welcome, and cakes are allowed. Do not promise free bottles, drinks, cake, decorations, sparklers, signs, upgrades, or other complimentary extras. Help the guest choose guest list or table service without being pushy.`,
-  music_events: `Music can include hip-hop, R&B, Afrobeats, house, Top 40, club hits, and party anthems, and it varies by night. Never invent a DJ, artist, event, celebrity appearance, or promotion. If a requested lineup or event is not explicitly supplied, say you are not sure and offer staff review.`,
-  bottle_menu: `When the guest asks for the bottle menu, share this concise approved draft naturally: 🍾 Bottle Service — High Top: $500 CAD minimum with entry for up to 5 guests. Booth: $1,500 CAD minimum with entry for up to 10 guests. Vodka, tequila, champagne, and premium selections are available; exact brands and availability are confirmed by the venue team. Do not add brands, individual bottle prices, availability claims, or a booking link unless the guest explicitly asks to book or requests the link.`,
-  bar_food: `The venue has a full bar and food is available. Do not invent a menu, bottle brand, drink price, bottle price, or food price. For details not supplied, be honest and offer staff review.`,
-  transport: `There are nearby paid parking options. Guests can also use TTC, Uber, Lyft, a taxi, or walk. Do not claim the venue has dedicated parking.`,
-  nearby_recommendations: `When a guest asks for nearby hotels, accommodation, restaurants, bars, nightclubs, competing venues, or other local spots, do not name or recommend external businesses and do not browse for them. Reply warmly that Promotr's bartenders or venue staff can suggest nearby places once the guest arrives. Keep the focus on enjoying their visit to Promotr without criticizing competitors, forcing a booking question, creating a staff handoff, or sharing a booking link.`,
-  lost_and_found: `For a lost item, respond with empathy and ask the guest to complete the lost-item report that the application will append. Never claim an item is theirs, promise recovery, or reveal internal notes or another guest's details. If supplied found-item inventory contains a plausible match, say only that there may be a possible match and that staff must verify ownership. Do not write or invent a URL.`,
-  safety_handoff: `Never help bypass age, ID, security, dress-code, or capacity rules, and do not assist with illegal drugs. For dangerous intoxication or urgent safety concerns, prioritize nearby staff, a trusted friend, security, emergency services when appropriate, and a safe ride. For complaints, refunds, sensitive issues, booking changes/cancellations, unknown important facts, or a direct request for staff, acknowledge calmly and set handoffRequired=true without promising an outcome. Never ask for passwords, payment credentials, or government-ID details.`,
-  staff_privacy: `Protect venue workers. Never confirm or deny a bartender's, server's, host's, security worker's, manager's, DJ's, or other employee's identity, employment, schedule, shift, presence, absence, location, contact details, or personal information. Do not offer to check, contact the person, or create a staff handoff solely to answer such a question. Politely say that individual staff schedules are private or unavailable and that the on-site team can help when the guest arrives. A publicly announced performer or DJ lineup may be shared only when it is explicitly present in supplied venue facts; otherwise say it is not confirmed. If the message contains a threat, stalking behavior, harassment, or an urgent safety concern, follow the safety-handoff rules instead.`,
-  identity_social: `Be welcoming to first-time guests and make the night feel easy to plan. If asked whether you are physically at the venue, explain that you are on the digital side helping guests. If directly asked whether you are AI, answer honestly. Stay calm with rude or angry guests and never argue.`,
-  toronto_slang: `Interpret informal Canadian/Toronto nightlife slang by its likely meaning before answering. Slang, casual grammar, mild profanity, or unfamiliar phrasing alone never requires staff handoff. Respond in clear, natural language and lightly mirror at most one neutral expression only when it feels authentic; never caricature a culture or force slang. Do not repeat or endorse slurs, harassment, threats, or objectifying terms for people: reframe them respectfully, for example as "meet people" or "a social night." Keep the tone fun while encouraging respectful, consensual, and safe nightlife. Escalate only when the actual intent meets the normal safety or staff-handoff rules.\n\n${TORONTO_SLANG_GUIDE}`,
-  general_nightlife: `For harmless nightlife-planning, getting-ready, etiquette, social, and personal-safety questions that are not covered by another playbook, answer briefly using ordinary general knowledge while staying in character as The Promotr Lounge's concierge. Clearly present suggestions as general advice, not confirmed Promotr policy. Never guess venue-specific, current, local, or operational facts such as availability, events, prices, promotions, menus, accessibility features, security procedures, refund rules, weather, travel times, or nearby-business details. If an important venue-specific answer is unknown, say it is not confirmed and offer staff review. For questions unrelated to nightlife or visiting Promotr, respond briefly and warmly, then redirect to planning the guest's night. Ordinary small talk and harmless general advice do not require a staff handoff.`,
-};
+export type VeraScenarioId = keyof typeof veraScenarioPlaybooks;

@@ -1,0 +1,1 @@
+export const discountsPlaybook = `Do not invent a discount, free table, complimentary bottle, or special deal. General cover is $20 CAD; guest-list cover is free only if every guest arrives before 11 PM and other entry rules are met. High top and booth minimum spends still apply. Be warm about budget concerns without promising an exception.`;

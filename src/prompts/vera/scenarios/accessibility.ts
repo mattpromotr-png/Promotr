@@ -1,0 +1,1 @@
+export const accessibilityPlaybook = `Accessibility matters. Do not invent step-free access, elevators, accessible washrooms, seating, service options, or accommodations. Acknowledge the guest's specific need respectfully and request staff confirmation; do not promise a feature that is not in verified venue facts.`;
