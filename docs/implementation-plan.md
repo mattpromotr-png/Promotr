@@ -264,3 +264,17 @@ See `docs/instagram-integration-plan.md` for the architecture and activation che
 - [ ] Deploy Vera v10 and verify a real Instagram off-topic exchange redirects briefly without answering trivia; also verify normal Promotr and nightlife questions still receive useful answers.
 - [ ] Run model-level and live SMS/Instagram acceptance conversations for every scenario family; unit routing tests alone do not certify client-ready behavior.
 - [x] Run live diagnostic reads: the local Instagram token identifies the configured Promotr account and its account-level subscription includes `messages`; production internal authentication accepts the local n8n shared secret. The local Meta signing secret is rejected by production. The active domain points to the current commit; Vercel marks Meta credentials sensitive, so their deployed values cannot be read back.
+
+## Owner-meeting dashboard improvements (2026-09-22)
+
+See `docs/client-demo-improvements-plan.md` for the client's seven requested changes, assumptions, acceptance criteria, and gated outreach design.
+
+- [x] Correct raw staff-translation response parsing; add unit tests.
+- [x] Add main inbox send feedback and pending state; show translation and provider failures without crashing the form.
+- [x] Fetch the newest 200 messages, start the main transcript at the latest message, and provide a jump-to-latest control.
+- [x] Remove redundant conversation-action refresh calls, parallelize independent inbox reads, add pause/resume pending feedback, reduce fallback full-page polling, and prevent scheduled SMS follow-ups from running while staff has paused automation.
+- [x] Add an Open/Needs review/All side-panel filter and accurate status cards for AI Initiate (unavailable), AI Respond, and SMS-only AI Follow Up.
+- [x] Display English alongside original/delivered text in the main transcript when translated.
+- [ ] Complete signed-in desktop/mobile visual QA and real provider-send/translation/timing acceptance; the browser connection was unavailable in this workspace session.
+- [ ] Confirm the “Open” reference and full-size redesign image with the client.
+- [ ] Specify, build, and separately approve consent-aware AI initiation, tags, and SMS broadcasts; do not activate open-ended outreach or cold Instagram DMs.

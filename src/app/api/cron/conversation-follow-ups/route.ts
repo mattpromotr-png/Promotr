@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     )
     .eq("channel", "sms")
     .eq("follow_up_enabled", true)
+    .eq("human_takeover", false)
     .neq("status", "closed")
     .not("next_follow_up_at", "is", null)
     .lte("next_follow_up_at", now)
@@ -66,6 +67,8 @@ export async function POST(request: Request) {
       .update({ next_follow_up_at: null, updated_at: now })
       .eq("id", conversation.id)
       .eq("next_follow_up_at", scheduledAt)
+      .eq("follow_up_enabled", true)
+      .eq("human_takeover", false)
       .select("id")
       .maybeSingle();
     if (!claimed) continue;

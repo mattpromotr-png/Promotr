@@ -5,20 +5,21 @@ import {
   MessageCircle,
   PauseCircle,
   PlayCircle,
-  Send,
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
 
 import { ConversationLiveRefresh } from "@/components/admin/conversation-live-refresh";
+import { ConversationComposer } from "@/components/admin/conversation-composer";
+import { ConversationTranscript } from "@/components/admin/conversation-transcript";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   pauseConversationAutomation,
   resumeConversationAutomation,
-  sendConversationReply,
   updateConversationFollowUp,
 } from "./actions";
 
@@ -84,6 +85,7 @@ export default async function ConversationsPage({
     conversation?: string;
     page?: string;
     channel?: string;
+    view?: string;
   }>;
 }) {
   const user = await requireAdmin();
@@ -91,15 +93,19 @@ export default async function ConversationsPage({
     conversation: requested,
     page: pageValue,
     channel: channelValue,
+    view: viewValue,
   } = await searchParams;
   const channel = ["sms", "instagram"].includes(channelValue || "")
     ? channelValue!
     : "all";
+  const view = ["open", "review", "all"].includes(viewValue || "")
+    ? viewValue!
+    : "open";
   const requestedPage = Number.parseInt(pageValue ?? "1", 10);
   const page =
     Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const admin = createAdminClient();
-  const membership = await admin
+  const membershipQuery = admin
     .from("staff_memberships")
     .select("id")
     .eq("user_id", user.id)
@@ -113,16 +119,45 @@ export default async function ConversationsPage({
       { count: "exact" },
     );
   if (channel !== "all") listQuery = listQuery.eq("channel", channel);
-  const listResult = await listQuery
-    .order("last_message_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  if (view === "open") listQuery = listQuery.neq("status", "closed");
+  if (view === "review") listQuery = listQuery.eq("status", "handoff_required");
+  const [membership, listResult] = await Promise.all([
+    membershipQuery,
+    listQuery
+      .order("last_message_at", { ascending: false })
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+  ]);
   if (listResult.error) throw new Error("Unable to load conversations.");
   const conversations = (listResult.data ?? []) as unknown as Conversation[];
-  const unreadResult = membership.data
-    ? await admin.rpc("manager_conversation_unread_counts", {
-        p_staff_membership_id: membership.data.id,
-      })
-    : { data: [] };
+  const total = listResult.count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const selectedId = conversations.some((item) => item.id === requested)
+    ? requested
+    : conversations[0]?.id;
+  const selected = conversations.find((item) => item.id === selectedId);
+  const [unreadResult, messageResult] = await Promise.all([
+    membership.data
+      ? admin.rpc("manager_conversation_unread_counts", {
+          p_staff_membership_id: membership.data.id,
+        })
+      : Promise.resolve({ data: [] }),
+    selectedId
+      ? admin
+          .from("messages")
+          .select(
+            "id,conversation_id,sender_type,content,metadata,created_at,delivery_status",
+          )
+          .eq("conversation_id", selectedId)
+          .order("created_at", { ascending: false })
+          .limit(200)
+      : Promise.resolve({ data: [], error: null }),
+    membership.data && selectedId
+      ? admin.rpc("mark_manager_conversation_read", {
+          p_staff_membership_id: membership.data.id,
+          p_conversation_id: selectedId,
+        })
+      : Promise.resolve(),
+  ]);
   const unreadCounts = new Map(
     (
       (unreadResult.data ?? []) as Array<{
@@ -131,34 +166,12 @@ export default async function ConversationsPage({
       }>
     ).map((row) => [row.conversation_id, Number(row.unread_count) || 0]),
   );
-  const total = listResult.count ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const selectedId = conversations.some((item) => item.id === requested)
-    ? requested
-    : conversations[0]?.id;
-  const selected = conversations.find((item) => item.id === selectedId);
-  if (membership.data && selectedId) {
-    await admin.rpc("mark_manager_conversation_read", {
-      p_staff_membership_id: membership.data.id,
-      p_conversation_id: selectedId,
-    });
-    unreadCounts.set(selectedId, 0);
-  }
-  const messageResult = selectedId
-    ? await admin
-        .from("messages")
-        .select(
-          "id,conversation_id,sender_type,content,metadata,created_at,delivery_status",
-        )
-        .eq("conversation_id", selectedId)
-        .order("created_at", { ascending: true })
-        .limit(200)
-    : { data: [], error: null };
+  if (membership.data && selectedId) unreadCounts.set(selectedId, 0);
   if (messageResult.error)
     throw new Error("Unable to load conversation messages.");
-  const messages = ((messageResult.data ?? []) as Message[]).filter(
-    (message) => !message.metadata?.adminGroupedInto,
-  );
+  const messages = ((messageResult.data ?? []) as Message[])
+    .reverse()
+    .filter((message) => !message.metadata?.adminGroupedInto);
 
   return (
     <AdminShell active="conversations">
@@ -176,7 +189,7 @@ export default async function ConversationsPage({
             ].map(([value, label]) => (
               <Link
                 key={value}
-                href={`/admin/conversations?channel=${value}`}
+                href={`/admin/conversations?channel=${value}&view=${view}`}
                 className={`focus-ring inline-flex min-h-9 items-center rounded-xl border px-3 text-xs font-medium ${channel === value ? "border-violet bg-violet/15 text-foreground" : "border-border bg-elevated text-muted"}`}
               >
                 {label}
@@ -194,6 +207,25 @@ export default async function ConversationsPage({
             <p className="text-muted mt-1 text-xs">
               {conversations.length} most recent
             </p>
+            <nav
+              className="mt-3 flex flex-wrap gap-1.5"
+              aria-label="Conversation status"
+            >
+              {[
+                ["open", "Open"],
+                ["review", "Needs review"],
+                ["all", "All"],
+              ].map(([value, label]) => (
+                <Link
+                  key={value}
+                  href={`/admin/conversations?view=${value}&channel=${channel}`}
+                  aria-current={view === value ? "page" : undefined}
+                  className={`focus-ring rounded-lg px-2.5 py-1.5 text-xs ${view === value ? "bg-violet/15 text-foreground" : "bg-elevated text-muted hover:text-foreground"}`}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
           </div>
           <div className="max-h-72 flex-1 overflow-y-auto lg:max-h-none">
             {conversations.length === 0 ? (
@@ -204,7 +236,7 @@ export default async function ConversationsPage({
                 return (
                   <Link
                     key={item.id}
-                    href={`/admin/conversations?conversation=${item.id}&page=${page}&channel=${channel}`}
+                    href={`/admin/conversations?conversation=${item.id}&page=${page}&channel=${channel}&view=${view}`}
                     className={`border-border block border-b px-4 py-3 transition-colors ${item.id === selectedId ? "bg-violet/10" : "hover:bg-elevated"}`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -242,7 +274,7 @@ export default async function ConversationsPage({
               aria-label="Conversation pages"
             >
               <Link
-                href={`/admin/conversations?page=${Math.max(1, page - 1)}&channel=${channel}`}
+                href={`/admin/conversations?page=${Math.max(1, page - 1)}&channel=${channel}&view=${view}`}
                 aria-disabled={page <= 1}
                 className={`focus-ring border-border grid size-9 place-items-center rounded-xl border ${page <= 1 ? "pointer-events-none opacity-40" : "text-foreground"}`}
                 aria-label="Previous conversation page"
@@ -253,7 +285,7 @@ export default async function ConversationsPage({
                 {page}/{totalPages} · {total}
               </span>
               <Link
-                href={`/admin/conversations?page=${Math.min(totalPages, page + 1)}&channel=${channel}`}
+                href={`/admin/conversations?page=${Math.min(totalPages, page + 1)}&channel=${channel}&view=${view}`}
                 aria-disabled={page >= totalPages}
                 className={`focus-ring border-border grid size-9 place-items-center rounded-xl border ${page >= totalPages ? "pointer-events-none opacity-40" : "text-foreground"}`}
                 aria-label="Next conversation page"
@@ -308,38 +340,74 @@ export default async function ConversationsPage({
                     </div>
                   )}
                 </div>
-                {selected.human_takeover ? (
-                  <form action={resumeConversationAutomation}>
-                    <input
-                      type="hidden"
-                      name="conversationId"
-                      value={selected.id}
-                    />
-                    <button
-                      className="focus-ring border-border bg-elevated inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm"
-                      type="submit"
-                    >
-                      <PlayCircle size={15} />
-                      Resume automatic replies
-                    </button>
-                  </form>
-                ) : (
-                  <form action={pauseConversationAutomation}>
-                    <input
-                      type="hidden"
-                      name="conversationId"
-                      value={selected.id}
-                    />
-                    <button
-                      className="focus-ring border-border bg-elevated inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm"
-                      type="submit"
-                    >
-                      <PauseCircle size={15} />
-                      Pause automatic replies
-                    </button>
-                  </form>
-                )}
               </header>
+              <div className="border-border grid gap-2 border-b p-3 sm:grid-cols-3 sm:p-4">
+                <div className="border-border bg-elevated/50 rounded-xl border p-3">
+                  <p className="text-foreground text-xs font-semibold">
+                    AI Initiate
+                  </p>
+                  <p className="text-muted mt-1 text-xs">
+                    Not enabled · consent setup required
+                  </p>
+                </div>
+                <div className="border-border bg-elevated/50 rounded-xl border p-3">
+                  <p className="text-foreground text-xs font-semibold">
+                    AI Respond
+                  </p>
+                  <p className="text-muted mt-1 text-xs">
+                    {selected.human_takeover
+                      ? "Off · staff in control"
+                      : "On · answers incoming messages"}
+                  </p>
+                  <form
+                    action={
+                      selected.human_takeover
+                        ? resumeConversationAutomation
+                        : pauseConversationAutomation
+                    }
+                    className="mt-2"
+                  >
+                    <input
+                      type="hidden"
+                      name="conversationId"
+                      value={selected.id}
+                    />
+                    <SubmitButton
+                      pendingLabel="Saving..."
+                      className="border-border bg-surface min-h-8 rounded-lg border px-2.5 text-xs"
+                    >
+                      {selected.human_takeover ? (
+                        <PlayCircle size={13} />
+                      ) : (
+                        <PauseCircle size={13} />
+                      )}
+                      {selected.human_takeover ? "Enable" : "Pause"}
+                    </SubmitButton>
+                  </form>
+                </div>
+                <div className="border-border bg-elevated/50 rounded-xl border p-3">
+                  <p className="text-foreground text-xs font-semibold">
+                    AI Follow Up
+                  </p>
+                  <p className="text-muted mt-1 text-xs">
+                    {selected.channel === "sms"
+                      ? selected.follow_up_enabled
+                        ? selected.human_takeover
+                          ? "Paused by staff"
+                          : "On · scheduled SMS"
+                        : "Off · SMS only"
+                      : "Not available on this channel"}
+                  </p>
+                  {selected.channel === "sms" && (
+                    <a
+                      href="#follow-up-settings"
+                      className="focus-ring text-violet mt-2 inline-block text-xs font-medium"
+                    >
+                      Configure timing
+                    </a>
+                  )}
+                </div>
+              </div>
               {(selected.rolling_summary ||
                 (selected.contacts?.memory?.facts?.length ?? 0) > 0) && (
                 <details className="border-border border-b px-5 py-3 sm:px-6">
@@ -361,7 +429,10 @@ export default async function ConversationsPage({
                 </details>
               )}
               {selected.channel === "sms" && (
-                <details className="border-border border-b px-5 py-3 sm:px-6">
+                <details
+                  id="follow-up-settings"
+                  className="border-border border-b px-5 py-3 sm:px-6"
+                >
                   <summary className="text-foreground cursor-pointer text-sm font-semibold">
                     Follow-up settings ·{" "}
                     {selected.follow_up_enabled ? "On" : "Off"}
@@ -450,7 +521,10 @@ export default async function ConversationsPage({
                   </form>
                 </details>
               )}
-              <div className="bg-elevated/35 min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-5 sm:p-6">
+              <ConversationTranscript
+                conversationId={selected.id}
+                lastMessageId={messages.at(-1)?.id ?? null}
+              >
                 {messages.map((message) => (
                   <article
                     key={message.id}
@@ -474,6 +548,17 @@ export default async function ConversationsPage({
                             : "Guest"}
                       </p>
                       {adminEnglishContent(message)}
+                      {message.content !== adminEnglishContent(message) && (
+                        <p className="mt-2 border-t border-current/15 pt-2 text-xs opacity-75">
+                          <span className="font-semibold">
+                            {message.sender_type === "guest"
+                              ? "Original"
+                              : "Sent to guest"}
+                            :
+                          </span>{" "}
+                          {message.content}
+                        </p>
+                      )}
                       {message.sender_type !== "guest" && (
                         <p className="mt-1 text-[10px] capitalize opacity-60">
                           {message.delivery_status}
@@ -488,42 +573,15 @@ export default async function ConversationsPage({
                     </div>
                   </article>
                 ))}
-              </div>
+              </ConversationTranscript>
               {(selected.channel === "web_preview" ||
                 selected.channel === "sms" ||
                 selected.channel === "instagram") && (
-                <form
-                  action={sendConversationReply}
-                  className="border-border flex gap-3 border-t p-4 sm:p-5"
-                >
-                  <input
-                    type="hidden"
-                    name="conversationId"
-                    value={selected.id}
-                  />
-                  <label className="flex-1">
-                    <span className="sr-only">Message guest</span>
-                    <textarea
-                      name="content"
-                      required
-                      maxLength={1000}
-                      rows={2}
-                      placeholder={
-                        selected.channel === "sms"
-                          ? "Send an SMS as Promotr staff..."
-                          : "Send a message as Promotr staff..."
-                      }
-                      className="focus-ring border-border bg-elevated text-foreground placeholder:text-muted w-full resize-none rounded-2xl border px-4 py-3 text-sm"
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    className="focus-ring bg-brand-gradient grid size-12 shrink-0 place-items-center self-end rounded-xl text-white"
-                    aria-label="Send reply"
-                  >
-                    <Send size={18} />
-                  </button>
-                </form>
+                <ConversationComposer
+                  key={selected.id}
+                  conversationId={selected.id}
+                  channel={selected.channel}
+                />
               )}
             </>
           )}

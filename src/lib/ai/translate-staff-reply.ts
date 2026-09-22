@@ -50,10 +50,22 @@ export async function translateStaffReply(
     cache: "no-store",
   });
   if (!response.ok) throw new Error("Unable to translate the staff reply.");
-  const payload = (await response.json()) as { output_text?: string };
-  const parsed = translationSchema.safeParse(
-    JSON.parse(payload.output_text || "null"),
-  );
+  const payload = (await response.json()) as {
+    output_text?: string;
+    output?: Array<{ content?: Array<{ type?: string; text?: string }> }>;
+  };
+  const outputText =
+    payload.output_text ||
+    payload.output
+      ?.flatMap((item) => item.content || [])
+      .find((item) => item.type === "output_text")?.text;
+  let output: unknown;
+  try {
+    output = JSON.parse(outputText || "null");
+  } catch {
+    throw new Error("The staff translation was invalid.");
+  }
+  const parsed = translationSchema.safeParse(output);
   if (!parsed.success) throw new Error("The staff translation was invalid.");
   return parsed.data.translatedText;
 }

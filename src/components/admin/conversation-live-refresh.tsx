@@ -12,7 +12,7 @@ export function ConversationLiveRefresh() {
     let refreshTimer: number | undefined;
     const refresh = () => {
       window.clearTimeout(refreshTimer);
-      refreshTimer = window.setTimeout(() => router.refresh(), 120);
+      refreshTimer = window.setTimeout(() => router.refresh(), 500);
     };
     const channel = supabase
       .channel("admin-conversations-live")
@@ -29,7 +29,7 @@ export function ConversationLiveRefresh() {
       .subscribe();
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") router.refresh();
-    }, 15000);
+    }, 60000);
     return () => {
       window.clearTimeout(refreshTimer);
       window.clearInterval(interval);

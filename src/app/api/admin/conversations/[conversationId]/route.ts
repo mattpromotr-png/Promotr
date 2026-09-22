@@ -29,12 +29,12 @@ export async function GET(
     .from("messages")
     .select("id,sender_type,content,metadata,created_at")
     .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
     .limit(200);
   if (result.error)
     return NextResponse.json(
       { error: "Unable to load conversation" },
       { status: 500 },
     );
-  return NextResponse.json({ messages: result.data ?? [] });
+  return NextResponse.json({ messages: (result.data ?? []).reverse() });
 }
