@@ -47,6 +47,7 @@ export async function generateConciergeReply(
   const nearbyRecommendation = deterministicNearbyRecommendation(latest);
   if (nearbyRecommendation)
     return withFallbackIntelligence(nearbyRecommendation, latest);
+  const shareBookingForm = conversationAllowsBookingLink(recent);
   const { systemPrompt } = buildVeraSystemPrompt(recent);
   const intelligenceInstructions = `Operational output fields: detect the language of the latest guest message; translate that message and your reply faithfully into English; extract guestFirstName only when the guest explicitly supplied it; keep memoryFacts to durable guest preferences or personal details explicitly stated; and write a compact conversationSummary preserving names, preferences, current request, and unresolved questions. Never treat inferred or unconfirmed booking details as verified facts.`;
   const suppliedMemory = JSON.stringify({
@@ -59,7 +60,11 @@ export async function generateConciergeReply(
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     console.error("Concierge response unavailable: OPENAI_API_KEY is missing");
-    return withFallbackIntelligence(conversationalFallback(latest), latest);
+    return withFallbackIntelligence(
+      conversationalFallback(latest),
+      latest,
+      shareBookingForm,
+    );
   }
 
   try {
@@ -155,7 +160,11 @@ export async function generateConciergeReply(
         status: response.status,
         requestId: response.headers.get("x-request-id"),
       });
-      return withFallbackIntelligence(conversationalFallback(latest), latest);
+      return withFallbackIntelligence(
+        conversationalFallback(latest),
+        latest,
+        shareBookingForm,
+      );
     }
     const payload = (await response.json()) as {
       output?: Array<{
@@ -172,29 +181,40 @@ export async function generateConciergeReply(
       console.error("Concierge response failed schema validation", {
         requestId: response.headers.get("x-request-id"),
       });
-      return withFallbackIntelligence(conversationalFallback(latest), latest);
+      return withFallbackIntelligence(
+        conversationalFallback(latest),
+        latest,
+        shareBookingForm,
+      );
     }
     return {
       ...parsed.data,
       ...intelligence.data,
       missingQualificationFields: [],
-      shareBookingForm:
-        parsed.data.shareBookingForm && conversationAllowsBookingLink(recent),
+      // The guest's explicit request, not the model's optional flag, decides
+      // whether the trusted application URL is appended by either channel.
+      shareBookingForm,
     };
   } catch (error) {
     console.error("Concierge response processing failed", {
       name: error instanceof Error ? error.name : "UnknownError",
     });
-    return withFallbackIntelligence(conversationalFallback(latest), latest);
+    return withFallbackIntelligence(
+      conversationalFallback(latest),
+      latest,
+      shareBookingForm,
+    );
   }
 }
 
 function withFallbackIntelligence(
   response: AiHostResponse,
   latestGuestMessage: string,
+  shareBookingForm = response.shareBookingForm,
 ): ConciergeResult {
   return {
     ...response,
+    shareBookingForm,
     detectedLanguage: "Unknown",
     latestGuestMessageEnglish: latestGuestMessage,
     replyEnglish: response.reply,

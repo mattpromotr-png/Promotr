@@ -1,8 +1,14 @@
 const bookingRequestPattern =
-  /\b(?:i\s+)?(?:need|want|would like|ready|trying)\s+to\s+(?:book|reserve|join)|\bhow\s+(?:can|do)\s+i\s+(?:book|reserve|join)|\b(?:book|reserve)\s+(?:a\s+)?(?:party|table)|\bjoin\s+(?:the\s+)?guest\s+list|\b(?:booking|reservation)\s+(?:form|link)\b|\b(?:send|share|give)\b.{0,30}\b(?:booking|reservation|form|link)\b|(?:බුකිං|බුක්).{0,24}(?:ලින්ක්|ෆෝම්|කරන්න|ඕන|අවශ්‍ය)/iu;
+  /\b(?:i|we)(?:'d)?\s+(?:need|want|like|ready|trying)\s+to\s+(?:book|reserve|join)\b|\b(?:i|we)\s+would\s+like\s+to\s+(?:book|reserve|join)\b|\b(?:how|where)\s+(?:can|do)\s+(?:i|we)\s+(?:book|reserve|join)\b|\b(?:can|could)\s+(?:i|we)\s+(?:book|reserve|join)\b|\bcan\s+you\s+(?:help\s+(?:me|us)\s+)?(?:book|reserve)\b|\b(?:book|reserve)\s+(?:me|us|a\s+party|a\s+table)\b|\bjoin\s+(?:the\s+)?guest\s*list\b|(?:බුකිං|බුක්).{0,24}(?:ලින්ක්|ෆෝම්|කරන්න|ඕන|අවශ්‍ය)/iu;
+
+const explicitBookingLinkRequestPattern =
+  /\b(?:send|share|give|show|need|want|get|find|where|resend|please)\b.{0,50}\b(?:booking|reservation|book|reserve)\b.{0,30}\b(?:link|form|url|page)\b|\b(?:send|share|give|show|need|want|get|find|where|resend|please)\b.{0,50}\b(?:link|form|url|page)\b.{0,30}\b(?:book|reserve|booking|reservation)\b|\bdo\s+you\s+have\b.{0,30}\b(?:booking|reservation)\b.{0,30}\b(?:link|form|url|page)\b|\b(?:booking|reservation)\s+(?:link|form|url|page)\s*(?:please|again|\?)|^\s*(?:booking|reservation)\s+(?:link|form|url|page)\s*$/i;
 
 export function latestMessageAllowsBookingLink(message: string) {
-  return bookingRequestPattern.test(message);
+  return (
+    bookingRequestPattern.test(message) ||
+    explicitBookingLinkRequestPattern.test(message)
+  );
 }
 
 const bookingLinkRepeatPattern =
@@ -14,7 +20,11 @@ export function conversationAllowsBookingLink(
   const latest = messages.at(-1);
   if (!latest || latest.role !== "user") return false;
   if (!latestMessageAllowsBookingLink(latest.content)) return false;
-  if (bookingLinkRepeatPattern.test(latest.content)) return true;
+  if (
+    bookingLinkRepeatPattern.test(latest.content) ||
+    explicitBookingLinkRequestPattern.test(latest.content)
+  )
+    return true;
   return !messages
     .slice(-6, -1)
     .some(

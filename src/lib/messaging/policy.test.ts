@@ -7,10 +7,21 @@ import {
   requiresStaffAttention,
 } from "@/lib/messaging/policy";
 
-describe("SMS booking-link policy", () => {
+describe("shared SMS and Instagram booking-link policy", () => {
   it("allows direct booking requests", () => {
     expect(latestMessageAllowsBookingLink("I need to book a party")).toBe(true);
     expect(latestMessageAllowsBookingLink("Send the booking link")).toBe(true);
+    expect(latestMessageAllowsBookingLink("booking link")).toBe(true);
+    expect(latestMessageAllowsBookingLink("Where is your booking link?")).toBe(
+      true,
+    );
+    expect(
+      latestMessageAllowsBookingLink("Can you send me a link to book?"),
+    ).toBe(true);
+    expect(latestMessageAllowsBookingLink("Can I reserve a table?")).toBe(true);
+    expect(latestMessageAllowsBookingLink("Do you have a booking link?")).toBe(
+      true,
+    );
   });
 
   it("does not turn later venue questions into booking CTAs", () => {
@@ -18,6 +29,15 @@ describe("SMS booking-link policy", () => {
       false,
     );
     expect(latestMessageAllowsBookingLink("What music do you play?")).toBe(
+      false,
+    );
+    expect(latestMessageAllowsBookingLink("Send me the dress code link")).toBe(
+      false,
+    );
+    expect(
+      latestMessageAllowsBookingLink("I already filled out the booking form"),
+    ).toBe(false);
+    expect(latestMessageAllowsBookingLink("I already have the booking link")).toBe(
       false,
     );
   });
@@ -40,6 +60,15 @@ describe("SMS booking-link policy", () => {
           content: "Booking inquiry: https://promotr.example/book",
         },
         { role: "user", content: "Please send the booking link again" },
+      ]),
+    ).toBe(true);
+    expect(
+      conversationAllowsBookingLink([
+        {
+          role: "assistant",
+          content: "Booking inquiry: https://promotr.example/book",
+        },
+        { role: "user", content: "Where is your booking link?" },
       ]),
     ).toBe(true);
   });
