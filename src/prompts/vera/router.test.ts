@@ -119,14 +119,49 @@ describe("Vera prompt routing", () => {
       { role: "user", content: "Can you help debug my JavaScript project?" },
     ]);
 
-    expect(result.scenarioIds).toContain("general_nightlife");
-    expect(result.systemPrompt).toContain("unrelated to nightlife");
+    expect(result.scenarioIds).toContain("off_topic");
+    expect(result.systemPrompt).toContain("Do not provide the answer or extra facts");
     expect(result.systemPrompt).toContain(
-      "redirect to planning the guest's night",
+      "pivot to a single useful Promotr topic",
     );
     expect(result.systemPrompt).toContain(
-      "return the focus to the guest's night at Promotr",
+      "do not answer its factual substance",
     );
+  });
+
+  it("does not invite geography chat after the exact Instagram off-topic exchange", () => {
+    const first = buildVeraSystemPrompt([
+      { role: "user", content: "do you know the country sri lanka" },
+    ]);
+    expect(first.scenarioIds).toContain("off_topic");
+    expect(first.systemPrompt).toContain("Do not provide the answer or extra facts");
+
+    const followup = buildVeraSystemPrompt([
+      { role: "user", content: "do you know the country sri lanka" },
+      { role: "assistant", content: "I can help with Promotr." },
+      { role: "user", content: "what is capital city there?" },
+    ]);
+    expect(followup.scenarioIds).toContain("off_topic");
+    expect(followup.scenarioIds).not.toContain("tables_reservations");
+    expect(followup.systemPrompt).toContain("If they repeat the off-topic question");
+  });
+
+  it.each([
+    "What is machine learning?",
+    "What is the fifth planet in the solar system?",
+    "What is the sun's temperature?",
+    "What time is it in Tokyo?",
+  ])("keeps the general off-topic boundary for %s", (question) => {
+    const result = buildVeraSystemPrompt([
+      { role: "user", content: question },
+    ]);
+
+    expect(result.systemPrompt).toContain("do not answer its factual substance");
+    expect(result.systemPrompt).toContain("First judge the meaning of the latest guest question");
+    if (question !== "What time is it in Tokyo?") {
+      expect(result.scenarioIds).toContain("general_nightlife");
+      expect(result.systemPrompt).toContain("do not answer the unrelated question");
+    }
   });
 
   it("never loads more than three scenario modules", () => {

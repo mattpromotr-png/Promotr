@@ -94,6 +94,10 @@ const scenarioPatterns: Array<[VeraScenarioId, RegExp]> = [
     "toronto_slang",
     /\b(?:tryna|finna|mans|mandem|the boys|the mandem|get after it|turnt|lit|bare|ahlie|wallahi|nize it|wasteyute|bucktee|cheesed|fam|styll|yute|gyal|tings?|say less|reach|pull up)\b/i,
   ],
+  [
+    "off_topic",
+    /\b(?:do you know (?:the )?country|what(?:'s| is) (?:the )?capital (?:city|of)|help (?:me )?(?:debug|with (?:my )?homework)|what is the capital of)\b/i,
+  ],
 ];
 
 const shortFollowupPattern =

@@ -27,7 +27,8 @@ const examples: Array<[VeraScenarioId, string]> = [
   ["discounts", "Do you offer a discount?"],
   ["identity_social", "Are you an AI?"],
   ["toronto_slang", "Mans tryna pull up"],
-  ["general_nightlife", "Can you help debug my JavaScript project?"],
+  ["general_nightlife", "What should I bring for a night out?"],
+  ["off_topic", "What is the capital city of Sri Lanka?"],
 ];
 
 describe("Vera modular scenario coverage", () => {
@@ -52,7 +53,7 @@ describe("Vera modular scenario coverage", () => {
       { role: "user", content: "Can you help debug my JavaScript project?" },
     ]);
 
-    expect(result.scenarioIds).toContain("general_nightlife");
+    expect(result.scenarioIds).toContain("off_topic");
     expect(result.scenarioIds).not.toContain("tables_reservations");
   });
 

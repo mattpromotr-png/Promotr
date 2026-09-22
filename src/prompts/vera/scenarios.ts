@@ -12,6 +12,7 @@ import { identitySocialPlaybook } from "./scenarios/identity-social";
 import { lostFoundPlaybook } from "./scenarios/lost-found";
 import { musicEventsPlaybook } from "./scenarios/music-events";
 import { nearbyPlaybook } from "./scenarios/nearby";
+import { offTopicPlaybook } from "./scenarios/off-topic";
 import { openingPlaybook } from "./scenarios/opening";
 import { photosPlaybook } from "./scenarios/photos";
 import { privateEventsPlaybook } from "./scenarios/private-events";
@@ -48,6 +49,7 @@ export const veraScenarioPlaybooks = {
   identity_social: identitySocialPlaybook,
   toronto_slang: torontoSlangPlaybook,
   general_nightlife: generalNightlifePlaybook,
+  off_topic: offTopicPlaybook,
 } as const;
 
 export const VERA_SCENARIO_IDS = Object.keys(veraScenarioPlaybooks) as Array<
