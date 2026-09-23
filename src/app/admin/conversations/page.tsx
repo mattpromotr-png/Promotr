@@ -399,7 +399,7 @@ export default async function ConversationsPage({
                             : "Guest"}
                       </p>
                       {adminEnglishContent(message)}
-                      {message.content !== adminEnglishContent(message) && (
+                      {hasTranslatedGuestContent(message) && (
                         <p className="mt-2 border-t border-current/15 pt-2 text-xs opacity-75">
                           <span className="font-semibold">
                             {message.sender_type === "guest"
@@ -740,6 +740,16 @@ function adminEnglishContent(message: Message) {
     message.metadata?.adminOriginalEnglish ||
     message.metadata?.englishTranslation ||
     message.content
+  );
+}
+
+function hasTranslatedGuestContent(message: Message) {
+  if (message.content === adminEnglishContent(message)) return false;
+  const language = message.metadata?.detectedLanguage?.trim().toLowerCase();
+  if (!language) return false;
+  return !(
+    language.includes("english") ||
+    /^en(?:[-_ ]|$)/.test(language)
   );
 }
 
