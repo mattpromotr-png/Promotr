@@ -2,12 +2,14 @@ import {
   ArrowUpRight,
   CalendarDays,
   ExternalLink,
+  LogOut,
   MessageCircleMore,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
 
+import { signOut } from "@/app/admin/login/actions";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -50,6 +52,25 @@ export default async function SettingsPage() {
               </p>
             </div>
             <ThemeToggle />
+          </div>
+          <div className="border-border mt-4 flex items-center justify-between gap-4 border-t pt-4">
+            <div>
+              <p className="text-foreground text-sm font-medium">
+                Account session
+              </p>
+              <p className="text-muted mt-1 text-xs">
+                Sign out of the manager workspace on this device.
+              </p>
+            </div>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="focus-ring border-border bg-elevated text-foreground hover:border-violet inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-medium"
+              >
+                <LogOut size={16} aria-hidden="true" />
+                Sign out
+              </button>
+            </form>
           </div>
         </section>
 

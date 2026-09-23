@@ -4,8 +4,6 @@ import {
   CalendarCheck,
   CircleDollarSign,
   ClipboardList,
-  ExternalLink,
-  LogOut,
   MessagesSquare,
   Map,
   PackageSearch,
@@ -14,9 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { signOut } from "@/app/admin/login/actions";
 import { Brand } from "@/components/brand";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -121,29 +117,6 @@ export function AdminShell({
             );
           })}
         </nav>
-        <div className="border-border space-y-2 border-t pt-4">
-          <Link
-            className="focus-ring text-muted hover:bg-elevated hover:text-foreground flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm"
-            href="/book"
-            target="_blank"
-          >
-            <ExternalLink size={17} aria-hidden="true" />
-            Booking form
-          </Link>
-          <div className="flex items-center justify-between px-3">
-            <span className="text-muted text-xs">Appearance</span>
-            <ThemeToggle />
-          </div>
-          <form action={signOut}>
-            <button
-              className="focus-ring text-muted hover:bg-elevated hover:text-foreground flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-sm"
-              type="submit"
-            >
-              <LogOut size={17} aria-hidden="true" />
-              Sign out
-            </button>
-          </form>
-        </div>
       </aside>
 
       <header className="border-border/80 bg-canvas/90 fixed inset-x-0 top-0 z-40 border-b backdrop-blur-xl xl:hidden">
@@ -151,27 +124,6 @@ export function AdminShell({
           <div className="flex h-16 items-center justify-between gap-4">
             <Brand compact />
 
-            <div className="flex items-center gap-2">
-              <Link
-                className="focus-ring border-border bg-surface text-muted hover:text-foreground hidden min-h-10 items-center gap-2 rounded-xl border px-3 text-sm lg:inline-flex"
-                href="/book"
-                target="_blank"
-              >
-                <ExternalLink size={16} aria-hidden="true" />
-                Booking form
-              </Link>
-              <ThemeToggle />
-              <form action={signOut}>
-                <button
-                  className="focus-ring border-border bg-surface text-muted hover:text-foreground inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm"
-                  type="submit"
-                  aria-label="Sign out"
-                >
-                  <LogOut size={16} aria-hidden="true" />
-                  <span className="hidden lg:inline">Sign out</span>
-                </button>
-              </form>
-            </div>
           </div>
 
           <nav
