@@ -81,10 +81,18 @@ export default async function TableMapPage({
         <Metric
           label="Available"
           value={tablePackages.length - bookings.length}
-          tone="text-white"
+          tone="text-foreground"
         />
-        <Metric label="Payment holds" value={held} tone="text-amber-300" />
-        <Metric label="Confirmed" value={confirmed} tone="text-emerald-300" />
+        <Metric
+          label="Payment holds"
+          value={held}
+          tone="text-amber-700 dark:text-amber-300"
+        />
+        <Metric
+          label="Confirmed"
+          value={confirmed}
+          tone="text-emerald-700 dark:text-emerald-300"
+        />
       </div>
       <section className="surface-card mt-4 p-3 sm:p-4">
         <AdminTableMap tables={tablePackages} bookings={bookings} />

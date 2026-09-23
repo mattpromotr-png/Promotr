@@ -44,13 +44,13 @@ export function ConversationComposer({
           name="content"
           required
           maxLength={1000}
-          rows={2}
+          rows={1}
           placeholder={
             channel === "sms"
               ? "Send an SMS as Promotr staff..."
               : "Send a message as Promotr staff..."
           }
-          className="focus-ring border-border bg-elevated text-foreground placeholder:text-muted w-full resize-none rounded-2xl border px-4 py-3 text-sm"
+          className="focus-ring border-border bg-elevated text-foreground placeholder:text-muted h-12 w-full resize-none rounded-xl border px-4 py-3 text-sm leading-6"
         />
         {state.status !== "idle" && (
           <span
@@ -64,7 +64,7 @@ export function ConversationComposer({
       <button
         type="submit"
         disabled={pending}
-        className="focus-ring bg-brand-gradient grid size-12 shrink-0 place-items-center self-end rounded-xl text-white disabled:opacity-60"
+        className="focus-ring bg-brand-gradient grid size-12 shrink-0 place-items-center self-start rounded-xl text-white disabled:opacity-60"
         aria-label={pending ? "Sending reply" : "Send reply"}
       >
         <Send size={18} />

@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { after, NextResponse } from "next/server";
 import { normalizedInstagramEventSchema } from "@/lib/meta/webhook";
 import { ingestInstagramEvent } from "@/lib/meta/ingest";
+import { hydrateInstagramContactProfile } from "@/lib/meta/profile";
 import { processInstagramConversation } from "@/lib/meta/process-conversation";
 
 export const maxDuration = 60;
@@ -21,13 +22,26 @@ export async function POST(request: Request) {
     const result = await ingestInstagramEvent(event.data);
     if (!result.accepted) return NextResponse.json(result);
     after(async () => {
-      try {
-        await processInstagramConversation(result.conversationId);
-      } catch (error) {
-        console.error("Unable to process Instagram conversation", error);
-      }
+      const [, processingResult] = await Promise.allSettled([
+        result.shouldHydrateProfile
+          ? hydrateInstagramContactProfile({
+              contactId: result.contactId,
+              instagramScopedId: event.data.senderId,
+            })
+          : Promise.resolve(),
+        processInstagramConversation(result.conversationId),
+      ]);
+      if (processingResult?.status === "rejected")
+        console.error(
+          "Unable to process Instagram conversation",
+          processingResult.reason,
+        );
     });
-    return NextResponse.json(result);
+    return NextResponse.json({
+      accepted: true,
+      conversationId: result.conversationId,
+      ...("duplicate" in result && result.duplicate ? { duplicate: true } : {}),
+    });
   } catch (error) {
     console.error("Unable to ingest Instagram event", error);
     return NextResponse.json({ error: "Temporary failure" }, { status: 503 });
@@ -38,7 +52,6 @@ function secretsMatch(left: string, right: string) {
   const supplied = Buffer.from(left);
   const expected = Buffer.from(right);
   return (
-    supplied.length === expected.length &&
-    timingSafeEqual(supplied, expected)
+    supplied.length === expected.length && timingSafeEqual(supplied, expected)
   );
 }

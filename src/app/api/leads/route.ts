@@ -28,30 +28,28 @@ export async function POST(request: NextRequest) {
 
   try {
     const environment = getServerEnvironment();
-    const { data, error } = await createAdminClient().rpc(
-      "submit_booking_inquiry",
-      {
-        p_idempotency_key: result.data.idempotencyKey,
-        p_rate_limit_key: getRateLimitKey(
-          request.headers,
-          environment.LEAD_RATE_LIMIT_SECRET,
-        ),
-        p_payload: {
-          name: result.data.name,
-          email: result.data.email ?? null,
-          phone: result.data.phone ?? null,
-          instagram_handle: result.data.instagramHandle ?? null,
-          requested_date: result.data.requestedDate,
-          preferred_arrival_time: result.data.preferredArrivalTime || null,
-          party_size: result.data.partySize,
-          occasion: result.data.occasion ?? null,
-          booking_type: result.data.bookingType,
-          bottle_preference: result.data.bottlePreference ?? null,
-          notes: result.data.notes ?? null,
-          conversation_id: result.data.conversationId ?? null,
-        },
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc("submit_booking_inquiry", {
+      p_idempotency_key: result.data.idempotencyKey,
+      p_rate_limit_key: getRateLimitKey(
+        request.headers,
+        environment.LEAD_RATE_LIMIT_SECRET,
+      ),
+      p_payload: {
+        name: result.data.name,
+        email: result.data.email ?? null,
+        phone: result.data.phone ?? null,
+        instagram_handle: result.data.instagramHandle ?? null,
+        requested_date: result.data.requestedDate,
+        preferred_arrival_time: result.data.preferredArrivalTime || null,
+        party_size: result.data.partySize,
+        occasion: result.data.occasion ?? null,
+        booking_type: result.data.bookingType,
+        bottle_preference: result.data.bottlePreference ?? null,
+        notes: result.data.notes ?? null,
+        conversation_id: result.data.conversationId ?? null,
       },
-    );
+    });
     if (error) {
       if (error.message.includes("rate_limit_exceeded"))
         return NextResponse.json(
@@ -59,6 +57,24 @@ export async function POST(request: NextRequest) {
           { status: 429 },
         );
       throw error;
+    }
+    if (result.data.conversationId) {
+      const { error: linkError } = await admin
+        .from("lead_conversations")
+        .upsert(
+          {
+            lead_id: String(data),
+            conversation_id: result.data.conversationId,
+          },
+          {
+            onConflict: "lead_id,conversation_id",
+            ignoreDuplicates: true,
+          },
+        );
+      if (linkError)
+        console.error("Unable to link booking inquiry to conversation", {
+          code: linkError.code,
+        });
     }
     if (result.data.bookingType !== "table")
       await sendBookingSmsNotification({

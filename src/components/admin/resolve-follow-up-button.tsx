@@ -11,9 +11,9 @@ function Button() {
     <button
       type="submit"
       disabled={pending}
-      className="focus-ring bg-brand-gradient inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-3.5 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60"
+      className="focus-ring bg-brand-gradient inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-white disabled:cursor-wait disabled:opacity-60"
     >
-      <Check size={16} aria-hidden="true" />
+      <Check size={14} aria-hidden="true" />
       {pending ? "Resolving…" : "Mark resolved"}
     </button>
   );

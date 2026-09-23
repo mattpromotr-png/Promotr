@@ -13,7 +13,7 @@ export async function ingestInstagramEvent(event: NormalizedInstagramEvent) {
   const admin = createAdminClient();
   const { data: venue, error: venueError } = await admin
     .from("venues")
-    .select("id")
+    .select("id,display_name")
     .eq("slug", "promotr-nightclub")
     .single();
   if (venueError || !venue) throw new Error("Venue is unavailable.");
@@ -31,11 +31,15 @@ export async function ingestInstagramEvent(event: NormalizedInstagramEvent) {
     .select("id")
     .single();
   if (contactError || !contact) throw new Error("Unable to save guest.");
+  const savedContact = contact as {
+    id: string;
+    display_name: string | null;
+  };
 
   const { error: identityError } = await admin.from("contact_channels").upsert(
     {
       venue_id: venue.id,
-      contact_id: contact.id,
+      contact_id: savedContact.id,
       channel: "instagram",
       external_address: event.senderId,
       normalized_address: event.senderId,
@@ -50,7 +54,7 @@ export async function ingestInstagramEvent(event: NormalizedInstagramEvent) {
     .upsert(
       {
         venue_id: venue.id,
-        contact_id: contact.id,
+        contact_id: savedContact.id,
         channel: "instagram",
         last_message_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -74,7 +78,13 @@ export async function ingestInstagramEvent(event: NormalizedInstagramEvent) {
   if (messageError?.code === "23505")
     // A prior request may have persisted the message but lost its deferred AI task.
     // Re-claiming is safe: the database claim prevents a duplicate reply.
-    return { accepted: true, conversationId: conversation.id, duplicate: true } as const;
+    return {
+      accepted: true,
+      conversationId: conversation.id,
+      contactId: savedContact.id,
+      shouldHydrateProfile: !savedContact.display_name,
+      duplicate: true,
+    } as const;
   if (messageError) throw new Error("Unable to save Instagram message.");
 
   const needsStaff = requiresStaffAttention(event.text);
@@ -102,5 +112,7 @@ export async function ingestInstagramEvent(event: NormalizedInstagramEvent) {
   return {
     accepted: true,
     conversationId: conversation.id,
+    contactId: savedContact.id,
+    shouldHydrateProfile: !savedContact.display_name,
   } as const;
 }

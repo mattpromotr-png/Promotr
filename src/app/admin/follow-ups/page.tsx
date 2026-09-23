@@ -66,18 +66,21 @@ export default async function FollowUpsPage({
         eyebrow="TEAM ATTENTION"
         title="Human follow-up"
         description="These conversations need a staff decision, confirmation, or sensitive response that the AI should not provide."
+        action={
+          <div className="max-w-xl rounded-xl border border-amber-500/20 bg-amber-500/8 px-3 py-2 text-xs leading-5 text-amber-900 lg:max-w-md dark:text-amber-100/85">
+            <div className="flex gap-2">
+              <AlertTriangle
+                className="mt-0.5 shrink-0 text-amber-500"
+                size={15}
+              />
+              <p>
+                Review the reason, contact the guest, then mark the item
+                resolved. Resolving a follow-up does not confirm a booking.
+              </p>
+            </div>
+          </div>
+        }
       />
-
-      <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/8 p-3 text-sm leading-5 text-amber-900 dark:text-amber-100/85">
-        <div className="flex gap-3">
-          <AlertTriangle className="mt-0.5 shrink-0 text-amber-500" size={18} />
-          <p>
-            Review the reason, respond to the guest through the available
-            contact channel, then mark the item resolved. Resolving a follow-up
-            does not confirm a booking.
-          </p>
-        </div>
-      </div>
 
       {followUps.length === 0 ? (
         <div className="surface-card mt-4 grid place-items-center p-10 text-center">
@@ -92,7 +95,7 @@ export default async function FollowUpsPage({
           </p>
         </div>
       ) : (
-        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <div className="mt-4 grid items-start gap-3 xl:grid-cols-2">
           {followUps.map((followUp) => {
             const linkedLead = followUp.lead_conversations?.[0]?.leads;
             const relatedLead = Array.isArray(linkedLead)
@@ -101,17 +104,17 @@ export default async function FollowUpsPage({
             return (
               <article
                 key={followUp.id}
-                className="surface-card flex flex-col p-4 sm:p-5"
+                className="surface-card flex flex-col p-4"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-300">
+                    <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-300">
                       <UserRound size={19} />
                     </div>
                     <div className="min-w-0">
                       <h2 className="text-foreground truncate font-semibold">
-                        {followUp.contacts?.display_name ||
-                          relatedLead?.name ||
+                        {relatedLead?.name ||
+                          followUp.contacts?.display_name ||
                           "Instagram guest"}
                       </h2>
                       <p className="text-muted mt-1 text-xs">
@@ -126,17 +129,17 @@ export default async function FollowUpsPage({
                   </span>
                 </div>
 
-                <div className="border-border bg-elevated mt-4 flex-1 rounded-2xl border p-3.5">
+                <div className="border-border bg-elevated mt-3 rounded-xl border p-3">
                   <p className="text-muted text-xs font-medium tracking-wide uppercase">
                     Reason
                   </p>
-                  <p className="text-foreground mt-2 text-sm leading-6">
+                  <p className="text-foreground mt-1.5 text-sm leading-5">
                     {followUp.handoff_reason ||
                       "The AI requested human assistance."}
                   </p>
                 </div>
 
-                <div className="mt-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div className="mt-3 flex flex-col justify-between gap-2.5 sm:flex-row sm:items-center">
                   <p className="text-muted flex items-center gap-2 text-xs">
                     <CalendarClock size={15} className="text-violet" />
                     {new Intl.DateTimeFormat("en-CA", {
@@ -149,17 +152,17 @@ export default async function FollowUpsPage({
                       href="https://business.facebook.com/latest/inbox/instagram"
                       target="_blank"
                       rel="noreferrer"
-                      className="focus-ring border-violet/30 bg-violet/10 text-violet inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-sm font-medium"
+                      className="focus-ring border-violet/30 bg-violet/10 text-violet inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium"
                     >
-                      <MessageCircle size={16} aria-hidden="true" />
+                      <MessageCircle size={14} aria-hidden="true" />
                       Open Instagram inbox
                     </a>
                     {relatedLead && (
                       <Link
                         href={`/admin/leads?lead=${relatedLead.id}`}
-                        className="focus-ring border-border bg-elevated text-foreground inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-sm"
+                        className="focus-ring border-border bg-elevated text-foreground inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs"
                       >
-                        <ClipboardList size={16} />
+                        <ClipboardList size={14} />
                         View inquiry
                       </Link>
                     )}
