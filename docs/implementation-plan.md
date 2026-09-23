@@ -299,3 +299,7 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [x] Stop blocking conversation rendering on the read-cursor RPC; schedule it after the response only when the selected conversation has unread messages. Keep the same authenticated membership/venue check in the RPC and continue showing the selected conversation as read in the UI.
 - [x] Split slow authorization logs into user verification, membership lookup, and membership provisioning durations, without logging identity or credentials.
 - [ ] After deployment, inspect the new authorization phase timings and compare chat-switch latency. If live user verification is the dominant cost, investigate Auth/Vercel regional latency before changing security semantics.
+- [x] Production phase timings confirmed the repeated membership lookup as the dominant general-navigation authorization cost: sampled lookups took 608–2,239 ms while user verification took 206–462 ms.
+- [x] Move staff-membership provisioning out of every protected page/action request and perform it once after a successful admin sign-in. Keep the live user/email authorization check on every protected request.
+- [x] Add `202609230001_admin_conversation_performance.sql`, using a partial inbound-message index and a correlated unread-count query so outbound history is not scanned for unread badges.
+- [ ] Apply the new performance migration to production, deploy the application changes, then verify sidebar navigation, conversation switching, unread badges, and read-state persistence with real signed-in data.
