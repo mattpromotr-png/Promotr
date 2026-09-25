@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ExternalLink,
   LogOut,
+  Mail,
   MessageCircleMore,
   ShieldCheck,
   UserRound,
@@ -11,6 +12,7 @@ import {
 import Link from "next/link";
 
 import { signOut } from "@/app/admin/login/actions";
+import { disconnectGmail } from "@/app/admin/settings/actions";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
 import { VenueInformationForm } from "@/components/admin/venue-information-form";
@@ -27,13 +29,26 @@ import {
 export const metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ gmail?: string }>;
+}) {
   const user = await requireAdmin();
-  const { data: venue } = await createAdminClient()
-    .from("venues")
-    .select("venue_facts")
-    .eq("slug", "promotr-nightclub")
-    .maybeSingle();
+  const gmailMessage = (await searchParams).gmail;
+  const admin = createAdminClient();
+  const [{ data: venue }, { data: gmail }] = await Promise.all([
+    admin
+      .from("venues")
+      .select("venue_facts")
+      .eq("slug", "promotr-nightclub")
+      .maybeSingle(),
+    admin
+      .from("gmail_connections")
+      .select("email_address,status,last_synced_at,watch_expiration")
+      .limit(1)
+      .maybeSingle(),
+  ]);
   const venueInformation = readPublishedVenueInformation(venue?.venue_facts);
   const venueKnowledge = readVenueKnowledgeUpdates(venue?.venue_facts);
   const hasPreviousInformation = Boolean(
@@ -80,6 +95,78 @@ export default async function SettingsPage() {
           <VenueInformationForm information={venueInformation} />
         </section>
       ) : null}
+
+      <section className="surface-card mt-5 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="bg-violet/15 text-violet grid size-10 shrink-0 place-items-center rounded-xl">
+              <Mail size={20} aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="text-foreground font-semibold">Gmail inbox</h2>
+              <p className="text-muted mt-1 max-w-3xl text-sm leading-6">
+                Connect the dedicated Promotr mailbox so incoming emails appear
+                in Conversations and can use the same Vera concierge as SMS and
+                Instagram.
+              </p>
+            </div>
+          </div>
+          {gmail ? (
+            <form action={disconnectGmail}>
+              <button className="focus-ring border-border bg-elevated text-foreground hover:border-violet min-h-10 rounded-xl border px-4 text-sm font-medium">
+                Disconnect
+              </button>
+            </form>
+          ) : (
+            <Link
+              href="/api/integrations/gmail/connect"
+              className="focus-ring bg-brand-gradient inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-semibold text-white"
+            >
+              Connect Gmail
+            </Link>
+          )}
+        </div>
+        {gmailMessage && (
+          <p
+            role="status"
+            className={`mt-4 rounded-xl border px-4 py-3 text-sm ${gmailMessage === "connected" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"}`}
+          >
+            {gmailMessage === "connected"
+              ? "Gmail connected successfully."
+              : "Gmail could not be connected. Check the Google setup and try again."}
+          </p>
+        )}
+        <dl className="border-border mt-5 grid gap-4 border-t pt-4 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="text-muted text-xs">Mailbox</dt>
+            <dd className="text-foreground mt-1 font-medium">
+              {gmail?.email_address || "matt.promotr@gmail.com"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted text-xs">Status</dt>
+            <dd className="text-foreground mt-1 font-medium capitalize">
+              {gmail?.status || "Not connected"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted text-xs">Last synchronized</dt>
+            <dd className="text-foreground mt-1 font-medium">
+              {gmail?.last_synced_at
+                ? new Intl.DateTimeFormat("en-CA", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                    timeZone: "America/Toronto",
+                  }).format(new Date(gmail.last_synced_at))
+                : "Waiting for connection"}
+            </dd>
+          </div>
+        </dl>
+        <p className="text-muted mt-4 text-xs leading-5">
+          Google access is authorized by the mailbox owner. Promotr never stores
+          or asks for the Gmail password.
+        </p>
+      </section>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         <section className="surface-card p-5 sm:p-6">

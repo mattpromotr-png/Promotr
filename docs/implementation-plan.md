@@ -313,3 +313,13 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [x] Upgrade the editor to individual Venue Knowledge items with categories, drafts, publishing, editing, deactivation, Toronto start/end scheduling, automatic expiry, and retained history inside the existing venue facts record.
 - [x] Inject only currently active knowledge items into the shared Vera engine; inactive, draft, scheduled, and expired items are not provided to the model.
 - [ ] Verify the Venue Knowledge manager visually in dark/light mode and test create, edit, schedule, publish, deactivate, automatic expiry, SMS, and Instagram in production.
+
+## Gmail conversations (2026-09-25)
+
+- [x] Add encrypted Google OAuth connection and disconnection controls for the dedicated Promotr Gmail mailbox.
+- [x] Add incremental Inbox synchronization, provider-message deduplication, contact/lead linking, quoted-history cleanup, and automatic-message loop protection.
+- [x] Use the shared Vera prompt, contact memory, venue knowledge, booking/lost-item links, handoff rules, automation pause, and staff replies for email conversations.
+- [x] Display email in the manager web inbox, inquiry conversation view, follow-up view, and manager mobile API.
+- [x] Add secured Supabase Cron polling plus optional authenticated Gmail Pub/Sub push and watch renewal.
+- [ ] Apply the Gmail migration, configure Google/Vercel values, authorize `matt.promotr@gmail.com`, and configure the sync schedule.
+- [ ] Verify a real inbound email, Vera reply in the original Gmail thread, staff reply, pause/resume, handoff, memory recall, and mobile visibility after deployment.

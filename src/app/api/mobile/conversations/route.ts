@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   if (!manager)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const channel = new URL(request.url).searchParams.get("channel");
-  if (channel && !["sms", "instagram"].includes(channel))
+  if (channel && !["sms", "instagram", "email"].includes(channel))
     return NextResponse.json({ error: "Invalid channel" }, { status: 400 });
 
   const admin = createAdminClient();
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       "id,channel,status,human_takeover,last_message_at,contacts(display_name,contact_channels(channel,normalized_address))",
     )
     .eq("venue_id", manager.venueId)
-    .in("channel", ["sms", "instagram"]);
+    .in("channel", ["sms", "instagram", "email"]);
   if (channel) query = query.eq("channel", channel);
   const result = await query
     .order("last_message_at", { ascending: false })
@@ -69,12 +69,20 @@ export async function GET(request: Request) {
       const sms = contact?.contact_channels?.find(
         (entry) => entry.channel === "sms",
       );
+      const email = contact?.contact_channels?.find(
+        (entry) => entry.channel === "email",
+      );
       return {
         id: item.id,
         guestName:
           contact?.display_name ||
-          (item.channel === "sms" ? "SMS guest" : "Instagram guest"),
+          (item.channel === "sms"
+            ? "SMS guest"
+            : item.channel === "email"
+              ? "Email guest"
+              : "Instagram guest"),
         phone: sms?.normalized_address,
+        email: email?.normalized_address,
         channel: item.channel,
         preview:
           previews.get(item.id)?.english ||

@@ -33,7 +33,9 @@ export function BookingConversations({
                 ? "SMS"
                 : conversation.channel === "instagram"
                   ? "Instagram"
-                  : "Website"}
+                  : conversation.channel === "email"
+                    ? "Email"
+                    : "Website"}
             </button>
           ))}
         </div>

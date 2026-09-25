@@ -356,7 +356,11 @@ export default async function AdminOverviewPage() {
                       {contact?.display_name ||
                         (conversation.channel === "web_preview"
                           ? "Website guest"
-                          : "Instagram guest")}
+                          : conversation.channel === "sms"
+                            ? "SMS guest"
+                            : conversation.channel === "email"
+                              ? "Email guest"
+                              : "Instagram guest")}
                     </p>
                     <p className="text-muted mt-1 text-xs capitalize">
                       {conversation.channel.replace("_", " ")} ·{" "}

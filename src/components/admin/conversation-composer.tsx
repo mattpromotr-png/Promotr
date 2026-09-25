@@ -48,7 +48,9 @@ export function ConversationComposer({
           placeholder={
             channel === "sms"
               ? "Send an SMS as Promotr staff..."
-              : "Send a message as Promotr staff..."
+              : channel === "email"
+                ? "Reply by email as Promotr staff..."
+                : "Send a message as Promotr staff..."
           }
           className="focus-ring border-border bg-elevated text-foreground placeholder:text-muted h-12 w-full resize-none rounded-xl border px-4 py-3 text-sm leading-6"
         />

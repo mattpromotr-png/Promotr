@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 type PushInput = {
   venueId: string;
   conversationId: string;
-  channel: "sms" | "instagram";
+  channel: "sms" | "instagram" | "email";
   title: string;
   body: string;
   kind: "new_message" | "follow_up";
@@ -14,9 +14,7 @@ export async function notifyVenueManagers(input: PushInput) {
   const admin = createAdminClient();
   const devices = await admin
     .from("manager_devices")
-    .select(
-      "id,expo_push_token,staff_memberships!inner(venue_id,active)",
-    )
+    .select("id,expo_push_token,staff_memberships!inner(venue_id,active)")
     .eq("notifications_enabled", true)
     .eq("staff_memberships.venue_id", input.venueId)
     .eq("staff_memberships.active", true);

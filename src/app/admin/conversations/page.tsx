@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Clock3,
   Globe2,
+  Mail,
   MessageCircle,
   MessageSquareText,
   PauseCircle,
@@ -100,7 +101,7 @@ export default async function ConversationsPage({
     channel: channelValue,
     view: viewValue,
   } = await searchParams;
-  const channel = ["sms", "instagram"].includes(channelValue || "")
+  const channel = ["sms", "instagram", "email"].includes(channelValue || "")
     ? channelValue!
     : "all";
   const view = ["open", "review", "all"].includes(viewValue || "")
@@ -208,6 +209,7 @@ export default async function ConversationsPage({
             ["all", "All"],
             ["sms", "SMS"],
             ["instagram", "Instagram"],
+            ["email", "Email"],
           ].map(([value, label]) => (
             <Link
               key={value}
@@ -292,6 +294,8 @@ export default async function ConversationsPage({
                         <Camera size={12} aria-hidden="true" />
                       ) : item.channel === "sms" ? (
                         <Smartphone size={12} aria-hidden="true" />
+                      ) : item.channel === "email" ? (
+                        <Mail size={12} aria-hidden="true" />
                       ) : (
                         <Globe2 size={12} aria-hidden="true" />
                       )}
@@ -356,6 +360,8 @@ export default async function ConversationsPage({
                       <Camera size={12} aria-hidden="true" />
                     ) : selected.channel === "sms" ? (
                       <Smartphone size={12} aria-hidden="true" />
+                    ) : selected.channel === "email" ? (
+                      <Mail size={12} aria-hidden="true" />
                     ) : (
                       <Globe2 size={12} aria-hidden="true" />
                     )}
@@ -427,7 +433,8 @@ export default async function ConversationsPage({
               </ConversationTranscript>
               {(selected.channel === "web_preview" ||
                 selected.channel === "sms" ||
-                selected.channel === "instagram") && (
+                selected.channel === "instagram" ||
+                selected.channel === "email") && (
                 <div className="shrink-0">
                   <ConversationComposer
                     key={selected.id}
@@ -478,6 +485,14 @@ export default async function ConversationsPage({
                     <dt className="text-muted">Phone</dt>
                     <dd className="text-foreground text-right break-all">
                       {conversationPhone(selected)}
+                    </dd>
+                  </div>
+                )}
+                {conversationEmail(selected) && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted">Email</dt>
+                    <dd className="text-foreground text-right break-all">
+                      {conversationEmail(selected)}
                     </dd>
                   </div>
                 )}
@@ -725,13 +740,21 @@ function conversationGuestName(conversation: Conversation) {
       ? "Website guest"
       : conversation.channel === "sms"
         ? "SMS guest"
-        : "Instagram guest")
+        : conversation.channel === "email"
+          ? "Email guest"
+          : "Instagram guest")
   );
 }
 
 function conversationPhone(conversation: Conversation) {
   return conversation.contacts?.contact_channels.find(
     (contact) => contact.channel === "sms",
+  )?.normalized_address;
+}
+
+function conversationEmail(conversation: Conversation) {
+  return conversation.contacts?.contact_channels.find(
+    (contact) => contact.channel === "email",
   )?.normalized_address;
 }
 
@@ -747,10 +770,7 @@ function hasTranslatedGuestContent(message: Message) {
   if (message.content === adminEnglishContent(message)) return false;
   const language = message.metadata?.detectedLanguage?.trim().toLowerCase();
   if (!language) return false;
-  return !(
-    language.includes("english") ||
-    /^en(?:[-_ ]|$)/.test(language)
-  );
+  return !(language.includes("english") || /^en(?:[-_ ]|$)/.test(language));
 }
 
 function formatMessageTime(value: string) {

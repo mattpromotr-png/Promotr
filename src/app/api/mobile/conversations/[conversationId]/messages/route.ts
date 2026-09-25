@@ -4,6 +4,7 @@ import { normalizeLanguageName } from "@/lib/ai/language";
 import { authenticateMobileManager } from "@/lib/auth/mobile-manager";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { sendInstagramConversationMessage } from "@/lib/messaging/instagram-conversation";
+import { sendEmailConversationMessage } from "@/lib/messaging/email-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(
@@ -31,7 +32,7 @@ export async function POST(
       { error: "Conversation not found" },
       { status: 404 },
     );
-  if (!["sms", "instagram"].includes(conversation.data.channel))
+  if (!["sms", "instagram", "email"].includes(conversation.data.channel))
     return NextResponse.json(
       { error: "This channel does not support direct replies" },
       { status: 409 },
@@ -48,7 +49,9 @@ export async function POST(
     const sendMessage =
       conversation.data.channel === "sms"
         ? sendSmsConversationMessage
-        : sendInstagramConversationMessage;
+        : conversation.data.channel === "instagram"
+          ? sendInstagramConversationMessage
+          : sendEmailConversationMessage;
     await sendMessage({
       conversationId,
       content: deliveredContent,

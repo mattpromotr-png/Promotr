@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth/admin";
+import { decryptGmailToken } from "@/lib/gmail/token-crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   readVenueKnowledgeUpdates,
@@ -27,6 +28,34 @@ const venueInformationSchema = z.object({
   pricing: field,
   policies: field,
 });
+
+export async function disconnectGmail() {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { data: connection } = await admin
+    .from("gmail_connections")
+    .select("id,encrypted_refresh_token")
+    .limit(1)
+    .maybeSingle();
+  if (!connection) return;
+  try {
+    const refreshToken = decryptGmailToken(connection.encrypted_refresh_token);
+    await fetch(
+      `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(refreshToken)}`,
+      { method: "POST", cache: "no-store" },
+    );
+  } catch (error) {
+    console.error("Unable to revoke Gmail authorization", {
+      reason: error instanceof Error ? error.message : "unknown_error",
+    });
+  }
+  const { error } = await admin
+    .from("gmail_connections")
+    .delete()
+    .eq("id", connection.id);
+  if (error) throw new Error("Unable to disconnect Gmail.");
+  revalidatePath("/admin/settings");
+}
 
 export async function publishVenueInformation(
   _previous: VenueInformationState,

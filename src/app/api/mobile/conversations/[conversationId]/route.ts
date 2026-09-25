@@ -23,7 +23,7 @@ export async function GET(
     )
     .eq("id", conversationId)
     .eq("venue_id", manager.venueId)
-    .in("channel", ["sms", "instagram"])
+    .in("channel", ["sms", "instagram", "email"])
     .maybeSingle();
   if (!conversation.data)
     return NextResponse.json(
@@ -53,12 +53,20 @@ export async function GET(
   const sms = contact?.contact_channels?.find(
     (entry) => entry.channel === "sms",
   );
+  const email = contact?.contact_channels?.find(
+    (entry) => entry.channel === "email",
+  );
   return NextResponse.json({
     id: conversation.data.id,
     guestName:
       contact?.display_name ||
-      (conversation.data.channel === "sms" ? "SMS guest" : "Instagram guest"),
+      (conversation.data.channel === "sms"
+        ? "SMS guest"
+        : conversation.data.channel === "email"
+          ? "Email guest"
+          : "Instagram guest"),
     phone: sms?.normalized_address,
+    email: email?.normalized_address,
     channel: conversation.data.channel,
     preview: messages.data?.at(-1)?.content || "",
     updatedAt: conversation.data.last_message_at,

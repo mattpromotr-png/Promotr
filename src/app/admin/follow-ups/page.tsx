@@ -22,6 +22,7 @@ const PAGE_SIZE = 20;
 
 type FollowUp = {
   id: string;
+  channel: string;
   handoff_reason: string | null;
   last_message_at: string;
   contacts: { display_name: string | null; instagram_scoped_id: string } | null;
@@ -46,7 +47,7 @@ export default async function FollowUpsPage({
     admin
       .from("conversations")
       .select(
-        "id,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id),lead_conversations(leads(id,name))",
+        "id,channel,handoff_reason,last_message_at,contacts(display_name,instagram_scoped_id),lead_conversations(leads(id,name))",
         { count: "exact" },
       )
       .eq("status", "handoff_required")
@@ -115,7 +116,11 @@ export default async function FollowUpsPage({
                       <h2 className="text-foreground truncate font-semibold">
                         {relatedLead?.name ||
                           followUp.contacts?.display_name ||
-                          "Instagram guest"}
+                          (followUp.channel === "email"
+                            ? "Email guest"
+                            : followUp.channel === "sms"
+                              ? "SMS guest"
+                              : "Instagram guest")}
                       </h2>
                       <p className="text-muted mt-1 text-xs">
                         Contact …
@@ -148,15 +153,27 @@ export default async function FollowUpsPage({
                     }).format(new Date(followUp.last_message_at))}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <a
-                      href="https://business.facebook.com/latest/inbox/instagram"
-                      target="_blank"
-                      rel="noreferrer"
+                    <Link
+                      href={
+                        followUp.channel === "instagram"
+                          ? "https://business.facebook.com/latest/inbox/instagram"
+                          : `/admin/conversations?conversation=${followUp.id}`
+                      }
+                      target={
+                        followUp.channel === "instagram" ? "_blank" : undefined
+                      }
+                      rel={
+                        followUp.channel === "instagram"
+                          ? "noreferrer"
+                          : undefined
+                      }
                       className="focus-ring border-violet/30 bg-violet/10 text-violet inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium"
                     >
                       <MessageCircle size={14} aria-hidden="true" />
-                      Open Instagram inbox
-                    </a>
+                      {followUp.channel === "instagram"
+                        ? "Open Instagram inbox"
+                        : "Open conversation"}
+                    </Link>
                     {relatedLead && (
                       <Link
                         href={`/admin/leads?lead=${relatedLead.id}`}

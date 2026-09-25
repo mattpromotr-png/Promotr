@@ -149,7 +149,8 @@ export function BookingConversation({
             )}
           </div>
           {activeConversation.channel === "web_preview" ||
-          activeConversation.channel === "sms" ? (
+          activeConversation.channel === "sms" ||
+          activeConversation.channel === "email" ? (
             <form action={sendConversationReply} className="mt-3 flex gap-2">
               <input
                 type="hidden"
@@ -163,7 +164,9 @@ export function BookingConversation({
                 placeholder={
                   activeConversation.channel === "sms"
                     ? "Send an SMS as Promotr staff..."
-                    : "Reply as Promotr staff..."
+                    : activeConversation.channel === "email"
+                      ? "Reply by email as Promotr staff..."
+                      : "Reply as Promotr staff..."
                 }
                 className="focus-ring border-border bg-elevated text-foreground min-h-11 min-w-0 flex-1 rounded-xl border px-3 text-sm"
               />
@@ -185,7 +188,8 @@ export function BookingConversation({
             </a>
           )}
           {(activeConversation.channel === "web_preview" ||
-            activeConversation.channel === "sms") && (
+            activeConversation.channel === "sms" ||
+            activeConversation.channel === "email") && (
             <p className="text-muted mt-2 text-xs">
               This sends a staff reply. Automatic concierge replies remain
               active unless paused in the full conversation.

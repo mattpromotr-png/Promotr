@@ -6,6 +6,7 @@ import { translateStaffReply } from "@/lib/ai/translate-staff-reply";
 import { normalizeLanguageName } from "@/lib/ai/language";
 import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { sendInstagramConversationMessage } from "@/lib/messaging/instagram-conversation";
+import { sendEmailConversationMessage } from "@/lib/messaging/email-conversation";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type StaffReplyState = {
@@ -32,7 +33,11 @@ export async function sendConversationReply(formData: FormData) {
     .single();
   if (loadError || !conversation)
     throw new Error("Unable to load this conversation.");
-  if (conversation.channel === "sms" || conversation.channel === "instagram") {
+  if (
+    conversation.channel === "sms" ||
+    conversation.channel === "instagram" ||
+    conversation.channel === "email"
+  ) {
     const { data: contact } = await admin
       .from("contacts")
       .select("preferred_language")
@@ -43,7 +48,9 @@ export async function sendConversationReply(formData: FormData) {
     const sendMessage =
       conversation.channel === "sms"
         ? sendSmsConversationMessage
-        : sendInstagramConversationMessage;
+        : conversation.channel === "instagram"
+          ? sendInstagramConversationMessage
+          : sendEmailConversationMessage;
     await sendMessage({
       conversationId,
       content: deliveredContent,
@@ -179,7 +186,7 @@ export async function pauseConversationAutomation(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
-    .in("channel", ["web_preview", "sms", "instagram"]);
+    .in("channel", ["web_preview", "sms", "instagram", "email"]);
   if (error) throw new Error("Unable to pause automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");
@@ -196,7 +203,7 @@ export async function resumeConversationAutomation(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
-    .in("channel", ["web_preview", "sms", "instagram"]);
+    .in("channel", ["web_preview", "sms", "instagram", "email"]);
   if (error) throw new Error("Unable to resume automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");
