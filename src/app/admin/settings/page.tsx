@@ -1,5 +1,6 @@
 import {
   ArrowUpRight,
+  Building2,
   CalendarDays,
   ExternalLink,
   LogOut,
@@ -12,22 +13,48 @@ import Link from "next/link";
 import { signOut } from "@/app/admin/login/actions";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
+import { VenueInformationForm } from "@/components/admin/venue-information-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { requireAdmin } from "@/lib/auth/admin";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { readPublishedVenueInformation } from "@/lib/venue/published-information";
 
 export const metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const user = await requireAdmin();
+  const { data: venue } = await createAdminClient()
+    .from("venues")
+    .select("venue_facts")
+    .eq("slug", "promotr-nightclub")
+    .maybeSingle();
+  const venueInformation = readPublishedVenueInformation(venue?.venue_facts);
 
   return (
     <AdminShell active="settings">
       <PageHeading
         eyebrow="MANAGER WORKSPACE"
         title="Settings"
-        description="Your existing workspace controls and useful links, collected in one place. Messaging and booking behavior has not changed."
+        description="Manage venue information, your account, appearance, and workspace links in one place."
       />
+
+      <section className="surface-card mt-5 p-5 sm:p-6">
+        <div className="flex items-start gap-3">
+          <span className="bg-violet/15 text-violet grid size-10 shrink-0 place-items-center rounded-xl">
+            <Building2 size={20} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 className="text-foreground font-semibold">Venue information</h2>
+            <p className="text-muted mt-1 max-w-3xl text-sm leading-6">
+              Publish confirmed changes for Vera to use in new SMS and Instagram
+              replies. This updates venue facts only; Vera&apos;s safety and
+              privacy rules cannot be edited here.
+            </p>
+          </div>
+        </div>
+        <VenueInformationForm information={venueInformation} />
+      </section>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         <section className="surface-card p-5 sm:p-6">

@@ -9,6 +9,7 @@ import { sendInstagramConversationMessage } from "@/lib/messaging/instagram-conv
 import { loadRecallExcerpts } from "@/lib/messaging/recall";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { readPublishedVenueInformation } from "@/lib/venue/published-information";
 
 type Claim = {
   claimed?: boolean;
@@ -92,12 +93,19 @@ async function processClaimedBatch(
     const contact = Array.isArray(conversation.contacts)
       ? conversation.contacts[0]
       : conversation.contacts;
-    const recallExcerpts = await loadRecallExcerpts(
-      admin,
-      conversation.venue_id,
-      conversation.contact_id,
-      batchText,
-    );
+    const [recallExcerpts, venueResult] = await Promise.all([
+      loadRecallExcerpts(
+        admin,
+        conversation.venue_id,
+        conversation.contact_id,
+        batchText,
+      ),
+      admin
+        .from("venues")
+        .select("venue_facts")
+        .eq("id", conversation.venue_id)
+        .maybeSingle(),
+    ]);
     const foundItems = latestMessageNeedsLostFoundForm(batchText)
       ? (
           await admin
@@ -124,6 +132,9 @@ async function processClaimedBatch(
         foundLocation: item.found_location,
         tableNumber: item.table_number,
       })),
+      venueInformation: readPublishedVenueInformation(
+        venueResult.data?.venue_facts,
+      ),
     });
 
     const latestInbound = trailingInbound.at(-1)!;

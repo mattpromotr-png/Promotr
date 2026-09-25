@@ -16,6 +16,7 @@ import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { loadRecallExcerpts } from "@/lib/messaging/recall";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { readPublishedVenueInformation } from "@/lib/venue/published-information";
 
 export const maxDuration = 60;
 
@@ -286,12 +287,19 @@ async function processClaimedSmsBatch(
     const contact = Array.isArray(conversation.contacts)
       ? conversation.contacts[0]
       : conversation.contacts;
-    const recallExcerpts = await loadRecallExcerpts(
-      admin,
-      conversation.venue_id,
-      conversation.contact_id,
-      batchText,
-    );
+    const [recallExcerpts, venueResult] = await Promise.all([
+      loadRecallExcerpts(
+        admin,
+        conversation.venue_id,
+        conversation.contact_id,
+        batchText,
+      ),
+      admin
+        .from("venues")
+        .select("venue_facts")
+        .eq("id", conversation.venue_id)
+        .maybeSingle(),
+    ]);
     const lostItemTurn = latestMessageNeedsLostFoundForm(batchText);
     const foundItems = lostItemTurn
       ? (
@@ -319,6 +327,9 @@ async function processClaimedSmsBatch(
         foundLocation: item.found_location,
         tableNumber: item.table_number,
       })),
+      venueInformation: readPublishedVenueInformation(
+        venueResult.data?.venue_facts,
+      ),
     });
     const grouped = trailingInbound.slice(0, -1);
     const latestInbound = trailingInbound.at(-1)!;

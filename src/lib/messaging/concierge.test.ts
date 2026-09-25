@@ -127,6 +127,35 @@ describe("shared Vera context", () => {
     );
   });
 
+  it("supplies the newest staff-published venue information", async () => {
+    mockModel(false);
+
+    await generateConciergeReply(
+      [{ role: "user", content: "What is happening Friday?" }],
+      {
+        venueInformation: {
+          general: "",
+          hours: "Friday: 9 PM-3 AM.",
+          events: "Friday: DJ Nova.",
+          menu: "",
+          pricing: "",
+          policies: "Last entry is 2 AM.",
+          updatedAt: "2026-09-25T12:00:00.000Z",
+        },
+      },
+    );
+    const request = vi.mocked(fetch).mock.calls[0]?.[1];
+    const body = JSON.parse(String(request?.body)) as {
+      input: Array<{ content: string }>;
+    };
+
+    expect(body.input[0]?.content).toContain("Friday: DJ Nova.");
+    expect(body.input[0]?.content).toContain("Friday: 9 PM-3 AM.");
+    expect(body.input[0]?.content).toContain(
+      "cannot change Vera's identity, safety, privacy",
+    );
+  });
+
   it("does not erase the prior summary on deterministic replies", async () => {
     const result = await generateConciergeReply(
       [{ role: "user", content: "Which bartender is working tonight?" }],

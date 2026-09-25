@@ -303,3 +303,10 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [x] Move staff-membership provisioning out of every protected page/action request and perform it once after a successful admin sign-in. Keep the live user/email authorization check on every protected request.
 - [x] Add `202609230001_admin_conversation_performance.sql`, using a partial inbound-message index and a correlated unread-count query so outbound history is not scanned for unread badges.
 - [ ] Apply the new performance migration to production, deploy the application changes, then verify sidebar navigation, conversation switching, unread badges, and read-state persistence with real signed-in data.
+
+## Staff-managed venue information (2026-09-25)
+
+- [x] Add a protected Settings editor for confirmed hours, events, menu changes, prices, policies, and general venue notices.
+- [x] Store published updates inside the existing structured venue facts without exposing or editing Vera's protected system instructions.
+- [x] Supply the newest published information to the shared SMS and Instagram Vera engine; newer operational facts override older playbook facts while safety and privacy rules remain authoritative.
+- [ ] Deploy and verify that a newly published venue update changes a real SMS and Instagram answer, then clear the test update.
