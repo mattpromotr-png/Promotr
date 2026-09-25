@@ -49,6 +49,7 @@ export async function syncConnectedGmail(venueId?: string) {
     let imported = 0;
     for (const messageId of history.messageIds) {
       const message = await getGmailMessage(accessToken, messageId);
+      if (!message) continue;
       if (!message.labelIds?.includes("INBOX")) continue;
       const from = parseMailbox(gmailHeader(message, "From") || "");
       if (!from.email || from.email === connection.email_address.toLowerCase())

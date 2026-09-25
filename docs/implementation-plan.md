@@ -321,5 +321,7 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [x] Use the shared Vera prompt, contact memory, venue knowledge, booking/lost-item links, handoff rules, automation pause, and staff replies for email conversations.
 - [x] Display email in the manager web inbox, inquiry conversation view, follow-up view, and manager mobile API.
 - [x] Add secured Supabase Cron polling plus optional authenticated Gmail Pub/Sub push and watch renewal.
+- [x] Skip Gmail history entries whose messages now return 404, so one unavailable message cannot block later inbox syncs (2026-09-25).
 - [ ] Apply the Gmail migration, configure Google/Vercel values, authorize `matt.promotr@gmail.com`, and configure the sync schedule.
+- [ ] Verify the live two-minute Cron job advances the Gmail last-sync time after the missing-message fix is deployed.
 - [ ] Verify a real inbound email, Vera reply in the original Gmail thread, staff reply, pause/resume, handoff, memory recall, and mobile visibility after deployment.

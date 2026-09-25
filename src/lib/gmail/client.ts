@@ -115,11 +115,18 @@ export function getGmailProfile(accessToken: string) {
   );
 }
 
-export function getGmailMessage(accessToken: string, messageId: string) {
-  return gmailFetch<GmailMessage>(
-    accessToken,
-    `/users/me/messages/${encodeURIComponent(messageId)}?format=full`,
-  );
+export async function getGmailMessage(accessToken: string, messageId: string) {
+  try {
+    return await gmailFetch<GmailMessage>(
+      accessToken,
+      `/users/me/messages/${encodeURIComponent(messageId)}?format=full`,
+    );
+  } catch (error) {
+    // A message can disappear between Gmail's history listing and retrieval.
+    if (error instanceof Error && "status" in error && error.status === 404)
+      return null;
+    throw error;
+  }
 }
 
 export async function listGmailHistory(

@@ -1,10 +1,34 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { decodeBase64Url, encodeBase64Url } from "@/lib/gmail/client";
+import {
+  decodeBase64Url,
+  encodeBase64Url,
+  getGmailMessage,
+} from "@/lib/gmail/client";
 import { cleanEmailText, parseMailbox } from "@/lib/gmail/sync";
 import { buildReplyMime } from "@/lib/messaging/email-conversation";
 
 describe("Gmail message helpers", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("skips a message removed after Gmail listed it in history", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(null, { status: 404 }),
+    );
+    await expect(
+      getGmailMessage("test-token", "deleted-message"),
+    ).resolves.toBeNull();
+  });
+
+  it("still reports Gmail failures other than a missing message", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(null, { status: 503 }),
+    );
+    await expect(
+      getGmailMessage("test-token", "existing-message"),
+    ).rejects.toThrow("Gmail API request failed (503).");
+  });
+
   it("parses named and plain mailbox addresses", () => {
     expect(parseMailbox("Jake M. <JAKE@example.com>")).toEqual({
       email: "jake@example.com",
