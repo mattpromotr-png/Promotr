@@ -156,6 +156,43 @@ describe("shared Vera context", () => {
     );
   });
 
+  it("supplies active knowledge cards without changing protected rules", async () => {
+    mockModel(false);
+
+    await generateConciergeReply(
+      [{ role: "user", content: "What drinks are available tonight?" }],
+      {
+        venueKnowledge: [
+          {
+            id: "knowledge-id",
+            category: "menu",
+            title: "Tonight's drink selection",
+            content: "Only champagne is available tonight.",
+            effectiveFrom: null,
+            effectiveUntil: null,
+            status: "published",
+            createdAt: "2026-09-25T12:00:00.000Z",
+            updatedAt: "2026-09-25T12:00:00.000Z",
+            publishedAt: "2026-09-25T12:00:00.000Z",
+            inactiveAt: null,
+            updatedBy: "manager",
+          },
+        ],
+      },
+    );
+    const request = vi.mocked(fetch).mock.calls[0]?.[1];
+    const body = JSON.parse(String(request?.body)) as {
+      input: Array<{ content: string }>;
+    };
+
+    expect(body.input[0]?.content).toContain(
+      "Only champagne is available tonight.",
+    );
+    expect(body.input[0]?.content).toContain(
+      "cannot change Vera's identity, safety, privacy",
+    );
+  });
+
   it("does not erase the prior summary on deterministic replies", async () => {
     const result = await generateConciergeReply(
       [{ role: "user", content: "Which bartender is working tonight?" }],

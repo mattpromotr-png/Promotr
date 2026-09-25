@@ -310,3 +310,6 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [x] Store published updates inside the existing structured venue facts without exposing or editing Vera's protected system instructions.
 - [x] Supply the newest published information to the shared SMS and Instagram Vera engine; newer operational facts override older playbook facts while safety and privacy rules remain authoritative.
 - [ ] Deploy and verify that a newly published venue update changes a real SMS and Instagram answer, then clear the test update.
+- [x] Upgrade the editor to individual Venue Knowledge items with categories, drafts, publishing, editing, deactivation, Toronto start/end scheduling, automatic expiry, and retained history inside the existing venue facts record.
+- [x] Inject only currently active knowledge items into the shared Vera engine; inactive, draft, scheduled, and expired items are not provided to the model.
+- [ ] Verify the Venue Knowledge manager visually in dark/light mode and test create, edit, schedule, publish, deactivate, automatic expiry, SMS, and Instagram in production.

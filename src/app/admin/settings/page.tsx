@@ -14,10 +14,15 @@ import { signOut } from "@/app/admin/login/actions";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
 import { VenueInformationForm } from "@/components/admin/venue-information-form";
+import { VenueKnowledgeManager } from "@/components/admin/venue-knowledge-manager";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { readPublishedVenueInformation } from "@/lib/venue/published-information";
+import { readVenueKnowledgeUpdates } from "@/lib/venue/knowledge";
+import {
+  formatPublishedVenueInformation,
+  readPublishedVenueInformation,
+} from "@/lib/venue/published-information";
 
 export const metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
@@ -30,6 +35,10 @@ export default async function SettingsPage() {
     .eq("slug", "promotr-nightclub")
     .maybeSingle();
   const venueInformation = readPublishedVenueInformation(venue?.venue_facts);
+  const venueKnowledge = readVenueKnowledgeUpdates(venue?.venue_facts);
+  const hasPreviousInformation = Boolean(
+    formatPublishedVenueInformation(venueInformation),
+  );
 
   return (
     <AdminShell active="settings">
@@ -47,14 +56,30 @@ export default async function SettingsPage() {
           <div>
             <h2 className="text-foreground font-semibold">Venue information</h2>
             <p className="text-muted mt-1 max-w-3xl text-sm leading-6">
-              Publish confirmed changes for Vera to use in new SMS and Instagram
-              replies. This updates venue facts only; Vera&apos;s safety and
-              privacy rules cannot be edited here.
+              Add confirmed venue knowledge, schedule when it applies, and
+              control what Vera can use in new SMS and Instagram replies.
+              Vera&apos;s safety and privacy rules cannot be edited here.
             </p>
           </div>
         </div>
-        <VenueInformationForm information={venueInformation} />
+        <VenueKnowledgeManager updates={venueKnowledge} />
       </section>
+
+      {hasPreviousInformation ? (
+        <section className="surface-card mt-5 p-5 sm:p-6">
+          <div>
+            <h2 className="text-foreground font-semibold">
+              Previous venue updates
+            </h2>
+            <p className="text-muted mt-1 max-w-3xl text-sm leading-6">
+              These were added with the earlier editor. Edit or clear the test
+              information here, then use the Venue Knowledge cards above for
+              future updates.
+            </p>
+          </div>
+          <VenueInformationForm information={venueInformation} />
+        </section>
+      ) : null}
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         <section className="surface-card p-5 sm:p-6">

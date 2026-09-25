@@ -9,6 +9,7 @@ import { sendInstagramConversationMessage } from "@/lib/messaging/instagram-conv
 import { loadRecallExcerpts } from "@/lib/messaging/recall";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { readActiveVenueKnowledge } from "@/lib/venue/knowledge";
 import { readPublishedVenueInformation } from "@/lib/venue/published-information";
 
 type Claim = {
@@ -135,6 +136,7 @@ async function processClaimedBatch(
       venueInformation: readPublishedVenueInformation(
         venueResult.data?.venue_facts,
       ),
+      venueKnowledge: readActiveVenueKnowledge(venueResult.data?.venue_facts),
     });
 
     const latestInbound = trailingInbound.at(-1)!;

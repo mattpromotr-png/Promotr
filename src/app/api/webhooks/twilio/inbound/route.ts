@@ -16,6 +16,7 @@ import { sendSmsConversationMessage } from "@/lib/messaging/sms-conversation";
 import { loadRecallExcerpts } from "@/lib/messaging/recall";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { readActiveVenueKnowledge } from "@/lib/venue/knowledge";
 import { readPublishedVenueInformation } from "@/lib/venue/published-information";
 
 export const maxDuration = 60;
@@ -330,6 +331,7 @@ async function processClaimedSmsBatch(
       venueInformation: readPublishedVenueInformation(
         venueResult.data?.venue_facts,
       ),
+      venueKnowledge: readActiveVenueKnowledge(venueResult.data?.venue_facts),
     });
     const grouped = trailingInbound.slice(0, -1);
     const latestInbound = trailingInbound.at(-1)!;
