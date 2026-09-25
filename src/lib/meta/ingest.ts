@@ -13,7 +13,7 @@ export async function ingestInstagramEvent(event: NormalizedInstagramEvent) {
   const admin = createAdminClient();
   const { data: venue, error: venueError } = await admin
     .from("venues")
-    .select("id,display_name")
+    .select("id")
     .eq("slug", "promotr-nightclub")
     .single();
   if (venueError || !venue) throw new Error("Venue is unavailable.");
@@ -28,7 +28,7 @@ export async function ingestInstagramEvent(event: NormalizedInstagramEvent) {
       },
       { onConflict: "venue_id,instagram_scoped_id" },
     )
-    .select("id")
+    .select("id,display_name")
     .single();
   if (contactError || !contact) throw new Error("Unable to save guest.");
   const savedContact = contact as {
