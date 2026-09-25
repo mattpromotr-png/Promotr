@@ -23,6 +23,30 @@ the shared Vera prompt, memory, venue knowledge, pause control, and staff inbox.
 8. Deploy, open **Admin → Settings → Gmail inbox**, select **Connect Gmail**,
    sign in as `matt.promotr@gmail.com`, and approve access.
 
+## Switch from a test mailbox to the client mailbox
+
+The Google OAuth client ID and secret identify the application; the connected
+mailbox and its encrypted refresh token are stored in `gmail_connections`.
+Changing Vercel variables does not replace that stored connection.
+
+1. Set `GMAIL_EXPECTED_ADDRESS` to the client mailbox. Keep the existing
+   `GMAIL_TOKEN_ENCRYPTION_KEY` for an active connection. If it was already
+   changed, disconnect still removes the old connection, but cannot revoke its
+   old Google token; remove the app's access from the old Google account.
+2. Deploy the Vercel environment changes. In **Admin → Settings → Gmail inbox**,
+   select **Disconnect**, refresh, then select **Connect Gmail** and authorize
+   the client mailbox. The client mailbox must be an allowed Google OAuth test
+   user while the Google app remains in Testing mode.
+3. Confirm Settings displays the client's address and **Connected** status.
+   The existing two-minute Gmail Cron job uses the same endpoint and secret;
+   it does not need a new schedule. Send a new email to the client mailbox and
+   verify it appears in Conversations with a reply in the same Gmail thread.
+
+The new connection starts at the mailbox's current Gmail history position, so
+emails received before authorization are not imported. Existing test
+conversations remain in Promotr for reference; do not reply to their old Gmail
+threads from the newly connected mailbox.
+
 Google OAuth projects left in Testing mode issue short-lived testing
 authorizations. Expect the mailbox owner to reconnect after about seven days
 until the production OAuth requirements are completed.
