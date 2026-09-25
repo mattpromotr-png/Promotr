@@ -118,12 +118,12 @@ export default async function SettingsPage({
               </button>
             </form>
           ) : (
-            <Link
+            <a
               href="/api/integrations/gmail/connect"
               className="focus-ring bg-brand-gradient inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-semibold text-white"
             >
               Connect Gmail
-            </Link>
+            </a>
           )}
         </div>
         {gmailMessage && (
