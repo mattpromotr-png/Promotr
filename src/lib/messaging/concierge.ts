@@ -32,6 +32,7 @@ type ConciergeMessage = { role: "user" | "assistant"; content: string };
 export type ConciergeResult = AiHostResponse & ConciergeIntelligence;
 
 type ConciergeMemoryContext = {
+  channel?: "email";
   summary?: string | null;
   contactMemory?: Record<string, unknown> | null;
   knownName?: string | null;
@@ -129,6 +130,10 @@ export async function generateConciergeReply(
     );
   const shareBookingForm = conversationAllowsBookingLink(recent);
   const { systemPrompt } = buildVeraSystemPrompt(recent);
+  const channelInstructions =
+    memoryContext.channel === "email"
+      ? "Email presentation overrides the SMS/DM tone and length guidance only. Keep the same Vera identity, venue facts, safety, memory, and booking rules. Write a professional, warm email body in the guest's language, using complete sentences and 1–3 short paragraphs separated by blank lines, within 600 characters. Avoid slang, emojis, excessive enthusiasm, Markdown, and hard line breaks within a paragraph. Do not include a greeting, sign-off, signature, subject, or URLs: the application adds those. Apply the same paragraph structure to replyEnglish. Answer the actual inquiry and ask only useful missing details."
+      : "";
   const intelligenceInstructions = `Operational output fields: detect the language of the latest guest message; translate that message and your reply faithfully into English; extract guestFirstName only when the guest explicitly supplied it; keep memoryFacts to durable guest preferences or personal details explicitly stated; and write a compact conversationSummary that carries forward relevant verified details from the prior summary while adding the current request and unresolved questions. Do not discard prior verified details merely because they are absent from the last few messages. Never treat inferred or unconfirmed booking details as verified facts.`;
   const combinedVenueInformation = [
     publishedVenueInformation
@@ -174,7 +179,7 @@ export async function generateConciergeReply(
         input: [
           {
             role: "system",
-            content: `${systemPrompt}\n\n${getTorontoCalendarContext()}\n\n${publishedInformationInstructions}\n\n${intelligenceInstructions}\n\nStored conversation memory (may be empty):\n${suppliedMemory}`,
+            content: `${systemPrompt}\n\n${channelInstructions}\n\n${getTorontoCalendarContext()}\n\n${publishedInformationInstructions}\n\n${intelligenceInstructions}\n\nStored conversation memory (may be empty):\n${suppliedMemory}`,
           },
           ...recent,
         ],

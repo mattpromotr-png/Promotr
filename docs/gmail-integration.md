@@ -73,6 +73,20 @@ For near-real-time delivery, configure Google Cloud Pub/Sub:
 Promotr renews the Gmail mailbox watch when synchronization runs. The secured
 cron remains the recovery path if a push notification is delayed or missed.
 
+## Email presentation and provider testing
+
+Vera uses the same venue rules and memory across channels. Email adds a
+professional body, short paragraphs, a greeting, and a Vera AI Concierge
+signature. Outgoing messages include both plain text and HTML; booking links
+have short clickable labels in HTML. Staff messages are not signed as Vera.
+
+Recipients are not restricted to Gmail. Outlook, Hotmail, and other providers
+use the same inbound/reply flow, but real delivery must be verified. Sync imports
+new Inbox messages only, not spam, archived mail, or pre-connection messages.
+For a missing conversation, check the connected mailbox Inbox and Spam first,
+then the sync error and message delivery status. A sent status means Gmail
+accepted the reply, not that the recipient received it.
+
 ## Safety boundaries
 
 - Staff must use the Connect Gmail flow; passwords and app passwords are not

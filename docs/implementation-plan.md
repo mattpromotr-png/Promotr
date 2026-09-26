@@ -316,6 +316,9 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 
 ## Gmail conversations (2026-09-25)
 
+- [x] Add email-specific professional paragraphs, greeting, Vera signature, and multipart plain-text/HTML replies with labeled links (2026-09-26). Targeted tests: 19 passed; typecheck and targeted lint passed. Not yet verified in a real email client.
+- [ ] Diagnose client-reported Outlook/Hotmail failures. Read-only production check on 2026-09-26 found no Outlook/Hotmail guest conversations; confirm whether new tests reach the connected Gmail Inbox or Spam before changing import rules. Do not treat provider acceptance as delivered mail.
+
 - [x] Add encrypted Google OAuth connection and disconnection controls for the dedicated Promotr Gmail mailbox.
 - [x] Add incremental Inbox synchronization, provider-message deduplication, contact/lead linking, quoted-history cleanup, and automatic-message loop protection.
 - [x] Use the shared Vera prompt, contact memory, venue knowledge, booking/lost-item links, handoff rules, automation pause, and staff replies for email conversations.

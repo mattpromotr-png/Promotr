@@ -1,4 +1,6 @@
 import "server-only";
+import { randomBytes } from "node:crypto";
+import { renderEmailHtml } from "@/lib/gmail/email-format";
 
 import { encodeBase64Url, sendGmailMessage } from "@/lib/gmail/client";
 import { gmailAccessToken, loadGmailConnection } from "@/lib/gmail/connection";
@@ -131,13 +133,13 @@ export function buildReplyMime(input: {
   const subject = input.subject.toLowerCase().startsWith("re:")
     ? input.subject
     : `Re: ${input.subject}`;
+  const boundary = `promotr_${randomBytes(18).toString("hex")}`;
   const headers = [
     `From: ${safeHeader(input.from)}`,
     `To: ${safeHeader(input.to)}`,
     `Subject: ${encodeHeader(subject)}`,
     "MIME-Version: 1.0",
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: 8bit",
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ];
   if (input.inReplyTo)
     headers.push(`In-Reply-To: ${safeHeader(input.inReplyTo)}`);
@@ -146,7 +148,17 @@ export function buildReplyMime(input: {
     .join(" ")
     .trim();
   if (references) headers.push(`References: ${safeHeader(references)}`);
-  return `${headers.join("\r\n")}\r\n\r\n${input.content.replace(/\r?\n/g, "\r\n")}`;
+  const encodePart = (content: string) =>
+    Buffer.from(content, "utf8")
+      .toString("base64")
+      .match(/.{1,76}/g)
+      ?.join("\r\n") || "";
+  const parts = [
+    `--${boundary}\r\nContent-Type: text/plain; charset="UTF-8"\r\nContent-Transfer-Encoding: base64\r\n\r\n${encodePart(input.content.replace(/\r?\n/g, "\r\n"))}`,
+    `--${boundary}\r\nContent-Type: text/html; charset="UTF-8"\r\nContent-Transfer-Encoding: base64\r\n\r\n${encodePart(renderEmailHtml(input.content))}`,
+    `--${boundary}--`,
+  ];
+  return `${headers.join("\r\n")}\r\n\r\n${parts.join("\r\n")}\r\n`;
 }
 
 function safeHeader(value: string) {

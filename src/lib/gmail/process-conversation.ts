@@ -1,4 +1,5 @@
 import "server-only";
+import { formatConciergeEmail } from "@/lib/gmail/email-format";
 
 import { generateConciergeReply } from "@/lib/messaging/concierge";
 import { sendEmailConversationMessage } from "@/lib/messaging/email-conversation";
@@ -107,6 +108,7 @@ async function processClaimedEmail(
         ).data
       : [];
     const result = await generateConciergeReply(recent, {
+      channel: "email",
       summary: conversation.rolling_summary,
       contactMemory: asRecord(contact?.memory),
       knownName: contact?.display_name,
@@ -187,18 +189,25 @@ async function processClaimedEmail(
     if (newestInbound?.id !== claim.messageId) return;
 
     const reply = result.reply.replace(/https?:\/\/\S+/gi, "").trim();
-    const links: string[] = [];
+    const links: Array<{ label: string; url: string }> = [];
     if (result.shareBookingForm)
-      links.push(
-        `Booking inquiry: ${process.env.NEXT_PUBLIC_APP_URL}/book?conversation=${conversationId}`,
-      );
+      links.push({
+        label: "Booking inquiry",
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/book?conversation=${conversationId}`,
+      });
     if (conversationNeedsLostFoundForm(recent))
-      links.push(
-        `Lost-item report: ${process.env.NEXT_PUBLIC_APP_URL}/lost-found?conversation=${conversationId}`,
-      );
+      links.push({
+        label: "Lost-item report",
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/lost-found?conversation=${conversationId}`,
+      });
     await sendEmailConversationMessage({
       conversationId,
-      content: [reply, ...links].join("\n\n"),
+      content: formatConciergeEmail({
+        reply,
+        knownName: result.guestFirstName || contact?.display_name,
+        language: result.detectedLanguage,
+        links,
+      }),
       senderType: "ai",
       metadata: {
         detectedLanguage: result.detectedLanguage,
