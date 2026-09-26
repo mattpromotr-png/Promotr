@@ -13,6 +13,7 @@ import {
 } from "@/lib/ai/orchestration";
 import { conversationAllowsBookingLink } from "@/lib/messaging/policy";
 import { groundVenueReply } from "@/lib/messaging/grounding";
+import { normalizeConciergeEmailBody } from "@/lib/gmail/email-format";
 import type { RecallExcerpt } from "@/lib/messaging/recall";
 import {
   getDirectTorontoDateAnswer,
@@ -314,6 +315,24 @@ export async function generateConciergeReply(
           memoryContext.venueSourcesLoaded === true &&
           activeKnowledge.length < 24,
         email: memoryContext.channel === "email",
+        guestContext: {
+          knownName:
+            memoryContext.knownName || intelligence.data.guestFirstName || null,
+          personalFacts: Array.isArray(memoryContext.contactMemory?.facts)
+            ? memoryContext.contactMemory.facts
+                .filter((fact): fact is string => typeof fact === "string")
+                .slice(-20)
+                .map((fact) => fact.slice(0, 200))
+            : [],
+          historicalSummary: memoryContext.summary?.slice(0, 600) || null,
+          guestStatements: recent
+            .filter((message) => message.role === "user")
+            .map((message) => message.content),
+          recalledGuestStatements: (memoryContext.recallExcerpts || [])
+            .filter((excerpt) => excerpt.role === "guest")
+            .slice(-8)
+            .map((excerpt) => excerpt.content.slice(0, 300)),
+        },
         sources: [
           getTorontoCalendarContext(),
           dateRequestContext,
@@ -344,8 +363,14 @@ export async function generateConciergeReply(
     return {
       ...parsed.data,
       ...intelligence.data,
-      reply: grounded.reply,
-      replyEnglish: grounded.replyEnglish,
+      reply:
+        memoryContext.channel === "email"
+          ? normalizeConciergeEmailBody(grounded.reply)
+          : grounded.reply,
+      replyEnglish:
+        memoryContext.channel === "email"
+          ? normalizeConciergeEmailBody(grounded.replyEnglish)
+          : grounded.replyEnglish,
       // Do not persist the generator's unverified operational claims.
       ...(grounded.corrected
         ? {

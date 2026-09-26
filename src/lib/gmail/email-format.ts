@@ -1,5 +1,22 @@
 type EmailLink = { label: string; url: string };
 
+export function normalizeConciergeEmailBody(reply: string) {
+  return (
+    reply
+      .replace(
+        /\p{Extended_Pictographic}(?:[\uFE0F\u200D]|\p{Emoji_Modifier})*/gu,
+        "",
+      )
+      .replace(/\r/g, "")
+      .trim()
+      .replace(/^(?:hi|hello|hey|dear)(?:\s+[^\n,.!?]{1,80})?[,!?.]\s*/i, "")
+      .split(/\n\s*\n/)
+      .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+      .join("\n\n") || "Thank you for getting in touch."
+  );
+}
+
 export function formatConciergeEmail(input: {
   reply: string;
   knownName?: string | null;
@@ -20,16 +37,7 @@ export function formatConciergeEmail(input: {
     italian: ["Buongiorno", "Cordiali saluti"],
   };
   const [greeting, closing] = greetings[language] || greetings.english;
-  const body = input.reply
-    .replace(
-      /\p{Extended_Pictographic}(?:[\uFE0F\u200D]|\p{Emoji_Modifier})*/gu,
-      "",
-    )
-    .replace(/\r/g, "")
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-    .filter(Boolean)
-    .join("\n\n");
+  const body = normalizeConciergeEmailBody(input.reply);
   return [
     `${greeting}${name ? ` ${name}` : ""},`,
     body,

@@ -4,6 +4,15 @@ import { formatConciergeEmail, renderEmailHtml } from "./email-format";
 import { buildReplyMime } from "@/lib/messaging/email-conversation";
 
 describe("email presentation", () => {
+  it("does not repeat a generated greeting or keep emojis in the body", () => {
+    const email = formatConciergeEmail({
+      knownName: "Maya",
+      reply: "Hi Maya! You mentioned six guests. 🎉",
+    });
+    expect(email).toContain("Hello Maya,\n\nYou mentioned six guests.");
+    expect(email).not.toContain("Hi Maya");
+    expect(email).not.toContain("🎉");
+  });
   it("adds a greeting and signature and reflows paragraphs", () => {
     const content = formatConciergeEmail({
       knownName: "Angela",

@@ -306,6 +306,11 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 
 ## Staff-managed venue information (2026-09-25)
 
+- [x] Implement v13 quality fixes: carry master scope/privacy/no-pressure rules through grounding; separate bounded guest context from operational sources; prefer fresh guest corrections; avoid volunteering old plans and unsupported perks; normalize email bodies. Final 24/24 synthetic cross-style quality cases, seven additional live grounding cases, and 77 targeted unit tests passed; typecheck/lint passed. Actual production provider delivery remains pending. See `docs/vera-quality-review-2026-09-26.md`.
+
+- [x] Run a 24-case real-model synthetic quality review across SMS/Instagram/email presentation modes. First-run automated results: 19 passed, 5 failed, including one apostrophe assertion false positive; qualitative review found an unsupported alternative-specials claim. Guest-memory failures occurred in all modes, and SMS answered an unrelated question. Independent SMS memory rerun failed again. See `docs/vera-quality-review-2026-09-26.md`. No production sends or behaviour changes (2026-09-26).
+- [ ] Fix final-grounding preservation of verified guest context, Promotr scope, and supported-only positive alternatives; then repeat live-model tests and real provider delivery before declaring Vera client-ready.
+
 - [x] Add Chrono-based Toronto-local relative/explicit date and clock resolution to both shared Vera generation and grounding. General/event/policy updates now disable the tomorrow-booking shortcut, not only Hours updates. Cover next Friday=October 2, UTC/local day boundary, year rollover, ambiguous numeric dates/weekends, and invalid/repeated DST clocks. Model remains gpt-4.1-mini; dedicated deep reasoning is not enabled (2026-09-26).
 - [ ] Deploy and verify the real October 2 closure for relative and explicit dates in SMS/Instagram/email. Unparsed/non-English expressions, ambiguous dates and after-midnight venue-night intent need clarification/model interpretation; no claim of universal date understanding.
 

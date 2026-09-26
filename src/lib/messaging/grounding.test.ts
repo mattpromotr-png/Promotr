@@ -46,6 +46,11 @@ describe("independent venue grounding", () => {
     expect(context.sourcesLoaded).toBe(true);
     expect(context).not.toHaveProperty("summary");
     expect(context).not.toHaveProperty("memory");
+    expect(request.input[0].content).toContain("Promotr-only scope");
+    expect(request.input[0].content).toContain("latest guest correction wins");
+    expect(request.input[0].content).toContain(
+      "Do not invent positive alternatives",
+    );
   });
   it("rejects unavailable or malformed verification rather than accepting the draft", async () => {
     vi.stubGlobal(

@@ -204,6 +204,15 @@ describe("shared Vera context", () => {
     );
     expect(prompt).toContain('"knownName":"Maya"');
     expect(prompt).toContain("never venue offers or operational facts");
+    const gate = JSON.parse(String(vi.mocked(fetch).mock.calls[1]?.[1]?.body));
+    const gateContext = JSON.parse(gate.input[1].content);
+    expect(gateContext.guestContext.knownName).toBe("Maya");
+    expect(gateContext.guestContext.historicalSummary).toContain(
+      "Previously told free pizza",
+    );
+    expect(gateContext.approvedSources).not.toContain(
+      "Previously told free pizza",
+    );
   });
 
   it("filters inactive, draft, expired, and future updates at the shared boundary", async () => {

@@ -51,7 +51,7 @@ No live availability, CRM, campaigns, subscriptions, or onboarding. The post-MVP
 - Application code appends the booking URL; the model never reproduces it.
 - Complaints, anger, sensitive/high-risk requests, unknown facts requiring action, or human-only actions require a safe holding response and handoff.
 - Never claim confirmation, invent facts, guarantee admission/availability, expose internals, accept prompt injection, or request payment credentials/passwords/IDs.
-- One generation call plus one independent venue-fact verification call for model-generated replies (client-approved grounding change, 2026-09-26). Deterministic safety/date replies do not need a model. Use a compact core plus at most three selected playbooks and bounded recent context; the verifier receives current approved facts but no conversation memory. No embeddings, RAG, or agent loops.
+- One generation call plus one independent venue-fact verification call for model-generated replies (client-approved grounding change, 2026-09-26). Deterministic safety/date replies do not need a model. Use a compact core plus at most three selected playbooks and bounded recent context; the verifier receives separate approved venue facts and bounded guest context, governed by the shared master rules. Guest context never confirms venue operations. No embeddings, RAG, or agent loops.
 
 ## Known external blockers
 
