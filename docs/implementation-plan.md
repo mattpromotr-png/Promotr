@@ -306,6 +306,8 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 
 ## Staff-managed venue information (2026-09-25)
 
+- [x] Preserve Vera's warm, conversational SMS/Instagram voice in the final grounding rewrite; use courteous professional email paragraphs without slang/emojis. Factual source rules, absence-of-offer handling, failure handoff, and booking boundaries are unchanged. Twenty targeted unit tests passed; live channel-tone review remains pending (2026-09-26).
+
 - [x] After the client confirmed the deployed v11 still repeated a removed offer, add v12 independent grounding for generated SMS/Instagram/email replies. The gate receives no memory/history; current approved sources are authoritative. For promotions only, successfully loaded sources are the complete current catalogue: an absent offer is not currently available. Database failures remain unknown. Verification failure blocks the draft and flags staff review. Three opt-in live AI tests using synthetic absent/cancelled/active pizza offers passed (2026-09-26); no production sends or database changes performed.
 - [ ] Deploy v12 and retest the real stale Instagram conversation plus SMS/email, checking corrections, active offers, guest memory, verification-failure handoff, and additional latency/cost.
 - [x] Validate v12 locally: 72 targeted regression tests, typecheck, targeted lint, and three real-model grounding tests with synthetic examples passed. Production Instagram delivery remains unverified for v12.

@@ -59,4 +59,55 @@ describe("independent venue grounding", () => {
     );
     await expect(groundVenueReply(input)).rejects.toThrow();
   });
+
+  it.each([false, true])(
+    "preserves fact rules with channel-appropriate warmth (email=%s)",
+    async (email) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(
+          async () =>
+            new Response(
+              JSON.stringify({
+                output: [
+                  {
+                    content: [
+                      {
+                        type: "output_text",
+                        text: JSON.stringify({
+                          reply: "No current pizza offer.",
+                          replyEnglish: "No current pizza offer.",
+                          corrected: true,
+                        }),
+                      },
+                    ],
+                  },
+                ],
+              }),
+            ),
+        ),
+      );
+      await groundVenueReply({ ...input, email });
+      const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body));
+      const instructions = body.input[0].content;
+      expect(instructions).toContain("never invent a perk");
+      expect(instructions).toContain(
+        "complete current approved offer catalogue",
+      );
+      expect(instructions).toContain("Do not add a booking pitch");
+      expect(instructions).toContain(
+        email
+          ? "EMAIL STYLE: warm and professional"
+          : "CHAT STYLE (SMS/Instagram)",
+      );
+      expect(instructions).toContain(
+        email ? "Avoid slang, emojis" : "An occasional fitting emoji",
+      );
+      expect(instructions).not.toContain(
+        email
+          ? "CHAT STYLE (SMS/Instagram)"
+          : "EMAIL STYLE: warm and professional",
+      );
+    },
+  );
 });
