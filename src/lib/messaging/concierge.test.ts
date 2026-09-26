@@ -98,6 +98,64 @@ describe("shared concierge booking links", () => {
 });
 
 describe("shared Vera context", () => {
+  it("supplies next Friday's exact date and a General-category closure to generation and grounding", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-26T14:00:00Z"));
+    mockModel(false);
+    await generateConciergeReply(
+      [{ role: "user", content: "Are you open next Friday?" }],
+      {
+        venueSourcesLoaded: true,
+        venueKnowledge: [
+          {
+            id: "closure",
+            category: "general",
+            title: "Club closure",
+            content:
+              "Club will be closed on October 2nd. There will be no party that day.",
+            status: "published",
+            effectiveFrom: null,
+            effectiveUntil: null,
+            createdAt: "2026-09-26T12:00:00Z",
+            updatedAt: "2026-09-26T12:00:00Z",
+            publishedAt: "2026-09-26T12:00:00Z",
+            inactiveAt: null,
+            updatedBy: null,
+          },
+        ],
+      },
+    );
+    const requests = vi
+      .mocked(fetch)
+      .mock.calls.map((call) => JSON.parse(String(call[1]?.body)));
+    expect(requests[0].input[0].content).toContain(
+      "Friday, October 2, 2026 (2026-10-02)",
+    );
+    const gate = JSON.parse(requests[1].input[1].content);
+    expect(gate.approvedSources).toContain("2026-10-02");
+    expect(gate.approvedSources).toContain(
+      "Club will be closed on October 2nd",
+    );
+  });
+
+  it("does not bypass a General-category closure when asked to book tomorrow", async () => {
+    mockModel(false);
+    await generateConciergeReply(
+      [{ role: "user", content: "Can I book tomorrow?" }],
+      {
+        venueInformation: {
+          general: "Club is closed tomorrow.",
+          hours: "",
+          events: "",
+          menu: "",
+          pricing: "",
+          policies: "",
+          updatedAt: null,
+        },
+      },
+    );
+    expect(fetch).toHaveBeenCalled();
+  });
   it("blocks the unchecked draft and requests staff help when verification fails", async () => {
     mockModel(false);
     const modelFetch = vi.mocked(fetch);

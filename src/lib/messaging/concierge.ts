@@ -17,6 +17,7 @@ import type { RecallExcerpt } from "@/lib/messaging/recall";
 import {
   getDirectTorontoDateAnswer,
   getTorontoCalendarContext,
+  getTorontoDateRequestContext,
   getTomorrowBookingGuidance,
 } from "@/lib/messaging/toronto-calendar";
 import { buildVeraSystemPrompt } from "@/prompts/vera";
@@ -95,6 +96,7 @@ export async function generateConciergeReply(
     knowledgeUpdates: memoryContext.venueKnowledge || [],
   });
   const activeVenueKnowledge = formatActiveVenueKnowledge(activeKnowledge);
+  const dateRequestContext = getTorontoDateRequestContext(latest);
   const hasPublishedHours = Boolean(
     memoryContext.venueInformation?.hours ||
     activeKnowledge.some((item) => item.category === "hours"),
@@ -117,9 +119,11 @@ export async function generateConciergeReply(
       false,
       memoryContext.summary,
     );
-  const tomorrowBooking = hasPublishedHours
-    ? null
-    : getTomorrowBookingGuidance(latest);
+  // A closure may be entered under General, Events, or Policies, not Hours.
+  const tomorrowBooking =
+    hasPublishedHours || publishedVenueInformation || activeKnowledge.length > 0
+      ? null
+      : getTomorrowBookingGuidance(latest);
   if (tomorrowBooking)
     return withFallbackIntelligence(
       {
@@ -187,7 +191,7 @@ export async function generateConciergeReply(
         input: [
           {
             role: "system",
-            content: `${systemPrompt}\n\n${channelInstructions}\n\n${getTorontoCalendarContext()}\n\n${publishedInformationInstructions}\n\n${intelligenceInstructions}\n\n${verificationInstructions}\n\nHistorical guest context (not a current venue-fact source; may be empty):\n${suppliedMemory}`,
+            content: `${systemPrompt}\n\n${channelInstructions}\n\n${getTorontoCalendarContext()}\n\n${dateRequestContext}\n\n${publishedInformationInstructions}\n\n${intelligenceInstructions}\n\n${verificationInstructions}\n\nHistorical guest context (not a current venue-fact source; may be empty):\n${suppliedMemory}`,
           },
           ...recent,
         ],
@@ -312,6 +316,7 @@ export async function generateConciergeReply(
         email: memoryContext.channel === "email",
         sources: [
           getTorontoCalendarContext(),
+          dateRequestContext,
           "Established playbook defaults:",
           ...scenarioIds.map((id) => veraScenarioPlaybooks[id]),
           "Current published updates (override defaults):",

@@ -1,4 +1,105 @@
 import { promotrVenueFacts } from "@/config/venue-facts.v2";
+import { parse } from "chrono-node";
+
+export function getTorontoDateRequestContext(
+  message: string,
+  now = new Date(),
+) {
+  const offsetLabel =
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: promotrVenueFacts.timezone,
+      timeZoneName: "shortOffset",
+    })
+      .formatToParts(now)
+      .find((part) => part.type === "timeZoneName")?.value || "";
+  const offsetParts = offsetLabel.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+  const offset = offsetParts
+    ? (offsetParts[1] === "-" ? -1 : 1) *
+      (Number(offsetParts[2]) * 60 + Number(offsetParts[3] || 0))
+    : 0;
+  const results = parse(
+    message.slice(0, 2000),
+    { instant: now, timezone: offset },
+    { forwardDate: true },
+  );
+  const describe = (component: (typeof results)[number]["start"]) => {
+    const year = component.get("year")!;
+    const month = component.get("month")!;
+    const day = component.get("day")!;
+    const label = new Intl.DateTimeFormat("en-US", {
+      timeZone: "UTC",
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date(Date.UTC(year, month - 1, day, 12)));
+    const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const clock = component.isCertain("hour")
+      ? `; local time ${String(component.get("hour")).padStart(2, "0")}:${String(component.get("minute")).padStart(2, "0")}`
+      : "";
+    const zone = component.isCertain("timezoneOffset")
+      ? "; explicit guest timezone: do not treat this clock as Toronto local without conversion"
+      : "; America/Toronto local date/time (not UTC)";
+    let daylightSaving = "";
+    if (component.isCertain("hour") && !component.isCertain("timezoneOffset")) {
+      const wallClock = Date.UTC(
+        year,
+        month - 1,
+        day,
+        component.get("hour")!,
+        component.get("minute") || 0,
+      );
+      const matchingInstants = [-300, -240].filter((candidateOffset) => {
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: promotrVenueFacts.timezone,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23",
+        }).formatToParts(new Date(wallClock - candidateOffset * 60000));
+        const value = (type: string) =>
+          Number(parts.find((part) => part.type === type)?.value);
+        return (
+          value("year") === year &&
+          value("month") === month &&
+          value("day") === day &&
+          value("hour") === component.get("hour") &&
+          value("minute") === (component.get("minute") || 0)
+        );
+      });
+      if (!matchingInstants.length)
+        daylightSaving =
+          "; INVALID Toronto clock during spring daylight-saving transition: ask for another time";
+      else if (matchingInstants.length > 1)
+        daylightSaving =
+          "; AMBIGUOUS repeated Toronto clock during autumn daylight-saving transition: clarify which occurrence";
+    }
+    return `${label} (${iso})${clock}${zone}${daylightSaving}`;
+  };
+  const dates = results.slice(0, 8).map((result) => {
+    if (
+      /^(?:every|each)\b/i.test(result.text) ||
+      /\b(?:every|each)\s*$/i.test(message.slice(0, result.index))
+    )
+      return "Recurring schedule question: do not turn a recurring weekday into a single dated event; apply regular policy plus the relevant dated exceptions.";
+    const ambiguousNumeric = /\b(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?\b/.exec(
+      result.text,
+    );
+    if (
+      ambiguousNumeric &&
+      Number(ambiguousNumeric[1]) <= 12 &&
+      Number(ambiguousNumeric[2]) <= 12 &&
+      ambiguousNumeric[1] !== ambiguousNumeric[2]
+    )
+      return `Ambiguous numeric date ${JSON.stringify(result.text)}: ask the guest for the month name before applying dated exceptions.`;
+    if (/weekend/i.test(result.text))
+      return `Weekend reference ${JSON.stringify(result.text)}: clarify Friday/Saturday/Sunday; do not assume a single event date.`;
+    return `${JSON.stringify(result.text)} resolves to ${describe(result.start)}${result.end ? ` through ${describe(result.end)}` : ""}.`;
+  });
+  return `Resolved guest date/time references:\n${dates.join("\n") || "No deterministic date/time match; interpret carefully or ask for clarification, never invent a date."}\nBefore replying, compare these exact dates with dated published updates in EVERY category. A dated closure overrides regular weekday hours. Mention the resolved date naturally when answering a relative-date opening/booking question. If the wording has multiple plausible meanings, ask which date/time the guest means. A 10 PM-3 AM night ends on the following calendar day; after-midnight clock times may refer to the preceding venue night, so clarify when needed. Recurring weekday policies are not one-off dated exceptions.`;
+}
 
 const scheduledNights = new Set(["Thursday", "Friday", "Saturday"]);
 

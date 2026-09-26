@@ -22,6 +22,7 @@
     "@hookform/resolvers": "latest",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "chrono-node": "^2.10.1",
     "class-variance-authority": "latest",
     "clsx": "latest",
     "lucide-react": "latest",

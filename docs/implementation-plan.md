@@ -306,6 +306,9 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 
 ## Staff-managed venue information (2026-09-25)
 
+- [x] Add Chrono-based Toronto-local relative/explicit date and clock resolution to both shared Vera generation and grounding. General/event/policy updates now disable the tomorrow-booking shortcut, not only Hours updates. Cover next Friday=October 2, UTC/local day boundary, year rollover, ambiguous numeric dates/weekends, and invalid/repeated DST clocks. Model remains gpt-4.1-mini; dedicated deep reasoning is not enabled (2026-09-26).
+- [ ] Deploy and verify the real October 2 closure for relative and explicit dates in SMS/Instagram/email. Unparsed/non-English expressions, ambiguous dates and after-midnight venue-night intent need clarification/model interpretation; no claim of universal date understanding.
+
 - [x] Preserve Vera's warm, conversational SMS/Instagram voice in the final grounding rewrite; use courteous professional email paragraphs without slang/emojis. Factual source rules, absence-of-offer handling, failure handoff, and booking boundaries are unchanged. Twenty targeted unit tests passed; live channel-tone review remains pending (2026-09-26).
 
 - [x] After the client confirmed the deployed v11 still repeated a removed offer, add v12 independent grounding for generated SMS/Instagram/email replies. The gate receives no memory/history; current approved sources are authoritative. For promotions only, successfully loaded sources are the complete current catalogue: an absent offer is not currently available. Database failures remain unknown. Verification failure blocks the draft and flags staff review. Three opt-in live AI tests using synthetic absent/cancelled/active pizza offers passed (2026-09-26); no production sends or database changes performed.
