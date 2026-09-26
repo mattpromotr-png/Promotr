@@ -88,6 +88,89 @@ describe("shared concierge booking links", () => {
 });
 
 describe("shared Vera context", () => {
+  it("keeps old pizza claims as historical context, not current venue evidence", async () => {
+    mockModel(false);
+    await generateConciergeReply(
+      [
+        {
+          role: "assistant",
+          content: "Free pizza on Wednesdays from 10 PM to 3 AM.",
+        },
+        { role: "user", content: "Is the pizza offer still available?" },
+      ],
+      {
+        knownName: "Maya",
+        summary: "Guest likes pizza. Previously told free pizza on Wednesday.",
+      },
+    );
+    const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
+    const prompt = body.input[0].content;
+    expect(prompt).toContain(
+      "Removed, inactive, or expired offers must not be revived from history",
+    );
+    expect(prompt).toContain(
+      "do not restore deleted updates from conversation history",
+    );
+    expect(prompt).toContain(
+      "Historical guest context (not a current venue-fact source",
+    );
+    expect(prompt).toContain('"knownName":"Maya"');
+    expect(prompt).toContain("never venue offers or operational facts");
+  });
+
+  it("filters inactive, draft, expired, and future updates at the shared boundary", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-26T12:00:00Z"));
+    mockModel(false);
+    const base = {
+      id: "test",
+      category: "pricing" as const,
+      title: "Offer",
+      content: "Approved active offer",
+      effectiveFrom: null,
+      effectiveUntil: null,
+      status: "published" as const,
+      createdAt: "2026-09-25T12:00:00Z",
+      updatedAt: "2026-09-25T12:00:00Z",
+      publishedAt: "2026-09-25T12:00:00Z",
+      inactiveAt: null,
+      updatedBy: null,
+    };
+    await generateConciergeReply([{ role: "user", content: "Any offers?" }], {
+      venueKnowledge: [
+        base,
+        {
+          ...base,
+          id: "inactive",
+          status: "inactive",
+          content: "Inactive pizza",
+        },
+        { ...base, id: "draft", status: "draft", content: "Draft pizza" },
+        {
+          ...base,
+          id: "expired",
+          effectiveUntil: "2026-09-26T11:00:00Z",
+          content: "Expired pizza",
+        },
+        {
+          ...base,
+          id: "future",
+          effectiveFrom: "2026-09-27T12:00:00Z",
+          content: "Future pizza",
+        },
+      ],
+    });
+    const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
+    expect(body.input[0].content).toContain("Approved active offer");
+    for (const text of [
+      "Inactive pizza",
+      "Draft pizza",
+      "Expired pizza",
+      "Future pizza",
+    ])
+      expect(body.input[0].content).not.toContain(text);
+  });
+
   it("supplies authoritative Toronto time and existing memory to both channels", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-25T03:30:00Z"));

@@ -306,6 +306,9 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 
 ## Staff-managed venue information (2026-09-25)
 
+- [x] Vera v11 separates guest memory from current venue facts: require current approved sources for operational claims, never revive deleted offers from assistant history/summaries, and preserve guest preferences and requests without storing offers as durable facts. Revalidate card publication/start/end status at the shared generation boundary. 58 targeted tests, typecheck, and targeted lint passed (2026-09-26).
+- [ ] Deploy v11 and verify in the existing Instagram pizza conversation: an unsupported offer must be unconfirmed, a published cancellation must override history, and a newly active offer must still work. Also verify SMS/email guest-memory recall. Prompt-assembly tests do not prove live model behaviour. No existing guest history or database facts were deleted.
+
 - [x] Add a protected Settings editor for confirmed hours, events, menu changes, prices, policies, and general venue notices.
 - [x] Store published updates inside the existing structured venue facts without exposing or editing Vera's protected system instructions.
 - [x] Supply the newest published information to the shared SMS and Instagram Vera engine; newer operational facts override older playbook facts while safety and privacy rules remain authoritative.
