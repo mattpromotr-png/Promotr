@@ -8,7 +8,7 @@ const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
 function mockModel(shareBookingForm: boolean) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => ({
+    vi.fn(async (_url, init) => ({
       ok: true,
       headers: { get: () => null },
       json: async () => ({
@@ -17,21 +17,31 @@ function mockModel(shareBookingForm: boolean) {
             content: [
               {
                 type: "output_text",
-                text: JSON.stringify({
-                  reply: "Happy to help with your night at Promotr!",
-                  intent: "booking",
-                  bookingIntent: true,
-                  missingQualificationFields: [],
-                  shareBookingForm,
-                  handoffRequired: false,
-                  handoffReason: null,
-                  detectedLanguage: "English",
-                  latestGuestMessageEnglish: "Booking request",
-                  replyEnglish: "Happy to help with your night at Promotr!",
-                  guestFirstName: null,
-                  memoryFacts: [],
-                  conversationSummary: "Guest asked about Promotr.",
-                }),
+                text:
+                  JSON.parse(String(init?.body)).text?.format?.name ===
+                  "venue_grounding"
+                    ? JSON.stringify({
+                        reply: "Happy to help with your night at Promotr!",
+                        replyEnglish:
+                          "Happy to help with your night at Promotr!",
+                        corrected: false,
+                      })
+                    : JSON.stringify({
+                        reply: "Happy to help with your night at Promotr!",
+                        intent: "booking",
+                        bookingIntent: true,
+                        missingQualificationFields: [],
+                        shareBookingForm,
+                        handoffRequired: false,
+                        handoffReason: null,
+                        detectedLanguage: "English",
+                        latestGuestMessageEnglish: "Booking request",
+                        replyEnglish:
+                          "Happy to help with your night at Promotr!",
+                        guestFirstName: null,
+                        memoryFacts: [],
+                        conversationSummary: "Guest asked about Promotr.",
+                      }),
               },
             ],
           },
@@ -88,6 +98,26 @@ describe("shared concierge booking links", () => {
 });
 
 describe("shared Vera context", () => {
+  it("blocks the unchecked draft and requests staff help when verification fails", async () => {
+    mockModel(false);
+    const modelFetch = vi.mocked(fetch);
+    const generate = modelFetch.getMockImplementation()!;
+    modelFetch.mockImplementation(async (url, init) => {
+      if (
+        JSON.parse(String(init?.body)).text?.format?.name === "venue_grounding"
+      )
+        return new Response(null, { status: 503 });
+      return generate(url, init);
+    });
+    const result = await generateConciergeReply(
+      [{ role: "user", content: "Any pizza offers?" }],
+      { venueSourcesLoaded: true },
+    );
+    expect(result.handoffRequired).toBe(true);
+    expect(result.reply).toContain("trouble checking");
+    expect(result.reply).not.toContain("Happy to help");
+    expect(result.shareBookingForm).toBe(false);
+  });
   it("keeps old pizza claims as historical context, not current venue evidence", async () => {
     mockModel(false);
     await generateConciergeReply(

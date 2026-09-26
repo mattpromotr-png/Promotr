@@ -316,6 +316,7 @@ async function processClaimedSmsBatch(
         ).data
       : [];
     const result = await generateConciergeReply(recent, {
+      venueSourcesLoaded: !venueResult.error && Boolean(venueResult.data),
       summary: conversation.rolling_summary,
       contactMemory: asRecord(contact?.memory),
       knownName: contact?.display_name,

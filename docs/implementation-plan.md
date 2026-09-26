@@ -306,6 +306,10 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 
 ## Staff-managed venue information (2026-09-25)
 
+- [x] After the client confirmed the deployed v11 still repeated a removed offer, add v12 independent grounding for generated SMS/Instagram/email replies. The gate receives no memory/history; current approved sources are authoritative. For promotions only, successfully loaded sources are the complete current catalogue: an absent offer is not currently available. Database failures remain unknown. Verification failure blocks the draft and flags staff review. Three opt-in live AI tests using synthetic absent/cancelled/active pizza offers passed (2026-09-26); no production sends or database changes performed.
+- [ ] Deploy v12 and retest the real stale Instagram conversation plus SMS/email, checking corrections, active offers, guest memory, verification-failure handoff, and additional latency/cost.
+- [x] Validate v12 locally: 72 targeted regression tests, typecheck, targeted lint, and three real-model grounding tests with synthetic examples passed. Production Instagram delivery remains unverified for v12.
+
 - [x] Vera v11 separates guest memory from current venue facts: require current approved sources for operational claims, never revive deleted offers from assistant history/summaries, and preserve guest preferences and requests without storing offers as durable facts. Revalidate card publication/start/end status at the shared generation boundary. 58 targeted tests, typecheck, and targeted lint passed (2026-09-26).
 - [ ] Deploy v11 and verify in the existing Instagram pizza conversation: an unsupported offer must be unconfirmed, a published cancellation must override history, and a newly active offer must still work. Also verify SMS/email guest-memory recall. Prompt-assembly tests do not prove live model behaviour. No existing guest history or database facts were deleted.
 

@@ -108,6 +108,7 @@ async function processClaimedEmail(
         ).data
       : [];
     const result = await generateConciergeReply(recent, {
+      venueSourcesLoaded: !venueResult.error && Boolean(venueResult.data),
       channel: "email",
       summary: conversation.rolling_summary,
       contactMemory: asRecord(contact?.memory),
