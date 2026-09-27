@@ -17,6 +17,8 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { PageHeading } from "@/components/admin/page-heading";
 import { VenueInformationForm } from "@/components/admin/venue-information-form";
 import { VenueKnowledgeManager } from "@/components/admin/venue-knowledge-manager";
+import { VenueOpeningCalendar } from "@/components/admin/venue-calendar";
+import { readVenueCalendar, torontoDate } from "@/lib/venue/calendar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -77,6 +79,10 @@ export default async function SettingsPage({
             </p>
           </div>
         </div>
+        <VenueOpeningCalendar
+          calendar={readVenueCalendar(venue?.venue_facts)}
+          today={torontoDate()}
+        />
         <VenueKnowledgeManager updates={venueKnowledge} />
       </section>
 

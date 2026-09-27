@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/admin";
 import { decryptGmailToken } from "@/lib/gmail/token-crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { venueCalendarSchema } from "@/lib/venue/calendar";
 import {
   readVenueKnowledgeUpdates,
   VENUE_KNOWLEDGE_CATEGORIES,
@@ -17,9 +18,62 @@ export type VenueInformationState = {
   status: "idle" | "success" | "error";
   message: string;
   token?: number;
+  savedCalendar?: string;
 };
 
 const field = z.string().trim().max(2000);
+export async function saveOpeningCalendar(
+  _previous: VenueInformationState,
+  formData: FormData,
+): Promise<VenueInformationState> {
+  const user = await requireAdmin();
+  let payload: unknown;
+  try {
+    payload = JSON.parse(String(formData.get("calendar") || ""));
+  } catch {
+    return failure("Please check the calendar and try again.");
+  }
+  const parsed = venueCalendarSchema.safeParse(payload);
+  if (!parsed.success)
+    return failure(
+      "Check the dates and times. Opening and closing must differ; each date can have only one exception (maximum 120).",
+    );
+  const admin = createAdminClient();
+  const { data: venue, error: loadError } = await admin
+    .from("venues")
+    .select("id,venue_facts,updated_at")
+    .eq("slug", "promotr-nightclub")
+    .single();
+  if (loadError || !venue) return failure("Unable to load the venue calendar.");
+  const { data, error } = await admin
+    .from("venues")
+    .update({
+      venue_facts: {
+        ...asRecord(venue.venue_facts),
+        openingCalendar: {
+          ...parsed.data,
+          updatedAt: new Date().toISOString(),
+          updatedBy: user.id,
+        },
+      },
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", venue.id)
+    .eq("updated_at", venue.updated_at)
+    .select("id")
+    .maybeSingle();
+  if (error || !data)
+    return failure(
+      "Calendar was not saved. Venue information may have changed; refresh and try again.",
+    );
+  revalidatePath("/admin/settings");
+  return {
+    ...success(
+      "Opening calendar saved. New agent replies will use these hours.",
+    ),
+    savedCalendar: JSON.stringify(parsed.data),
+  };
+}
 const venueInformationSchema = z.object({
   general: field,
   hours: field,

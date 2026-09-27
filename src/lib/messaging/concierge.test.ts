@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { generateConciergeReply, smsConciergeText } from "./concierge";
+import { defaultVenueCalendar } from "@/lib/venue/calendar";
 
 const originalApiKey = process.env.OPENAI_API_KEY;
 const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -98,6 +99,40 @@ describe("shared concierge booking links", () => {
 });
 
 describe("shared Vera context", () => {
+  it.each([undefined, "email" as const])(
+    "passes the saved opening calendar to both model stages (channel=%s)",
+    async (channel) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-09-26T14:00:00Z"));
+      mockModel(false);
+      const calendar = defaultVenueCalendar();
+      calendar.exceptions.push({
+        date: "2026-10-02",
+        hours: { closed: true, opens: "22:00", closes: "03:00" },
+      });
+      await generateConciergeReply(
+        [{ role: "user", content: "Are you open next Friday?" }],
+        { venueCalendar: calendar, venueSourcesLoaded: true, channel },
+      );
+      const requests = vi
+        .mocked(fetch)
+        .mock.calls.map((call) => JSON.parse(String(call[1]?.body)));
+      expect(requests[0].input[0].content).toContain(
+        "2026-10-02: Closed (date exception)",
+      );
+      expect(
+        JSON.parse(requests[1].input[1].content).approvedSources,
+      ).toContain("2026-10-02: Closed (date exception)");
+    },
+  );
+  it("does not bypass a saved calendar with the default tomorrow booking answer", async () => {
+    mockModel(false);
+    await generateConciergeReply(
+      [{ role: "user", content: "Can I book tomorrow?" }],
+      { venueCalendar: defaultVenueCalendar() },
+    );
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
   it("supplies next Friday's exact date and a General-category closure to generation and grounding", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-26T14:00:00Z"));

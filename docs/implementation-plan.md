@@ -1,5 +1,14 @@
 # Implementation plan
 
+## Admin opening-hours calendar (2026-09-27)
+
+- [x] Add a Toronto monthly calendar, editable recurring weekly hours and date-specific closures/special hours inside Settings > Venue information.
+- [x] Save a validated `openingCalendar` in the existing `venues.venue_facts` JSON, with admin authentication, preserved knowledge fields and optimistic concurrent-write protection. No migration or external calendar connection required.
+- [x] Supply saved calendar hours and server-resolved requested venue nights to generation and grounding for Instagram, SMS and Gmail. Calendar hours win over conflicting free-text hours; overnight closing belongs to the following day. Existing booking/payment logic is unchanged.
+- [x] Unit/component tests cover date-only overrides, overnight closing, Toronto date boundaries, weekly edits, exception removal, authenticated save, validation, data preservation, concurrency conflicts and both model input stages.
+- Local validation: 41 targeted tests passed; TypeScript, targeted lint and diff whitespace check passed. No real provider messages, production database edits or browser visual checks performed.
+- [ ] Verify calendar layout in a browser in dark/light themes and at mobile width; deploy and test real Instagram/SMS/email after an admin reviews and saves the actual club schedule.
+
 ## Client reply-quality corrections (2026-09-27)
 
 - [x] Reinforce natural follow-up replies without repeated name greetings; add a narrow post-verification chat presentation guard. Email greeting/signature formatting remains unchanged.

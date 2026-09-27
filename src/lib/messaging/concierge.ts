@@ -14,6 +14,7 @@ import {
 import { conversationAllowsBookingLink } from "@/lib/messaging/policy";
 import { groundVenueReply } from "@/lib/messaging/grounding";
 import { normalizeConciergeEmailBody } from "@/lib/gmail/email-format";
+import { formatVenueCalendar, type VenueCalendar } from "@/lib/venue/calendar";
 import { removeRepeatedNameGreeting } from "@/lib/messaging/chat-presentation";
 import type { RecallExcerpt } from "@/lib/messaging/recall";
 import {
@@ -38,6 +39,7 @@ type ConciergeMessage = { role: "user" | "assistant"; content: string };
 export type ConciergeResult = AiHostResponse & ConciergeIntelligence;
 
 type ConciergeMemoryContext = {
+  venueCalendar?: VenueCalendar | null;
   channel?: "email";
   venueSourcesLoaded?: boolean;
   summary?: string | null;
@@ -99,7 +101,12 @@ export async function generateConciergeReply(
   });
   const activeVenueKnowledge = formatActiveVenueKnowledge(activeKnowledge);
   const dateRequestContext = getTorontoDateRequestContext(latest);
+  const openingCalendar = formatVenueCalendar(
+    memoryContext.venueCalendar,
+    dateRequestContext,
+  );
   const hasPublishedHours = Boolean(
+    memoryContext.venueCalendar ||
     memoryContext.venueInformation?.hours ||
     activeKnowledge.some((item) => item.category === "hours"),
   );
@@ -149,11 +156,12 @@ export async function generateConciergeReply(
       : "";
   const intelligenceInstructions = `Operational output fields: detect the language of the latest guest message; translate that message and your reply faithfully into English; extract guestFirstName only when the guest explicitly supplied it; keep memoryFacts to durable guest preferences or personal details explicitly stated, never venue offers or operational facts; and write a compact conversationSummary that carries forward relevant verified guest details from the prior summary while adding the current request and unresolved questions. Do not discard prior verified guest details merely because they are absent from the last few messages. Preserve requests as requests, not as confirmed venue facts. Do not carry forward old assistant claims about promotions, events, prices, menu stock, hours, or availability as facts. Never treat inferred or unconfirmed booking details as verified facts.`;
   const combinedVenueInformation = [
+    openingCalendar,
     publishedVenueInformation
       ? `Previous staff-published information:\n${publishedVenueInformation}`
       : "",
     activeVenueKnowledge
-      ? `Active Venue Knowledge items (these are newer and win any operational conflict):\n${activeVenueKnowledge}`
+      ? `Active Venue Knowledge items (override older defaults, but the saved opening calendar wins for opening/closing hours):\n${activeVenueKnowledge}`
       : "",
   ]
     .filter(Boolean)
