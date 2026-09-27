@@ -1,5 +1,15 @@
 # Implementation plan
 
+## Client reply-quality corrections (2026-09-27)
+
+- [x] Reinforce natural follow-up replies without repeated name greetings; add a narrow post-verification chat presentation guard. Email greeting/signature formatting remains unchanged.
+- [x] Confirm the existing nearby-business scenario and tighten it: no external business recommendations or promises of staff recommendations, including in the shared master/verifier.
+- [x] Separate Toronto date/clock context from operational hours so hardcoded calendar hours do not compete with published hours. Restrict dated closures to their matching date.
+- Local validation: 82 targeted tests passed across seven files (the concierge fork timed out, then all 13 concierge tests passed with a thread worker); TypeScript passed and diff whitespace check passed. No provider delivery or live-model verification performed for this change.
+- [ ] Deploy and verify these changes through real Instagram, SMS and email conversations.
+- [ ] Confirm the club's exact recurring days/hours and remove any obsolete test closures through admin controls. Do not edit production knowledge without owner approval.
+- [ ] Calendar integration decision: recommend one maintained Toronto operational schedule with recurring hours and date exceptions; external Google Calendar connection needs an owner-selected dedicated calendar and agreed override/sync rules. Not connected in this change.
+
 The client contract is mapped into small verified gates. Update this file after each gate so another session can resume without rereading the full specification.
 
 ## Gate 1 — discovery and compact context

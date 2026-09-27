@@ -145,11 +145,7 @@ function getTorontoCalendarFacts(now: Date) {
 
 export function getTorontoCalendarContext(now = new Date()) {
   const facts = getTorontoCalendarFacts(now);
-  const tomorrowSchedule = facts.tomorrowIsScheduledNight
-    ? "Tomorrow is a regular scheduled venue night (10 PM-3 AM Eastern); this does not confirm an event, table availability, or admission."
-    : "Tomorrow is outside regular venue hours; a special event is possible only if separately confirmed. Do not claim one is scheduled.";
-
-  return `Authoritative Toronto calendar: today is ${facts.todayLabel} at ${facts.currentTime}; tomorrow is ${facts.tomorrowLabel}. ${tomorrowSchedule}`;
+  return `Authoritative Toronto calendar: today is ${facts.todayLabel} at ${facts.currentTime}; tomorrow is ${facts.tomorrowLabel}. This calendar establishes dates and clocks only, not opening hours. Determine opening hours from current approved venue information: apply an exception only to its exact date, then current recurring hours, then the regular playbook fallback. Never extend a single dated closure to another weekend. This does not confirm an event, table availability, or admission.`;
 }
 
 export function getDirectTorontoDateAnswer(message: string, now = new Date()) {

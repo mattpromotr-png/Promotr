@@ -64,7 +64,8 @@ describe("AI orchestration rules", () => {
       shareBookingForm: false,
       bookingIntent: false,
     });
-    expect(result?.reply).toContain("once you arrive");
+    expect(result?.reply).toContain("night at Promotr");
+    expect(result?.reply).not.toContain("suggest nearby");
   });
   it("rejects invalid model output with a safe handoff", () => {
     expect(parseAiHostResponse("not json")).toEqual(SAFE_AI_FALLBACK);

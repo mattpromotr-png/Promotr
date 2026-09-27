@@ -63,7 +63,9 @@ describe("authoritative Toronto calendar", () => {
 
     expect(context).toContain("today is Monday, September 21, 2026");
     expect(context).toContain("tomorrow is Tuesday, September 22, 2026");
-    expect(context).toContain("outside regular venue hours");
+    expect(context).toContain("dates and clocks only, not opening hours");
+    expect(context).not.toContain("10 PM-3 AM");
+    expect(context).toContain("Never extend a single dated closure");
   });
 
   it("handles an overnight Thursday-to-Friday request without promising availability", () => {

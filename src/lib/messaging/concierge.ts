@@ -14,6 +14,7 @@ import {
 import { conversationAllowsBookingLink } from "@/lib/messaging/policy";
 import { groundVenueReply } from "@/lib/messaging/grounding";
 import { normalizeConciergeEmailBody } from "@/lib/gmail/email-format";
+import { removeRepeatedNameGreeting } from "@/lib/messaging/chat-presentation";
 import type { RecallExcerpt } from "@/lib/messaging/recall";
 import {
   getDirectTorontoDateAnswer,
@@ -366,11 +367,21 @@ export async function generateConciergeReply(
       reply:
         memoryContext.channel === "email"
           ? normalizeConciergeEmailBody(grounded.reply)
-          : grounded.reply,
+          : removeRepeatedNameGreeting(
+              grounded.reply,
+              memoryContext.knownName || intelligence.data.guestFirstName,
+              recent.some((message) => message.role === "assistant") ||
+                Boolean(memoryContext.summary),
+            ),
       replyEnglish:
         memoryContext.channel === "email"
           ? normalizeConciergeEmailBody(grounded.replyEnglish)
-          : grounded.replyEnglish,
+          : removeRepeatedNameGreeting(
+              grounded.replyEnglish,
+              memoryContext.knownName || intelligence.data.guestFirstName,
+              recent.some((message) => message.role === "assistant") ||
+                Boolean(memoryContext.summary),
+            ),
       // Do not persist the generator's unverified operational claims.
       ...(grounded.corrected
         ? {

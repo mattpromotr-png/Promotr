@@ -47,6 +47,9 @@ describe("independent venue grounding", () => {
     expect(context).not.toHaveProperty("summary");
     expect(context).not.toHaveProperty("memory");
     expect(request.input[0].content).toContain("Promotr-only scope");
+    expect(request.input[0].content).toContain("do not start every reply");
+    expect(request.input[0].content).toContain("never name, recommend, link to");
+    expect(request.input[0].content).toContain("calendar establishes dates");
     expect(request.input[0].content).toContain("latest guest correction wins");
     expect(request.input[0].content).toContain(
       "Do not invent positive alternatives",

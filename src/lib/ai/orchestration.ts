@@ -47,7 +47,7 @@ export function deterministicNearbyRecommendation(
 
   return {
     reply:
-      "Our bartenders and venue staff know the area best and can suggest nearby places once you arrive 😊 I’m happy to help with anything you need for your night at Promotr.",
+        "I’m here to help you plan your night at Promotr 😊 I can help with our hours, music, or booking options.",
     intent: "faq",
     bookingIntent: false,
     missingQualificationFields: [],

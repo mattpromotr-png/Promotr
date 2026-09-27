@@ -111,7 +111,9 @@ describe("Vera prompt routing", () => {
     expect(result.systemPrompt).toContain(
       "do not name or recommend external businesses",
     );
-    expect(result.systemPrompt).toContain("once the guest arrives");
+    expect(result.systemPrompt).toContain("Do not offer staff recommendations");
+    expect(result.systemPrompt).toContain("never name, recommend, link to");
+    expect(result.systemPrompt).toContain("do not start every reply");
   });
 
   it("redirects unrelated questions without pretending to be a general assistant", () => {
