@@ -350,6 +350,17 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 - [x] Inject only currently active knowledge items into the shared Vera engine; inactive, draft, scheduled, and expired items are not provided to the model.
 - [ ] Verify the Venue Knowledge manager visually in dark/light mode and test create, edit, schedule, publish, deactivate, automatic expiry, SMS, and Instagram in production.
 
+## Settings, calendar colours, and website chat (2026-09-28)
+
+- [x] Show open dates in green and closed dates in red, with text labels so colour is not the only status cue.
+- [x] Split Settings into Calendar, Venue information, Integrations, Account & appearance, and Workspace links sections without changing the underlying save actions.
+- [x] Add a homepage Vera chat using the shared concierge rules, a private browser session, durable per-network message limits, and the existing admin conversation inbox for staff handoff.
+- [x] Match Instagram/SMS/email guest flows in website chat: attach the lost-item report form on lost-item requests and include conversation-linked booking/lost-item forms. Keep AI copy and links in the same admin conversation.
+- [x] Pass eight focused UI/API tests, TypeScript checks, and a production build locally. Full lint did not finish in the local run.
+- [ ] Apply `supabase/migrations/202609280001_web_chat_quota.sql` before deploying the website chat; without it, chat fails closed.
+- [ ] Verify a real website-to-Vera exchange, staff takeover/reply, mobile layout, and calendar/settings appearance in both themes after deployment. Local tests are not live-delivery proof.
+- [ ] Set a retention/cleanup policy for `web_chat_attempts` and review public-chat traffic and AI spend before broad launch.
+
 ## Gmail conversations (2026-09-25)
 
 - [x] Add email-specific professional paragraphs, greeting, Vera signature, and multipart plain-text/HTML replies with labeled links (2026-09-26). Targeted tests: 19 passed; typecheck and targeted lint passed. Not yet verified in a real email client.

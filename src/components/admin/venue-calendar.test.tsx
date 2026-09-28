@@ -30,8 +30,16 @@ describe("admin opening calendar", () => {
       date: "2026-10-02",
       hours: { closed: true },
     });
+    expect(
+      screen.getByRole("button", {
+        name: /2026-10-02: Closed, special hours/i,
+      }),
+    ).toHaveClass("bg-red-500/15");
     fireEvent.click(screen.getByText("Remove exception — use weekly hours"));
     expect(payload().exceptions).toEqual([]);
+    expect(
+      screen.getByRole("button", { name: "2026-10-02: Open" }),
+    ).toHaveClass("bg-emerald-500/15");
     expect(screen.getByLabelText("Closed this night")).not.toBeChecked();
     fireEvent.click(screen.getByLabelText("Next month"));
     expect(screen.getByText("November 2026")).toBeInTheDocument();

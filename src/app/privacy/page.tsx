@@ -24,8 +24,10 @@ export default function PrivacyPage() {
           receive the contact and event details you enter, including your name,
           contact information, requested date, party size, and any notes.
           Lost-item reports include the contact and item details you provide.
-          Our website and service providers may also process basic technical and
-          security information needed to operate the service.
+          Website chat messages are saved so Vera and venue staff can answer and
+          review the conversation. Our website and service providers may also
+          process basic technical and security information needed to operate the
+          service.
         </p>
       </section>
       <section>

@@ -184,12 +184,12 @@ export function VenueOpeningCalendar({
                   aria-pressed={selected === date}
                   aria-label={`${date}: ${night.closed ? "Closed" : "Open"}${night.exception ? ", special hours" : ""}`}
                   onClick={() => setSelected(date)}
-                  className={`border-border rounded-lg border p-2 text-center ${selected === date ? "bg-violet/15 ring-violet ring-2" : "bg-elevated"}`}
+                  className={`rounded-lg border p-2 text-center transition-colors ${night.closed ? "border-red-500/45 bg-red-500/15 text-red-800 dark:text-red-200" : "border-emerald-500/45 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200"} ${selected === date ? "ring-violet ring-2" : ""}`}
                 >
-                  <span className="text-foreground block text-sm">
+                  <span className="block text-sm font-semibold">
                     {index + 1}
                   </span>
-                  <span className="text-muted block text-[10px]">
+                  <span className="block text-[10px] font-medium">
                     {night.closed ? "Closed" : "Open"}
                     {night.exception ? " *" : ""}
                   </span>

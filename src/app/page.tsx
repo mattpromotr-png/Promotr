@@ -18,6 +18,7 @@ import { Brand } from "@/components/brand";
 import { AmbientVideo } from "@/components/landing/ambient-video";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { WebsiteChat } from "@/components/landing/website-chat";
 
 const nights = [
   {
@@ -60,6 +61,7 @@ const experiences = [
 export default function LandingPage() {
   return (
     <main className="bg-[#05050a] text-white">
+      <WebsiteChat />
       <LandingMotion />
       <section className="relative overflow-hidden xl:min-h-svh">
         <AmbientVideo
