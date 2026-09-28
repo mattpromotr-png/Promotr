@@ -352,6 +352,7 @@ See `docs/client-demo-improvements-plan.md` for the client's seven requested cha
 
 ## Settings, calendar colours, and website chat (2026-09-28)
 
+- [x] Correct explicit past-date parsing across the shared Vera engine: `last Saturday` on Toronto Monday September 28 resolves to September 26, not future October 3. Preserve forward parsing for unrelated upcoming dates in the same message. Twenty-six targeted calendar/concierge tests and TypeScript checks passed locally; live provider verification remains pending.
 - [x] Show open dates in green and closed dates in red, with text labels so colour is not the only status cue.
 - [x] Split Settings into Calendar, Venue information, Integrations, Account & appearance, and Workspace links sections without changing the underlying save actions.
 - [x] Add a homepage Vera chat using the shared concierge rules, a private browser session, durable per-network message limits, and the existing admin conversation inbox for staff handoff.

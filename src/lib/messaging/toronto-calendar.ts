@@ -17,11 +17,21 @@ export function getTorontoDateRequestContext(
     ? (offsetParts[1] === "-" ? -1 : 1) *
       (Number(offsetParts[2]) * 60 + Number(offsetParts[3] || 0))
     : 0;
+  const reference = { instant: now, timezone: offset };
+  // Keep future preference for ordinary requests, but reparse each explicitly
+  // past expression separately: "last Saturday" must not become next Saturday.
   const results = parse(
     message.slice(0, 2000),
-    { instant: now, timezone: offset },
+    reference,
     { forwardDate: true },
-  );
+  ).map((result) => {
+    if (!/\b(?:last|previous|ago|yesterday)\b/i.test(result.text))
+      return result;
+    const past = parse(result.text, reference, { forwardDate: false })[0];
+    return past
+      ? { ...result, start: past.start, end: past.end }
+      : result;
+  });
   const describe = (component: (typeof results)[number]["start"]) => {
     const year = component.get("year")!;
     const month = component.get("month")!;

@@ -32,6 +32,24 @@ describe("authoritative Toronto calendar", () => {
       getTorontoDateRequestContext("Are you open next Friday?", now),
     ).toContain("EVERY category");
   });
+  it("keeps explicitly past lost-item dates in the past", () => {
+    const now = new Date("2026-09-28T16:00:00Z");
+    expect(
+      getTorontoDateRequestContext(
+        "I lost my wallet last Saturday at Promotr",
+        now,
+      ),
+    ).toContain("Saturday, September 26, 2026 (2026-09-26)");
+    expect(
+      getTorontoDateRequestContext("Are you open next Saturday?", now),
+    ).toContain("Saturday, October 10, 2026 (2026-10-10)");
+    const mixed = getTorontoDateRequestContext(
+      "I lost my wallet last Saturday. Are you open next Friday?",
+      now,
+    );
+    expect(mixed).toContain("Saturday, September 26, 2026 (2026-09-26)");
+    expect(mixed).toContain("Friday, October 9, 2026 (2026-10-09)");
+  });
 
   it("uses the Toronto day at a UTC boundary and resolves explicit local clocks", () => {
     const now = new Date("2026-09-27T02:30:00Z");
