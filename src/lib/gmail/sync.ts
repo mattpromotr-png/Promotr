@@ -14,6 +14,7 @@ import {
   type GmailConnection,
 } from "@/lib/gmail/connection";
 import { processEmailConversation } from "@/lib/gmail/process-conversation";
+import { isSystemSender } from "@/lib/gmail/email-triage";
 import { notifyVenueManagers } from "@/lib/notifications/manager-push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -54,7 +55,7 @@ export async function syncConnectedGmail(venueId?: string) {
       const from = parseMailbox(gmailHeader(message, "From") || "");
       if (!from.email || from.email === connection.email_address.toLowerCase())
         continue;
-      if (isAutomaticEmail(message)) continue;
+      if (isAutomaticEmail(message) || isSystemSender(from.email)) continue;
       const content = cleanEmailText(gmailText(message));
       if (!content) continue;
       const conversationId = await storeInboundEmail({
@@ -64,7 +65,7 @@ export async function syncConnectedGmail(venueId?: string) {
         senderEmail: from.email,
         senderName: from.name,
         content,
-        subject: gmailHeader(message, "Subject") || "Promotr inquiry",
+        subject: gmailHeader(message, "Subject") || "",
         internetMessageId: gmailHeader(message, "Message-ID"),
         inReplyTo: gmailHeader(message, "In-Reply-To"),
         references: gmailHeader(message, "References"),

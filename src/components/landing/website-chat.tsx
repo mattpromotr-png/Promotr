@@ -218,7 +218,7 @@ export function WebsiteChat() {
             ))}
             {pending && (
               <p className="text-xs text-white/60" role="status">
-                Vera is replying…
+                Vera is typing…
               </p>
             )}
           </div>

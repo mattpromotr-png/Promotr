@@ -1,5 +1,6 @@
 import "server-only";
 import { formatConciergeEmail } from "@/lib/gmail/email-format";
+import { triageIncomingEmail } from "@/lib/gmail/email-triage";
 
 import { generateConciergeReply } from "@/lib/messaging/concierge";
 import { sendEmailConversationMessage } from "@/lib/messaging/email-conversation";
@@ -68,17 +69,75 @@ async function processClaimedEmail(
       .eq("conversation_id", conversationId)
       .lte("created_at", claim.createdAt)
       .order("created_at", { ascending: false })
-      .limit(12);
+      .limit(50);
     const ordered = [...(data || [])].reverse();
     const latestInbound = ordered.at(-1);
     if (!latestInbound || latestInbound.direction !== "inbound") return;
-    const recent = ordered.slice(-8).map((message) => ({
+    const gmail = asRecord(asRecord(latestInbound.metadata).gmail);
+    const threadId = typeof gmail.threadId === "string" ? gmail.threadId : "";
+    const sameThread = ordered.filter(
+      (message) =>
+        message.id === latestInbound.id ||
+        (threadId &&
+          asRecord(asRecord(message.metadata).gmail).threadId === threadId),
+    );
+    const recent = sameThread.slice(-8).map((message) => ({
       role:
         message.direction === "inbound"
           ? ("user" as const)
           : ("assistant" as const),
       content: message.content,
     }));
+    const triage = await triageIncomingEmail({
+      sender: typeof gmail.from === "string" ? gmail.from : "",
+      subject: typeof gmail.subject === "string" ? gmail.subject : "",
+      body: latestInbound.content,
+      priorThreadMessages: sameThread
+        .slice(0, -1)
+        .slice(-4)
+        .map((message) => ({
+          direction: message.direction,
+          content: message.content,
+        })),
+    });
+    if (triage.route !== "agent") {
+      const { error: metadataError } = await admin
+        .from("messages")
+        .update({
+          metadata: {
+            ...asRecord(latestInbound.metadata),
+            emailTriage: triage,
+          },
+        })
+        .eq("id", latestInbound.id);
+      if (metadataError) throw new Error("Unable to save email triage.");
+      if (triage.route === "review") {
+        const { error: reviewError } = await admin
+          .from("conversations")
+          .update({
+            status: "handoff_required",
+            handoff_reason: triage.reason,
+            human_takeover: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", conversationId);
+        if (reviewError) throw new Error("Unable to flag email for staff.");
+        try {
+          await notifyVenueManagers({
+            venueId: conversation.venue_id,
+            conversationId,
+            channel: "email",
+            title: "Email needs staff review",
+            body: triage.reason,
+            kind: "follow_up",
+          });
+        } catch (error) {
+          console.error("Unable to notify managers about email triage", error);
+        }
+      }
+      processed = true;
+      return;
+    }
     const contact = Array.isArray(conversation.contacts)
       ? conversation.contacts[0]
       : conversation.contacts;
@@ -141,6 +200,7 @@ async function processClaimedEmail(
         .update({
           metadata: {
             ...asRecord(latestInbound.metadata),
+            emailTriage: triage,
             detectedLanguage: result.detectedLanguage,
             englishTranslation: result.latestGuestMessageEnglish,
           },

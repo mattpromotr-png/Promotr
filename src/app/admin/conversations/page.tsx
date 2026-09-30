@@ -79,6 +79,7 @@ type Message = {
     detectedLanguage?: string;
     adminOriginalEnglish?: string;
     adminGroupedInto?: string;
+    emailTriage?: { route?: "agent" | "review" | "ignore"; reason?: string };
   } | null;
   created_at: string;
   delivery_status: string;
@@ -416,6 +417,26 @@ export default async function ConversationsPage({
                           {message.content}
                         </p>
                       )}
+                      {selected.channel === "email" &&
+                        message.sender_type === "guest" &&
+                        message.metadata?.emailTriage?.route === "ignore" && (
+                          <p className="mt-2 border-t border-current/15 pt-2 text-xs opacity-75">
+                            Vera did not reply:{" "}
+                            {message.metadata.emailTriage.reason ||
+                              "Not a club inquiry"}
+                            .
+                          </p>
+                        )}
+                      {selected.channel === "email" &&
+                        message.sender_type === "guest" &&
+                        message.metadata?.emailTriage?.route === "review" && (
+                          <p className="mt-2 border-t border-current/15 pt-2 text-xs opacity-75">
+                            Sent to staff review:{" "}
+                            {message.metadata.emailTriage.reason ||
+                              "Needs a staff decision"}
+                            .
+                          </p>
+                        )}
                       {message.sender_type !== "guest" && (
                         <p className="mt-1 text-[10px] capitalize opacity-60">
                           {message.delivery_status}

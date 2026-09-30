@@ -2,6 +2,10 @@
 
 ## Runtime flow
 
+### Gmail reply routing
+
+Gmail Inbox history is synchronized and deduplicated. Automated/list mail and Google system senders are skipped before import. Each other readable inbound message is stored, then a bounded sender/subject/body/same-thread classifier routes it before Vera runs: clear club guest inquiry -> shared concierge; sensitive or uncertain -> staff follow-up with automation paused; unrelated -> recorded in the admin conversation with no reply. Classification failures route to staff, never to automatic send. Guest replies use only messages from their Gmail thread, not unrelated threads from the same sender.
+
 ```text
 Instagram guest
   -> Meta webhook (/api/webhooks/meta)

@@ -1,5 +1,14 @@
 # Implementation plan
 
+## Gmail relevance and staff routing (2026-09-30)
+
+- [x] Skip Google/system senders, automated/list messages and self-mail before guest import; do not block ordinary `gmail.com` guests.
+- [x] Classify stored human emails from sender, actual subject, bounded body and same-thread history before Vera runs. Clear club inquiries go to Vera; unrelated messages receive no reply; sensitive or uncertain messages go to staff review with automation paused. Failures default to staff review.
+- [x] Keep email-thread context separate when the same sender has multiple threads; show ignored/review reasons to admins in Conversations.
+- [x] Local unit/integration tests cover no reply, staff review, normal Vera path, Google notices, sensitive requests and classification failures (13/13 targeted tests). Six synthetic scenarios also passed against the configured live model without sending any email. TypeScript, targeted lint and production build passed.
+- [ ] Deploy, test real club inquiries from new and existing guests, Google notifications, irrelevant human mail, supplier pitches, staff review/resume and Gmail sync idempotency. Do not claim live delivery from mocked classification tests.
+- [ ] Review a sample of real classifications with staff, tune false positives/negatives, and monitor the added classifier call's cost and latency.
+
 ## Admin opening-hours calendar (2026-09-27)
 
 - [x] Add a Toronto monthly calendar, editable recurring weekly hours and date-specific closures/special hours inside Settings > Venue information.
