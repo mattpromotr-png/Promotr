@@ -102,7 +102,9 @@ export default async function ConversationsPage({
     channel: channelValue,
     view: viewValue,
   } = await searchParams;
-  const channel = ["sms", "instagram", "email"].includes(channelValue || "")
+  const channel = ["sms", "instagram", "email", "webchat"].includes(
+    channelValue || "",
+  )
     ? channelValue!
     : "all";
   const view = ["open", "review", "all"].includes(viewValue || "")
@@ -139,6 +141,8 @@ export default async function ConversationsPage({
       "id,channel,status,human_takeover,handoff_reason,rolling_summary,last_message_at,follow_up_enabled,follow_up_delay_minutes,follow_up_interval_minutes,follow_up_max_attempts,follow_up_attempts,next_follow_up_at,follow_up_message,contacts(display_name,instagram_scoped_id,preferred_language,memory,contact_channels(channel,normalized_address)),lead_conversations(leads(id,name,status,requested_date,created_at))",
       { count: "exact" },
     );
+  // Historical temporary-preview threads are retained, but never mixed into the live inbox.
+  listQuery = listQuery.neq("channel", "web_preview");
   if (channel !== "all") listQuery = listQuery.eq("channel", channel);
   if (view === "open") listQuery = listQuery.neq("status", "closed");
   if (view === "review") listQuery = listQuery.eq("status", "handoff_required");
@@ -211,6 +215,7 @@ export default async function ConversationsPage({
             ["sms", "SMS"],
             ["instagram", "Instagram"],
             ["email", "Email"],
+            ["webchat", "Webchat"],
           ].map(([value, label]) => (
             <Link
               key={value}
@@ -300,7 +305,10 @@ export default async function ConversationsPage({
                       ) : (
                         <Globe2 size={12} aria-hidden="true" />
                       )}
-                      {item.channel.replace("_", " ")} ·{" "}
+                      {item.channel === "webchat"
+                        ? "Webchat"
+                        : item.channel.replace("_", " ")}{" "}
+                      ·{" "}
                       {new Intl.DateTimeFormat("en-CA", {
                         dateStyle: "medium",
                       }).format(new Date(item.last_message_at))}
@@ -366,7 +374,10 @@ export default async function ConversationsPage({
                     ) : (
                       <Globe2 size={12} aria-hidden="true" />
                     )}
-                    {selected.channel.replace("_", " ")} ·{" "}
+                    {selected.channel === "webchat"
+                      ? "Webchat"
+                      : selected.channel.replace("_", " ")}{" "}
+                    ·{" "}
                     {selected.human_takeover
                       ? "Staff in control"
                       : "Concierge active"}
@@ -452,7 +463,7 @@ export default async function ConversationsPage({
                   </article>
                 ))}
               </ConversationTranscript>
-              {(selected.channel === "web_preview" ||
+              {(selected.channel === "webchat" ||
                 selected.channel === "sms" ||
                 selected.channel === "instagram" ||
                 selected.channel === "email") && (
@@ -498,7 +509,9 @@ export default async function ConversationsPage({
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted">Channel</dt>
                   <dd className="text-foreground text-right capitalize">
-                    {selected.channel.replace("_", " ")}
+                    {selected.channel === "webchat"
+                      ? "Webchat"
+                      : selected.channel.replace("_", " ")}
                   </dd>
                 </div>
                 {conversationPhone(selected) && (
@@ -757,7 +770,7 @@ function conversationGuestName(conversation: Conversation) {
   return (
     conversationLeads(conversation)[0]?.name ||
     conversation.contacts?.display_name ||
-    (conversation.channel === "web_preview"
+    (conversation.channel === "webchat"
       ? "Website guest"
       : conversation.channel === "sms"
         ? "SMS guest"

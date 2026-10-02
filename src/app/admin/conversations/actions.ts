@@ -65,7 +65,7 @@ export async function sendConversationReply(formData: FormData) {
     revalidatePath("/admin/leads");
     return;
   }
-  if (conversation.channel !== "web_preview")
+  if (conversation.channel !== "webchat")
     throw new Error("Unsupported conversation channel.");
   const { data: latestGuest } = await admin
     .from("messages")
@@ -186,7 +186,7 @@ export async function pauseConversationAutomation(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
-    .in("channel", ["web_preview", "sms", "instagram", "email"]);
+    .in("channel", ["webchat", "sms", "instagram", "email"]);
   if (error) throw new Error("Unable to pause automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");
@@ -203,7 +203,7 @@ export async function resumeConversationAutomation(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", conversationId)
-    .in("channel", ["web_preview", "sms", "instagram", "email"]);
+    .in("channel", ["webchat", "sms", "instagram", "email"]);
   if (error) throw new Error("Unable to resume automatic replies.");
   revalidatePath("/admin/conversations");
   revalidatePath("/admin/leads");

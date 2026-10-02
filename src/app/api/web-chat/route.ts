@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
   )
     return reply({ messages: [], conversationId: null }, 200);
   const { data, error } = await createAdminClient().rpc(
-    "get_web_preview_messages",
+    "get_webchat_messages",
     { p_conversation_id: conversationId!, p_session_id: session! },
   );
   if (error) return reply({ error: "Conversation unavailable." }, 404);
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
       .eq("provider_message_id", providerMessageId)
       .maybeSingle();
     if (existing?.conversation_id) {
-      const { data } = await admin.rpc("get_web_preview_messages", {
+      const { data } = await admin.rpc("get_webchat_messages", {
         p_conversation_id: existing.conversation_id,
         p_session_id: session,
       });
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
       );
     }
     const { data: prepared, error: prepareError } = await admin.rpc(
-      "prepare_web_preview_message",
+      "prepare_webchat_message",
       {
         p_session_id: session,
         p_provider_message_id: providerMessageId,
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         session,
       );
     if (pending.humanTakeover) {
-      const { data } = await admin.rpc("get_web_preview_messages", {
+      const { data } = await admin.rpc("get_webchat_messages", {
         p_conversation_id: pending.conversationId,
         p_session_id: session,
       });
@@ -240,21 +240,18 @@ export async function POST(request: NextRequest) {
       result.reply.replace(/https?:\/\/\S+/gi, "").trim(),
       ...links,
     ].join("\n\n");
-    const { error: completeError } = await admin.rpc(
-      "complete_web_preview_reply",
-      {
-        p_conversation_id: pending.conversationId,
-        p_content: delivered,
-        p_intent: result.intent,
-        p_handoff_required: result.handoffRequired,
-        p_handoff_reason: result.handoffReason,
-        p_metadata: {
-          detectedLanguage: result.detectedLanguage,
-          englishTranslation: result.replyEnglish,
-          webChat: true,
-        },
+    const { error: completeError } = await admin.rpc("complete_webchat_reply", {
+      p_conversation_id: pending.conversationId,
+      p_content: delivered,
+      p_intent: result.intent,
+      p_handoff_required: result.handoffRequired,
+      p_handoff_reason: result.handoffReason,
+      p_metadata: {
+        detectedLanguage: result.detectedLanguage,
+        englishTranslation: result.replyEnglish,
+        webChat: true,
       },
-    );
+    });
     if (completeError)
       return reply(
         { error: "Could not deliver the reply. Please try again shortly." },
@@ -268,7 +265,7 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", pending.conversationId);
-    const { data: transcript } = await admin.rpc("get_web_preview_messages", {
+    const { data: transcript } = await admin.rpc("get_webchat_messages", {
       p_conversation_id: pending.conversationId,
       p_session_id: session,
     });

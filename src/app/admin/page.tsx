@@ -354,7 +354,7 @@ export default async function AdminOverviewPage() {
                   <div>
                     <p className="text-foreground text-sm font-medium">
                       {contact?.display_name ||
-                        (conversation.channel === "web_preview"
+                        (conversation.channel === "webchat"
                           ? "Website guest"
                           : conversation.channel === "sms"
                             ? "SMS guest"

@@ -61,7 +61,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.rpc.mockImplementation(async (name: string) => {
     if (name === "consume_web_chat_quota") return { data: true, error: null };
-    if (name === "prepare_web_preview_message")
+    if (name === "prepare_webchat_message")
       return {
         data: {
           conversationId,
@@ -71,7 +71,7 @@ beforeEach(() => {
         },
         error: null,
       };
-    if (name === "get_web_preview_messages")
+    if (name === "get_webchat_messages")
       return { data: transcript, error: null };
     return { error: null };
   });
@@ -155,9 +155,7 @@ describe("public website chat", () => {
     expect(body.messages).toHaveLength(2);
     expect(mocks.agent).toHaveBeenCalledOnce();
     expect(
-      mocks.rpc.mock.calls.some(
-        ([name]) => name === "complete_web_preview_reply",
-      ),
+      mocks.rpc.mock.calls.some(([name]) => name === "complete_webchat_reply"),
     ).toBe(true);
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
     expect(response.headers.get("set-cookie")).toContain("SameSite=lax");
@@ -165,7 +163,7 @@ describe("public website chat", () => {
   it("provides the lost-item form for a guest who lost something", async () => {
     mocks.rpc.mockImplementation(async (name: string) => {
       if (name === "consume_web_chat_quota") return { data: true, error: null };
-      if (name === "prepare_web_preview_message")
+      if (name === "prepare_webchat_message")
         return {
           data: {
             conversationId,
@@ -177,13 +175,13 @@ describe("public website chat", () => {
           },
           error: null,
         };
-      if (name === "get_web_preview_messages")
+      if (name === "get_webchat_messages")
         return { data: transcript, error: null };
       return { error: null };
     });
     await POST(request({ content: "I lost my phone", messageId }));
     expect(mocks.rpc).toHaveBeenCalledWith(
-      "complete_web_preview_reply",
+      "complete_webchat_reply",
       expect.objectContaining({
         p_content: expect.stringContaining(
           `https://promotr.example/lost-found?conversation=${conversationId}`,
@@ -195,7 +193,7 @@ describe("public website chat", () => {
     mocks.rpc.mockImplementation(async (name: string) =>
       name === "consume_web_chat_quota"
         ? { data: true, error: null }
-        : name === "prepare_web_preview_message"
+        : name === "prepare_webchat_message"
           ? {
               data: {
                 conversationId,
@@ -223,7 +221,7 @@ describe("public website chat", () => {
       { headers: { cookie: `promotr_web_chat=${session}` } },
     );
     expect((await (await GET(withSession)).json()).messages).toHaveLength(2);
-    expect(mocks.rpc).toHaveBeenCalledWith("get_web_preview_messages", {
+    expect(mocks.rpc).toHaveBeenCalledWith("get_webchat_messages", {
       p_conversation_id: conversationId,
       p_session_id: session,
     });

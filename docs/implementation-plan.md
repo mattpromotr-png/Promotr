@@ -1,5 +1,16 @@
 # Implementation plan
 
+## Website staff webchat inbox (2026-10-02)
+
+- [x] Separate the homepage chatbot into `webchat` with dedicated database RPCs; exclude historical `web_preview` threads from the live website inbox. Migrate only existing threads whose entire inbound history has the homepage API fingerprint.
+- [x] Remove temporary app chat UI, AI adapter, persistence adapter and associated tests; replace its page with a retirement notice and its endpoint with HTTP 410. Preserve configuration and historical records.
+- [ ] Apply `202610020001_retire_temporary_webchat.sql` and deploy the main application together. Deploy the retirement change to the separate temporary app or remove that Vercel project; local removal cannot shut down its existing deployment. Revoke temporary-app OpenAI/database credentials in its hosting configuration.
+
+- [x] Add Webchat beside SMS, Instagram and Email in the website Conversations screen; filter to stored `webchat` conversations and use the Webchat label throughout the inbox.
+- [x] Reuse the existing authenticated transcript, guest/Vera/staff messages and live refresh. Separation now requires the migration above.
+- Local validation: main TypeScript, eight homepage API/UI checks and two migration-source safeguards passed after separation. SQL has not been executed against a database; browser and deployed inbox verification remain pending.
+- [ ] Verify the deployed Webchat tab using an authorized website account and a real website guest conversation.
+
 ## Gmail relevance and staff routing (2026-09-30)
 
 - [x] Skip Google/system senders, automated/list messages and self-mail before guest import; do not block ordinary `gmail.com` guests.

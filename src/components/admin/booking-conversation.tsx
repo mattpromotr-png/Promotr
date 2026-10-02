@@ -148,7 +148,7 @@ export function BookingConversation({
               </p>
             )}
           </div>
-          {activeConversation.channel === "web_preview" ||
+          {activeConversation.channel === "webchat" ||
           activeConversation.channel === "sms" ||
           activeConversation.channel === "email" ? (
             <form action={sendConversationReply} className="mt-3 flex gap-2">
@@ -187,7 +187,7 @@ export function BookingConversation({
               <MessageCircle size={17} /> Open Instagram inbox
             </a>
           )}
-          {(activeConversation.channel === "web_preview" ||
+          {(activeConversation.channel === "webchat" ||
             activeConversation.channel === "sms" ||
             activeConversation.channel === "email") && (
             <p className="text-muted mt-2 text-xs">
