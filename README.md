@@ -2,6 +2,9 @@
 
 Promotr is a single-venue Instagram concierge demo for Promotr Nightclub. It answers grounded venue questions, qualifies booking intent, sends guests to a booking-inquiry form, and surfaces leads or human-handoff flags to an authenticated owner.
 
+<img width="1672" height="941" alt="PROMOTR_ Own the Night with AI" src="https://github.com/user-attachments/assets/08436399-c9af-45b8-9471-d27f8ffc8a25" />
+
+
 An inquiry is never a confirmed reservation. This MVP does not provide live availability, guaranteed entry, payments, CRM integration, or multi-venue onboarding.
 
 ## Local development 
